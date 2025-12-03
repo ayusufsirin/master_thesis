@@ -1,0 +1,40 @@
+\btypeout{Abstract Page}
+\pagestyle{fancy} 
+\fancyhf{}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0pt}      
+\renewcommand{\footrulewidth}{0pt}
+\begin{center}
+    \setlength{\parskip}{0pt}
+    {\fontsize{14}{16.8}{\textbf{ABSTRACT}}}\\
+    ~\\
+    ~\\
+    {\fontsize{14}{16.8}\bf \MakeUppercase{\ttitle}} \\
+    ~\\
+    ~\\
+    {\fontsize{14}{16.8}\bf \author \par}
+    {\fontsize{14}{16.8}\bf Master of Science}, {\fontsize{14}{16.8}\bf Department of Electrical and Electronics Engineering \par} 
+    {\fontsize{14}{16.8}\bf Supervisor: \supname}\\
+    %{\fontsize{14}{16.8}\bf 2nd Supervisor: \secsupname}\\
+    {\fontsize{14}{16.8}\bf January 2025, \ref{TotPages} pages} \\
+    ~\\
+    ~\\
+\end{center}
+
+
+{\addtocontents{toc}{\vspace{0em}}
+\addtotoc{ABSTRACT}} 
+
+This thesis aims to develop a 3D LiDAR and stereo camera based sensor fusion method that can be used for variaty of SLAM applications.
+
+This thesis aims to develop 3D LiDAR-based sensor fusion and mapping systems on a quadruped robot. The primary focus of the study is to address the deficiencies of the LiDAR Odometry and Mapping (LOAM) algorithm, which lacks variance estimation, and to integrate this algorithm with other sensors such as IMU and GPS to create a more reliable localization system. To this end, a new variance estimation method based on the Hausdorff Distance has been proposed to assess the accuracy of LOAM’s transformation matrices, and its performance has been analyzed using both indoor and outdoor datasets.
+
+Within the scope of this thesis, the variance estimation capabilities of the LOAM algorithm have been evaluated by comparing the mean cost and Hausdorff Distance metrics. The results demonstrate that the Hausdorff Distance, which computes the maximum distance between measurement and map point clouds, is more effective for variance estimation. The estimated variance has been utilized to achieve precise position estimation by fusing LiDAR, IMU, and GPS data using techniques based on the Minimum Variance Unbiased Estimator (MVUE). Additionally, a faster and more efficient method has been proposed for estimating the variance of transformations between two predictions of a Kalman Filter, replacing direct computation methods, and integrating this process into transformation estimation.
+
+As part of the study, a hardware system capable of collecting data in both indoor and outdoor environments has been designed, leading to the development of two platforms named Sensor System v1 (SSv1) and Sensor System v2 (SSv2). These systems incorporate Jetson-series single-board computers, Velodyne VLP-16 LiDAR, ZED stereo cameras, and INS sensors. The indoor dataset was collected using ArUco markers as reference points, while for outdoor tests, the development of a sensor system referencing an RTK system was initiated. Various methods, such as MVUE-based global position averaging and transformation averaging, were tested in both one-dimensional and three-dimensional sensor fusion experiments. The results produced lower errors compared to the input odometry data, indicating that the Hausdorff Distance is a suitable metric for variance estimation.
+
+In coupled methods, the mapping step of LOAM was integrated with the Kalman filter to incorporate position corrections into the optimization process. While this approach was partially successful in reducing error accumulation, it did not fully surpass the performance of IMU-based motion correction methods. Consequently, the Hausdorff Distance-based variance estimation has enhanced the reliability of LiDAR odometry and ensured consistency in sensor fusion. The developed hardware infrastructure provides an extensible system with multi-sensor data collection capabilities for both indoor and outdoor environments. Future work should explore different error metrics and integrate machine learning-based approaches.
+
+\textbf{Keywords:} LiDAR, LOAM, Variance Estimation, Sensor Fusion, Kalman Filter, SLAM, Localization, Mapping
+\clearpage
+

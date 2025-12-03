@@ -1,0 +1,105 @@
+\section{ARKAPLAN ÖZETİ} \label{Background}
+
+Bu bölümde, çalışmada kullanılan sensörler kısaca tanıtılmakta, derinlik algısının temel prensipleri özetlenmekte ve Papoulis–Gerchberg algoritmasının sensör füzyonu bağlamındaki yeri açıklanmaktadır. Böylece, ilerleyen bölümlerde ayrıntılı olarak sunulan yöntem için kavramsal bir altyapı oluşturulması amaçlanmaktadır.
+
+\subsection{Sensörler}
+
+Bu çalışmanın temelini, yoğun fakat gürültülü derinlik bilgisi sağlayan \textbf{stereo kamera} ile seyrek fakat yüksek hassasiyetli ölçümler sunan \textbf{LiDAR} sensörünün birlikte kullanımı oluşturmaktadır. Deneysel doğrulama aşamasında ise \textbf{IMU} ve \textbf{GNSS/RTK} verileri de yardımcı sensörler olarak kullanılmıştır.
+
+\subsubsection{Stereo Kamera}
+
+Stereo kamera sistemi, birbirine paralel ve aralarında sabit bir taban mesafesi (\emph{baseline}) bulunan iki kameradan oluşur. Her iki kameradan elde edilen görüntüler arasındaki yatay piksel kayması, yani \emph{parallaks} ya da \emph{disparite}, derinlik bilgisinin temel kaynağıdır. Kamera kalibrasyonu sonrasında odak uzaklığı $f$ ve taban mesafesi $B$ bilindiğinde, bir pikselin disparitesi $d$ kullanılarak sahnedeki karşılık gelen noktanın derinliği $Z$ yaklaşık olarak
+\begin{equation}
+    Z = \frac{f \, B}{d}
+\end{equation}
+ilişkisi ile hesaplanabilir.
+
+Pratikte stereo eşleştirme algoritmalarının; doku eksikliği, tekrarlayan desenler, perspektif bozulmalar ve görüntü gürültüsü gibi nedenlerle özellikle kenar bölgelerinde ve uzak mesafelerde hataya açık olduğu bilinmektedir. Bu durum, stereo kameradan elde edilen derinlik haritalarının \emph{yoğun} olmasına rağmen \emph{yüksek doğrulukta olmamasına} yol açar. Öte yandan, tutarlı bir görüntü geometrisi sunduğu için Papoulis–Gerchberg algoritmasının ``yoğun arka plan'' bileşeni için uygun bir temel teşkil eder.
+
+\subsubsection{LiDAR}
+
+LiDAR (Light Detection and Ranging), ortama gönderdiği lazer ışınlarının gidiş–dönüş süresini ölçerek mesafe tahmini yapan bir zaman–uçuş (Time-of-Flight) sensörüdür. Lazer kaynağından çıkan ışının sensörden hedefe gidip tekrar alıcıya dönmesi için geçen süre $t$ ölçüldüğünde, hedefe olan uzaklık $R$ aşağıdaki şekilde hesaplanır:
+\begin{equation}\label{TOF}
+    R = \frac{c \, t}{2}
+\end{equation}
+burada $c$ ışık hızıdır.
+
+Mekanik taramalı 3B LiDAR sistemlerinde, birden fazla lazer–alıcı çifti belirli yükseklik açıları ile şaft üzerine yerleştirilir ve şaftın döndürülmesiyle 360° azimut boyunca tarama yapılır. Elde edilen bir tam tarama \emph{çerçeve} (frame) olarak adlandırılır ve her çerçeve, LiDAR merkezli küresel koordinat sisteminde $R$, yatay açı $\alpha$ ve dikey açı $\omega$ ile ifade edilebilir. Bu koordinatlar, Kartezyen koordinat sistemine
+\begin{align}
+    X &= R \cos(\omega)\sin(\alpha) \label{Sph2Car_x}\\
+    Y &= R \cos(\omega)\cos(\alpha) \label{Sph2Car_y}\\
+    Z &= R \sin(\omega) \label{Sph2Car_z}
+\end{align}
+dönüşümü ile aktarılır. Burada $X$, $Y$ ve $Z$ sırasıyla ileri, sola ve yukarı eksenler boyunca konumu temsil etmektedir.
+
+LiDAR sensörleri, stereo kameraya kıyasla çok daha seyrek bir derinlik örneklemesi sunsa da, her bir ölçüm noktasının doğruluğu oldukça yüksektir. Bu özellik, LiDAR verisini stereo derinlik haritalarının iyileştirilmesinde güvenilir \emph{ankraj noktaları} olarak kullanılmaya uygun hâle getirmektedir.
+
+\subsubsection{IMU, GNSS ve RTK}
+
+Deneysel çalışmalarda, stereo–LiDAR füzyonunun sonuçlarını değerlendirmek ve SLAM altyapısı üzerinde test etmek amacıyla IMU ve GNSS/RTK verilerinden de yararlanılmıştır.
+
+\paragraph{IMU} (Atalet Ölçüm Birimi), ivmeölçer ve jiroskop bileşenleri ile aracın doğrusal ivmelenmesi ve açısal hızını ölçer. Bu bilgiler, kısa zaman aralıklarında konum ve yönelim değişimlerinin kestirilmesi için kullanılır.
+
+\paragraph{GNSS} tabanlı konumlandırma sistemleri (GPS, GLONASS, Galileo, BeiDou vb.) geniş alanlarda mutlak konum bilgisi sağlar; \paragraph{RTK} ise sabit bir referans istasyonundan alınan diferansiyel düzeltmelerle bu konum bilgisinin santimetre mertebesine kadar hassaslaştırılmasını mümkün kılar. Bu çalışma kapsamındaki mobil sensör düzeneği, hem ulusal TUSAGA-Aktif ağı hem de bölüm bünyesinde kurulan çoklu takımyıldız (GPS, GLONASS, Galileo, BeiDou) destekli RTK istasyonu ile test edilmiştir.
+
+Bu sensörler, doğrudan füzyon algoritmasının girdisi olmaktan ziyade, elde edilen derinlik haritalarının ve SLAM sonuçlarının doğrulanması için referans niteliğinde kullanılmıştır.
+
+\subsection{Derinlik Algısı ve Stereo–LiDAR Füzyonu}
+
+Otonom sistemlerde derinlik algısının geliştirilmesi için sıklıkla birden fazla sensör bir arada kullanılır. Stereo kameralar sahnenin her pikseli için derinlik tahmini üretebilirken, LiDAR sensörleri sınırlı sayıda ışın doğrultusunda yüksek doğruluklu mesafe ölçümü yapar. Bu iki sensör tipinin tamamlayıcı özellikleri şu şekilde özetlenebilir:
+
+\begin{itemize}
+    \item Stereo kamera: Yoğun, yüksek çözünürlüklü fakat gürültülü ve hataya açık derinlik haritası.
+    \item LiDAR: Seyrek örneklemeli fakat yüksek güvenilirlikte mutlak derinlik ölçümleri.
+\end{itemize}
+
+Literatürde stereo–LiDAR füzyonu için önerilen yöntemlerin önemli bir kısmı, derin sinir ağları kullanarak LiDAR ölçümlerini stereo görüntülerle birleştirmekte ve sonuçta bir ``öğrenilmiş'' derinlik haritası üretmektedir. Bu tür yaklaşımlar yüksek doğruluk sunmakla birlikte, büyük veri kümeleri ile eğitim gerektirmeleri ve görece yüksek hesaplama maliyetleri nedeniyle gerçek zamanlı gömülü sistemlerde her zaman pratik değildir.
+
+Bu tezde ise, herhangi bir eğitim sürecine ihtiyaç duymayan, deterministik ve hesaplama açısından daha hafif bir füzyon yaklaşımı ele alınmaktadır. Önerilen yöntem, stereo derinlik haritasını \emph{yoğun arka plan}, LiDAR ölçümlerini ise \emph{yüksek güvenilirlikli ankraj noktaları} olarak kabul ederek, bu iki veri kaynağını yinelemeli bir iyileştirme süreciyle birleştirir.
+
+\subsection{Papoulis–Gerchberg Algoritması}
+
+Papoulis–Gerchberg (PG) algoritması, band-sınırlı sinyallerin eksik veya bozulmuş örneklerden yeniden oluştulması için kullanılan yinelemeli bir sinyal işleme yöntemidir. Temel fikir, sinyal üzerinde iki farklı alanda (örneğin zaman/uzay ve frekans alanı) bilinen kısıtların art arda uygulanmasıdır.
+
+Genel olarak algoritma şu iki adımdan oluşur:
+\begin{enumerate}
+    \item Uzay (veya görüntü) alanında bilinen örneklerin zorlanması (known samples enforcement),
+    \item Frekans alanında band-sınırlılık veya benzeri spektral kısıtların uygulanması.
+\end{enumerate}
+
+Bu iki adım, $k$ indeksli yinelemeler boyunca yinelenir ve sinyal $\mathbf{x}^{(k)}$ aşağıdaki formda güncellenir:
+\begin{equation}
+    \mathbf{x}^{(k+1)} = \mathcal{P}_{\text{uzay}}\bigl( \mathcal{F}^{-1} \bigl( \mathcal{P}_{\text{frekans}} ( \mathcal{F}(\mathbf{x}^{(k)}) ) \bigr) \bigr)
+\end{equation}
+burada $\mathcal{P}_{\text{uzay}}$ uzay alanındaki bilinen örnekleri zorlayan işlemciyi, $\mathcal{P}_{\text{frekans}}$ ise frekans bandı kısıtını temsil eden operatörü, $\mathcal{F}$ ve $\mathcal{F}^{-1}$ ise ileri ve ters Fourier dönüşümlerini göstermektedir. 
+% TODO: Bu denklemi kendi notasyonuna göre yeniden yazıp gerekirse alt bileşenlerini aç.
+
+Görüntü tamamlama (image inpainting), süper çözünürlük ve kayıp veri doldurma gibi uygulamalarda PG algoritmasının farklı varyantları kullanılmaktadır. Bu tezde, algoritma ilk kez \emph{stereo–LiDAR derinlik füzyonu} problemi için uyarlanarak, stereo derinlik haritasının LiDAR ankraj noktaları yardımıyla yinelemeli olarak iyileştirilmesinde kullanılmaktadır.
+
+\subsection{PG Tabanlı Stereo–LiDAR Füzyonu İçin İşlem Hattı}
+
+Bu çalışmada önerilen yöntem, PG algoritmasının klasik formundan yola çıkılarak aşağıdaki temel aşamalar etrafında kurgulanmıştır:
+
+\begin{enumerate}
+    \item \textbf{Ön İşleme:} 
+    Stereo kameradan elde edilen disparite haritası derinlik haritasına dönüştürülür ve uygunsa filtrelenir. LiDAR nokta bulutu, kamera koordinat sistemine taşınır ve pinhole kamera modeli ile derinlik çerçevesine projeksiyon yapılarak tek kanallı bir LiDAR derinlik imgesi elde edilir.
+    % TODO: Burada kullandığın kalibrasyon ve projeksiyon denklemlerini (iç/dış parametre matrisleri) ekleyebilirsin.
+    
+    \item \textbf{Maskeleme ve Veri Zenginleştirme:}
+    Stereo derinlik haritasındaki boş veya düşük güvenilirlikli bölgeler için stereo maske oluşturulur; LiDAR projeksiyonunda veri olmayan noktalar için de LiDAR null maskesi tanımlanır. İstenirse önceki LiDAR çerçeveleri kullanılarak tarihçeye dayalı bir doldurma (history-based infill) yapılabilir.
+
+    \item \textbf{Papoulis–Gerchberg Yinelemeleri:}
+    Stereo derinlik haritası yoğun arka plan, LiDAR derinlik imgesi ise yüksek güvenilirlikli nokta kümesi olarak kabul edilir. Her yinelemede:
+    \begin{itemize}
+        \item Uzay alanında LiDAR ölçümleri sabitlenir, stereo derinlik değerleri LiDAR ankrajları ile tutarlı olacak şekilde güncellenir,
+        \item Frekans alanında, yüksek frekans bileşenlerini mümkün olduğunca koruyup orta frekans bölgesini bastıran bir filtreleme uygulanır (özellikle kenar keskinliği için önemlidir).
+        % TODO: Kullandığın filtreyi (örneğin bant-reject veya low-pass filtre) matematiksel olarak tanımlayabilirsin.
+    \end{itemize}
+
+    \item \textbf{Art İşleme:}
+    Yinelemeler sonucunda elde edilen derinlik haritası, stereo ve LiDAR maskeleri kullanılarak tutarlılık açısından kontrol edilir; düşük güvenilirlikli bölgeler elenir, gerekli durumlarda yumuşatma (smoothing) ve kenar keskinleştirme adımları uygulanır.
+\end{enumerate}
+
+Bu işlem hattı, derin öğrenme tabanlı modellere kıyasla daha düşük hesaplama maliyetiyle çalışabilen, fakat LiDAR doğruluğunu stereo derinlik haritalarına etkin bir biçimde aktarabilen deterministik bir füzyon çerçevesi sunmaktadır. İlerleyen bölümlerde, bu genel yapı ayrıntılandırılacak ve hem KITTI veri seti hem de kurulan mobil sensör düzeneği üzerinden elde edilen sonuçlarla desteklenecektir.
+
+\pagebreak

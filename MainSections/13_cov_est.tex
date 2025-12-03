@@ -1,0 +1,152 @@
+\section{LOAM KOVARYANS KESTİRİMİ} \label{cov_est}
+
+Varyans ve yanlılık (bias) bir kestirimin doğruluğunu ölçümlemek için kullanılan iki niteliktir. Varyans, yapılan her bir kestirimin ortalama etrafında ne kadar dağıldığını gösterir. Yanlılık ise ortalama bir kestirimin gerçek değerden sistematik olarak ne kadar saptığını gösterir. Şekil (\ref{fig:olympics})'de bu iki özelliğin farkını görebiliriz. Şekil (\ref{fig:olympics}.a)'da yapılan atışlar merkez etrafında geniş bir dağılım gösterirken, Şekil (\ref{fig:olympics}.b)'de merkezin daha altında bir nokta etrafında birbirine çok daha yakın atışlar görülebilir. Bunlardan ilki yüksek varyans düşük yanlılığa, ikincisi ise düşük varyans yüksek yanlılığa örnektir. Tüm atışlar yapıldıktan sonra aldıkları puanlar ise serilerinin doğruluğu olarak değerlendirilebilir. 
+
+\begin{figure}[!htb]
+    \centering
+    % Subfigure (a)    
+    \begin{subfigure}
+        \centering
+        \begin{minipage}{0.35\textwidth}
+            \centering
+            % Table
+            \begin{tabular}{|c|c|c|c|}
+                \hline
+                \textbf{No} & \textbf{Skor} & \textbf{No} & \textbf{Skor} \\ \hline
+                11 & 9 & 16 & 10 \\ \hline
+                12 & 10 & 17 & 10 \\ \hline
+                13 & 10 & 18 & 10 \\ \hline
+                14 & 10 & 19 & 10 \\ \hline
+                15 & 10 & 20 & 9 \\ \hline
+            \end{tabular}
+        \end{minipage}%
+        \hspace{0.05\textwidth}
+        \begin{minipage}{0.35\textwidth}
+            \centering
+            % Image
+            \includegraphics[width=\textwidth]{Figures/mikec_s2.png} 
+        \end{minipage}
+        \caption*{(a) D. Mikec Ön eleme S2 sonuçları. Toplam 98 puan.}
+    \end{subfigure}
+
+    \vspace{1em} % Add vertical space between subfigures
+
+    % Subfigure (b)
+    \begin{subfigure}
+        \centering
+        \begin{minipage}{0.35\textwidth}
+            \centering
+            % Table
+            \begin{tabular}{|c|c|c|c|}
+                \hline
+                \textbf{No} & \textbf{Skor} & \textbf{No} & \textbf{Skor} \\ \hline
+                1 & 10 & 6 & 10 \\ \hline
+                2 & 10 & 7 & 9 \\ \hline
+                3 & 10 & 8 & 10 \\ \hline
+                4 & 10 & 9 & 10 \\ \hline
+                5 & 10 & 10 & 10 \\ \hline
+            \end{tabular}
+        \end{minipage}%
+        \hspace{0.05\textwidth}
+        \begin{minipage}{0.35\textwidth}
+            \centering
+            % Image
+            \includegraphics[width=\textwidth]{Figures/dikec_s1.png} 
+        \end{minipage}
+        \caption*{(b) Y. Dikeç Ön Eleme S1 sonuçları. Toplam 99 puan.}
+    \end{subfigure}
+
+    \caption[2024 Paris Olimpiyatları 10 metre Havalı Tabanca kategorisi ön eleme müsabakası sonuçları.]{\centering2024 Paris Olimpiyatları 10 metre Havalı Tabanca kategorisi \\ ön eleme müsabakasında alınan iki sonuç.\cite{olympics}}
+    \label{fig:olympics}
+\end{figure}
+
+Doğruluk, yanlılık ve varyans arasındaki matematiksel ilişki ise Denklem (\ref{eq:var_bias})'de verilmiştir. Buradan da görülebileceği üzere, hataların karesinin ortalaması (MSE - Mean Squared Error), kestirimin varyansı ile koreledir ve kestirimin yanlılığı azaldıkça bu korelasyon artmaktadır. Ancak buradaki sorun, sistemin gerçek değeri, gerçek zamanlı olarak bilinemediği için hatayı tam olarak bilmek gerçek zamanlı olarak mümkün değildir. Öte yandan sistemde gerçek zamanlı olarak ölçebileceğimiz çeşitli hata metrikleri vardır ve bu metriklerin sonuçlarının, hataların karesinin ortalaması ile korelasyona sahip olması doğaldır. Bu nedenle çalışma süresince varyans kestirimi için iki farklı metriğin başarımı incelenmiştir.
+
+\begin{figure}[!htb]
+\begin{align}\label{eq:var_bias}
+    \textbf{MSE} &= \mathbb{E}[\|y-\hat{y}\|^2] \nonumber\\
+    &= \mathbb{E}[\|(y - \mathbb{E}[\hat{y}]) + (\mathbb{E}[\hat{y}]-\hat{y})\|^2] \nonumber\\
+    \nonumber\\
+    \text{Varsayalım ki,}\quad \mathbf{A} &= y - \mathbb{E}[\hat{y}], \quad \mathbf{B} = \mathbb{E}[\hat{y}]-\hat{y} \nonumber\\
+     \textbf{MSE} &= \mathbb{E}[\|\mathbf{A} + \mathbf{B}\|^2] \nonumber\\
+     &= \mathbb{E}[\|\mathbf{A}\|^2 + 2\mathbf{A}^T\mathbf{B} + \|\mathbf{B}\|^2]\nonumber\\
+     &= \mathbb{E}[\|\mathbf{A}\|^2] + 2\mathbb{E}[\mathbf{A}^T\mathbf{B}] + \mathbb{E}[\|\mathbf{B}\|^2]\nonumber\\
+     \nonumber\\
+     \mathbb{E}[\mathbf{A}^T\mathbf{B}] &= \mathbb{E}[(y - \mathbb{E}[\hat{y}])^T (\mathbb{E}[\hat{y}]-\hat{y})]\nonumber\\
+     &= \mathbb{E}[y^T \mathbb{E}[\hat{y}] - y^T \hat{y} - \mathbb{E}[\hat{y}]^T \mathbb{E}[\hat{y}] + \mathbb{E}[\hat{y}]^T \hat{y}]\nonumber\\
+     &= \underbrace{\mathbb{E}[y]^T\mathbb{E}[\hat{y}] - \mathbb{E}[y]^T\mathbb{E}[\hat{y}]}_{=0} - \underbrace{\mathbb{E}[\mathbb{E}[\hat{y}]^T\mathbb{E}[\hat{y}]] - \mathbb{E}[\mathbb{E}[\hat{y}]^T\mathbb{E}[\hat{y}]]}_{=0}\nonumber\\
+     &= 0\nonumber\\
+     \nonumber\\
+     \text{O zaman,}\quad \textbf{MSE} &= \mathbb{E}[\|\mathbf{A}\|^2] + \mathbb{E}[\|\mathbf{B}\|^2]\nonumber\\
+     &= \mathbb{E}[\|y - \mathbb{E}[\hat{y}]\|^2] + \mathbb{E}[\|\mathbb{E}[\hat{y}]-\hat{y}\|^2]\nonumber\\
+     \textbf{MSE} &= \|\textit{Yanlılık}(\hat{y})\|^2 + \textit{Var}(\hat{y})
+\end{align}
+\end{figure}
+
+\subsection{Kullanılan Hata Metrikleri}
+\subsubsection{Ortalama Maliyet}\label{sec:avr_cost}
+
+LiDAR odometrisi adımında yapılan kestirimin başarısı, bu adımda optimizasyonu yapılan maliyet fonksiyonunun en son değeri ile ilişkilidir. Bu nedenle buradaki hatayı varyans kestirimi yapmak için kullanabiliriz. Ancak ortamda bulunan karşılıklılık sayısı arttıkça toplam maliyet artar, bu nedenle toplam maliyetin normalize edilmesi gerekir. Sonuç olarak ortalama maliyet metriğinin sonucu Denklem (\ref{eq:avr_cost})'deki gibi elde edilir. Bu yöntemin dezavantajı ise, yalın LiDAR odometrisi için bir sonuç verse de, haritalama adımında yapılan iyileştirmeyi varyans kestirimi problemine doğrudan dahil edememektedir.
+
+\begin{equation}\label{eq:avr_cost}
+    \quad d_\mathcal{O} = \sqrt{\frac{ \sum^N \Big( d_\mathcal{E}^2 + d_\mathcal{H}^2 \Big)}{N}}
+\end{equation}
+
+\subsubsection{Hausdorff Mesafesi}\label{sec:hausdorff_dist}
+Hausdorff mesafesi, iki nokta bulutu arasındaki maksimum mesafeyi ölçer. Kısaca, önce her bir nokta için, diğer nokta kümesinde bu noktaya en yakın noktaya olan mesafeyi ölçer ve bu değerlerden en büyüğünün sonucunu alır. Denklem (\ref{eq:Hausdorfff_dist}) şeklinde hesaplanır. \(d(x,y)\), problem tanımına göre Euclid ya da Manhattan gibi herhangi bir mesafe fonksiyonu olabilir. Eğer iki nokta bulutu birbirinin aynısı ve mükemmel bir şekilde hizalanmışsa, tüm noktalar için en yakın nokta mesafesi 0 olduğu için, Hausdorff mesafesi 0 değerini verir. 
+
+\begin{equation}\label{eq:Hausdorfff_dist}
+    d_H(\mathcal{X},\mathcal{Y}) = \max\left\{
+    \sup_{x\in\mathcal{X}} \inf_{y\in\mathcal{Y}} d(x,y),\sup_{y\in\mathcal{Y}} \inf_{x\in\mathcal{X}} d(y,x) \right\}
+\end{equation}
+
+\subsection{Dönüşüm Varyansından Global Varyans Hesaplama} \label{sec:global_var}
+
+LOAM, Kısım \ref{sec:loam}'de açıklandığı ve Denklem (\ref{loam_lidar_odometry})'de de görülebileceği üzere, pozisyon kestirimini daha önceki kestirimleri referans alarak yapar ancak LiDAR odometrisi kısmı için hesaplanan dönüşüm, daha önceki dönüşüm kestirimlerinden tamamen bağımsızdır. Bu duruma olasılık perspektifinden bakarsak Denklem (\ref{eq:var_update_series})'i elde ederiz. Denklemin tek bir aşamasının 1 boyutta görselleştirilmiş hali Şekil (\ref{fig:var_update})'de görülebilir.
+
+\begin{equation}\label{eq:var_update_series}
+    p(\widehat{T}_k^0)=\ast|_{n=1}^k p(\widehat{T}_n^{n-1})
+\end{equation}
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 11 /12}
+        \includegraphics{Figures/gauss_plot.pdf}
+    \end{adjustbox}
+    \caption[LOAM Hareket Güncellemesi]{LOAM Hareket Güncellemesi. Gaussian 2'nin (kırmızı), \(\widehat{T}_n^{n-1}\) dönüşüm kestirimi olduğunu varsayalım. bu kestirim, önceki kestirimlerden bağımsızdır. Konvüsyon illüstrasyonunda, bu dönüşümün, sıfırdan farklı bir varyansa sahip pozisyona (mavi) eklenmesi sürecini canlandırabiliriz. Konvolüsyona Uğramış Sonuç (yeşil) ise kestirim eklendikten sonra elde edilen yeni pozisyon ve varyansını göstermektedir.}
+    \label{fig:var_update}
+\end{figure}
+
+Eğer herhangi bir dönme hareketi yapmadan, sadece 3 Boyutlu Euclid uzayında çalışıyor olsaydık (\(\widehat{T}_k^{k-1}=  \left[\begin{smallmatrix}
+I_{3 \times 3} & \widehat{t}_k^{k-1} \\
+0_{1 \times 3} & 1
+\end{smallmatrix}\right]\)), güncel pozisyon varyansını Denklem (\ref{eq:var_update})'deki gibi elde edebilirdik. Olasılık dağılımının Gauss dağılımı (\(p(\widehat{T}_k^{k-1}) = \mathcal{N}(t_k, \sigma_k^2)\)) olduğunu varsayarsak, pozisyon ve varyansı, Denklem (\ref{eq:gauss_pos_update}) ve (\ref{eq:gauss_var_update})'deki gibi hesaplayabiliriz.
+
+\begin{equation}\label{eq:var_update}
+    p(\widehat{T}_k^0) = p(\widehat{T}_{k-1}^0)\ast p(\widehat{T}_k^{k-1})
+\end{equation}
+\begin{equation}\label{eq:gauss_pos_update}
+    t_k^0 = t_{k-1}^0 + t_k
+\end{equation}
+\begin{equation}\label{eq:gauss_var_update}
+    {\sigma_k^0}^2 = {\sigma_{k-1}^0}^2 + {{\sigma_k}}^2
+\end{equation}
+
+Eğer dönme hareketi mevcutsa (\(\widehat{T}_k^{k-1}=  \left[\begin{smallmatrix}
+{R_k^{k-1}}_{3 \times 3} & \widehat{t}_k^{k-1} \\
+0_{1 \times 3} & 1
+\end{smallmatrix}\right]\)), dönme hareketinin doğrusal bir operasyon olmaması nedeni ile bu hesap çok daha karmaşık bir hal alacaktır. Ancak özellikle LiDAR sensör merkezine uzak noktalarda maliyet fonksiyonu dönme hareketindeki değişimlere karşı daha hassastır. Bu nedenle, özellikle düşük hızlarda (yer değiştirmenin düşük olduğu durumlarda), dönme kestiriminin daha hassas sonuç verdiğini söyleyebiliriz. Bunun sonucunda LiDAR odometrisi için deterministik bir dönüş kestirimi yaptığımızı varsayarsak, Denklem (\ref{eq:gauss_pos_update}) ve (\ref{eq:gauss_var_update}), Denklem (\ref{eq:gauss_rot_pos_update}), (\ref{eq:gauss_rot_update}) ve (\ref{eq:gauss_rot_var_update}) formunu alır.
+
+\begin{equation}\label{eq:gauss_rot_pos_update}
+    \widehat{t}_k^0 = \widehat{t}_{k-1}^0 + \widehat{R}_{k-1}^0\  \widehat{t}_k
+\end{equation}
+\begin{equation}\label{eq:gauss_rot_update}
+    \widehat{R}_k^0 = \widehat{R}_{k-1}^0\ \widehat{R}_k^{k-1}
+\end{equation}
+\begin{equation}\label{eq:gauss_rot_var_update}
+    \sigma_k^{0^2} = {\sigma_{k-1}^{0^2}} + \widehat{R}_{k-1}^0\ {\sigma_k}^2\ {\widehat{R}_{k-1}^{0^T}}
+\end{equation}
+
+
+
+\pagebreak

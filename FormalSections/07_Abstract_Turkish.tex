@@ -1,0 +1,41 @@
+\btypeout{Abstract TR}
+\pagestyle{fancy} 
+\fancyhf{}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0pt}      
+\renewcommand{\footrulewidth}{0pt}
+\setcounter{page}{1}
+\begin{center}
+    \setlength{\parskip}{0pt}
+    {\fontsize{14}{16.8}{\textbf{ÖZET}}}\\
+    ~\\
+    ~\\
+    {\fontsize{14}{16.8}\bf \TURKISHTITLE} \\
+    ~\\
+    ~\\
+    {\fontsize{14}{16.8}\bf \author \par}
+    {\fontsize{14}{16.8}\bf Yüksek Lisans}, {\fontsize{14}{16.8}\bf \department \par} 
+    {\fontsize{14}{16.8}\bf Danışman: \supname}\\
+    %{\fontsize{14}{16.8}\bf Eş Danışman: Doç. Dr. Adı Soyadı }\\
+    {\fontsize{14}{16.8}\bf Ocak 2025, \ref{TotPages} sayfa} \\
+    ~\\
+    ~\\
+\end{center}
+
+
+{\addtocontents{toc}{\vspace{1em}}
+\addtotoc{ÖZET}} 
+
+Bu tez çalışması, dört bacaklı bir robot üzerinde 3D LiDAR tabanlı sensör füzyonu ve haritalama sistemlerinin geliştirilmesini hedeflemektedir. Çalışmanın temel odak noktası, LiDAR Odometrisi ve Haritalama (LOAM) algoritmasının varyans kestirimi yapamamasından kaynaklanan eksiklikleri gidermek ve bu algoritmayı IMU ve GPS gibi diğer sensörlerle entegre ederek daha güvenilir bir konumlandırma sistemi oluşturmaktır. Bu doğrultuda, LOAM algoritmasının dönüşüm matrislerinin doğruluğunu belirlemek için Hausdorff Mesafesi tabanlı yeni bir varyans kestirim yöntemi önerilmiş ve yöntemin performansı kapalı ve açık alan veri setleri üzerinde analiz edilmiştir.
+
+Tez kapsamında, LOAM algoritmasının varyans kestirimi için ortalama maliyet ve Hausdorff Mesafesi metrikleri karşılaştırılmış, Hausdorff Mesafesi’nin ölçüm ve harita nokta bulutları arasındaki maksimum mesafeyi hesaplayarak varyans tahmini yapmada daha etkili olduğu gösterilmiştir. Elde edilen varyans kestirimi, LiDAR, IMU ve GPS verilerini En Küçük Varyanslı Yansız Kestirici (MVUE) metoduna dayalı tekniklerle birleştirerek hassas bir pozisyon kestirimi sağlamak amacıyla kullanılmıştır. Ayrıca, Kalman Filtresinin iki tahmini arasındaki dönüşümün varyansını hesaplamak için doğrudan yapılan işlemler yerine daha hızlı ve etkin bir yöntem önerilmiş ve dönüşüm kestirimi sürecine entegre edilmiştir.
+
+Çalışma kapsamında, kapalı ve açık alanlarda veri toplayabilen bir donanım sistemi tasarlanmış ve Sensör Sistemi v1 (SSv1) ve Sensör Sistemi v2 (SSv2) olarak adlandırılan iki platform geliştirilmiştir. Bu sistemlerde Jetson serisi tek kart bilgisayarlar, Velodyne VLP-16 LiDAR, ZED stereo kameralar ve INS sensörleri kullanılmıştır. Kapalı alan veri seti, ArUco işaretleyiciler ile referans alınarak toplanırken, açık alan testleri için RTK sistemini referans alan sensör sisteminin geliştirilmesine başlanmıştır. Çalışmada, 1 boyutlu ve 3 boyutlu sensör füzyonu deneylerinde MVUE temelli global pozisyon ortalaması ve dönüşüm ortalaması gibi çeşitli metotlar test edilmiştir. Sonuçlar, girdi olarak verilen odometri verilerinden daha daha düşük hatalar üretmiştir. Bu durum, Hausdorff Mesafesinin, varyans kestirimi için uygun bir metrik olduğunu göstermektedir.
+
+Bağlaşık metotlarda, Kalman filtresi ile LOAM’ın haritalama adımı birleştirilerek optimizasyon sürecine pozisyon düzeltmeleri dahil edilmiştir. Bu yaklaşım, hata birikimini azaltmada kısmen başarılı olmuş, ancak IMU tabanlı kayma giderme yöntemlerinin performansını tam olarak geçememiştir. Sonuç olarak, Hausdorff Mesafesi tabanlı varyans kestirimi, LiDAR odometrisinin güvenilirliğini artırarak sensör füzyonunda tutarlılığı sağlamıştır. Geliştirilen donanım altyapısı, kapalı ve açık alanlarda çoklu sensör verisi toplama kapasitesiyle genişletilebilir bir sistem sunmaktadır. İleriki çalışmalar için farklı hata metriklerinin incelenmesi ve makine öğrenmesi tabanlı yöntemlerin entegrasyonu önerilmektedir.
+
+\textbf{Keywords:} LiDAR, LOAM, Varyans Kestirimi, Sensör Füzyonu, Kalman Filtresi, SLAM, Konumlandırma, Haritalama
+
+
+\clearpage
+

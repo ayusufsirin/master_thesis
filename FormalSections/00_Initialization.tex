@@ -1,0 +1,70 @@
+\usepackage{blindtext}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+% \usepackage{caption}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{rotating}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem,amssymb}
+\usepackage{times}
+\usepackage{tikz} 
+% \usepackage{pgfplots}
+\usepackage[space]{grffile}
+\usepackage{array} 
+\usepackage{pifont} 
+\usepackage{changepage} 
+\usepackage{commath}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{morefloats}
+% \usepackage{dblfloatfix}
+\usepackage[dvi]{totpages}
+\usepackage[tbtags]{mathtools}
+\usepackage[square, sort&compress,comma,numbers]{natbib}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat}
+\usepackage{xr}
+\usepackage{afterpage}
+
+\graphicspath{{./Figures/}} 
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\hypersetup{urlcolor=black, colorlinks=true} 
+\newcommand{\ie}{\textit{i}.\textit{e}. }
+\newcommand{\xmark}{\ding{55}}
+\usetikzlibrary{spy,calc,shapes,positioning}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+\newcommand*{\thesistitle}[1]{\def\ttitle{#1}}
+\newcommand*{\thesisTitleTurkish}[1]{\def\turkishTitle{#1}}
+\newcommand*{\THESISTITLETURKISH}[1]{\def\TURKISHTITLE{#1}}
+\newcommand*{\authors}[1]{\def\author{#1}}
+\newcommand*{\AUTHORS}[1]{\def\AUTHOR{#1}}
+\newcommand*{\supervisor}[1]{\def\supname{#1}}
+\newcommand*{\secSupervisor}[1]{\def\secsupname{#1}}
+\newcommand*{\thesisDate}[1]{\def\tdate{#1}}
+\newcommand*{\signDate}[1]{\def\sdate{#1}}
+\newcommand*{\university}[1]{\def\univname{#1}}
+\newcommand*{\UNIVERSITY}[1]{\def\UNIVNAME{#1}}
+\newcommand*{\department}[1]{\def\department{#1}}
+\newcommand*{\degree}[1]{\def\degreename{#1}}
+\newcommand*{\group}[1]{\def\groupname{#1}}
+\newcommand*{\GROUP}[1]{\def\GROUPNAME{#1}}
+\newcommand*{\faculty}[1]{\def\facname{#1}}
+\newcommand*{\FACULTY}[1]{\def\FACNAME{#1}}
+\newcommand*{\subject}[1]{\def\subjectname{#1}}
+\newcommand*{\keywordnames}[1]{\def\keywords{#1}}
+\newcommand*{\InstituteName}[1]{\def\InstituteName{#1}}
+\newcommand*{\CommitteeMemberA}[1]{\def\CommitteeMemberA{#1}}
+\newcommand*{\CommitteeMemberB}[1]{\def\CommitteeMemberB{#1}}
+\newcommand*{\CommitteeMemberC}[1]{\def\CommitteeMemberC{#1}}
+\newcommand*{\CommitteeMemberD}[1]{\def\CommitteeMemberD{#1}}
+\newcommand*{\InstituteDirector}[1]{\def\InstituteDirector{#1}}

@@ -1,0 +1,78 @@
+\section{GİRİŞ} \label{Introduction}
+{
+Otonom sistemlerin çevreyi doğru algılayabilmesi, güvenilir navigasyon kararları verebilmesi ve dinamik ortamlarda kararlı bir şekilde hareket edebilmesi için derinlik bilgisinin doğru ve yüksek çözünürlüklü bir biçimde elde edilmesi kritik bir gerekliliktir. Bu doğruluk genellikle birden fazla sensörden gelen verinin birleştirilmesiyle, yani sensör füzyonu ile sağlanmaktadır. Stereo kameralar yoğun fakat düşük hassasiyetli derinlik bilgisi sunarken, LiDAR sensörleri seyrek fakat yüksek doğrulukta ölçümler sağlar. Bu iki sensörün tamamlayıcı yapıları, derinlik tahmininin geliştirilmesinde güçlü bir fırsat sunmakla birlikte, farklı çözünürlükte ve farklı dağılımlardaki verilerin bir araya getirilmesi teknik olarak zorlu bir problemdir.
+
+Son yıllarda derinlik tahmini ve sensör füzyonunda yapay zekâ ve derin öğrenme tabanlı yöntemler yaygınlaşmış olsa da, bu yöntemlerin yüksek hesaplama gücü gerektirmesi ve büyük etiketli veri setlerine ihtiyaç duyması gerçek zamanlı otonom sistemlerde uygulanabilirliklerini sınırlamaktadır. Bu nedenle, düşük işlem gücüyle çalışabilen, deterministik yapıda ve eğitime ihtiyaç duymayan yöntemlere duyulan ihtiyaç artmaktadır.
+
+Bu tez kapsamında, söz konusu gereksinimlere yönelik olarak Papoulis-Gerchberg algoritmasına dayalı yinelemeli bir Stereo-LiDAR füzyon yöntemi önerilmektedir. Papoulis-Gerchberg algoritması, literatürde genellikle sinyal tamamlama ve süper çözünürlük problemlerinde kullanılan yinelemeli bir yöntemdir. Bu çalışmada ise ilk kez stereo derinlik haritalarının LiDAR ölçümleriyle iyileştirilmesi amacıyla kullanılmaktadır. Önerilen yaklaşımda LiDAR ölçümleri, stereo görüntülerden elde edilen yoğun derinlik haritalarının doğruluğunu artırmak üzere ankraj noktaları olarak kullanılmakta; algoritmanın yinelemeli yapısı sayesinde hem çözünürlük hem de kenar/nesne sınırı keskinliği önemli ölçüde geliştirilmektedir.
+
+Tezde sunulan yöntem, derin öğrenme tabanlı modellere kıyasla daha düşük hesaplama maliyetine sahip olduğu için özellikle mobil robotlar, insansız kara araçları veya gömülü sistemlerde çalışan hafif mimarili otonom platformlar için uygun bir çözümdür. Ayrıca, yöntemin parametrik yapısı sayesinde gerçek zamanlı çalışmaya yönelik ayarlamalar yapılabilmekte ve hesaplama yükü–performans dengesi kullanıcı tarafından kontrol edilebilmektedir.
+
+Bu çalışma, yalnızca teorik bir sensör füzyonu tekniği sunmakla kalmamakta; aynı zamanda KITTI gibi yaygın benchmark veri setleri üzerinde test edilerek mevcut yöntemler (örneğin FastFusion) ile karşılaştırılmakta ve performans kazanımları detaylı bir şekilde ortaya konmaktadır. Buna ek olarak, saha testleri için oluşturulan ZED Stereo Kamera, Velodyne VLP16 LiDAR ve NVIDIA Jetson Nano bileşenlerinden oluşan taşınabilir bir sensör platformu ile gerçek veri toplanmış; böylece önerilen yöntemin gerçek dünyadaki çalışma koşullarındaki etkisi de analiz edilmiştir.
+}
+
+\subsection{Tezin Kapsamı}
+
+Bu tez, stereo kamera ve LiDAR sensörlerinden elde edilen verilerin Papoulis-Gerchberg algoritması aracılığıyla füzyonunu ele almakta ve derinlik tahmin performansının artırılmasını amaçlamaktadır. Çalışmanın kapsamı aşağıdaki başlıklar çerçevesinde tanımlanmıştır:
+
+\subsubsection{Stereo ve LiDAR Verilerinin Matematiksel Modellemesi}
+
+Stereo kameradan elde edilen yoğun fakat gürültülü derinlik haritaları ile LiDAR sensörünün seyrek fakat yüksek doğruluklu ölçümleri ortak bir geometri üzerinde modellenmiştir. Veri setlerinin uzaysal uyumluluğu sağlanmış, derinlik görüntülerinin işlenebilir hâle gelmesi için ön işlem adımları uygulanmıştır.
+
+\subsubsection{Papoulis-Gerchberg Algoritmasının Füzyona Uyarlanması}
+
+Algoritmanın görüntü tamamlama problemindeki geleneksel kullanımından farklı olarak, stereo-LiDAR füzyonuna uygun hâle getirilmesi için özel maskeleme stratejileri, frekans-domain filtreleme adımları ve yinelemeli iyileştirme mekanizmaları tasarlanmıştır.
+
+\subsubsection{Yinelemeli Derinlik İyileştirme Yapısı}
+
+LiDAR verileri ankraj noktaları olarak kullanılmış, stereo derinlik haritaları bu bilgiler ışığında tekrar tekrar güncellenmiştir. Amaç, hem çözünürlüğün hem de derinlik doğruluğunun artırılmasıdır.
+
+\subsubsection{Benchmark Veri Setleri ile Deneysel Analiz}
+
+Önerilen yöntem KITTI veri seti üzerinde değerlendirilmiş; özellikle kenar netliği, nesne sınırı tanımları ve derinlik doğruluğu bakımından literatürdeki yöntemlerle karşılaştırılmıştır.
+
+\subsubsection{Gerçek Dünya Deneyleri için Sensör Platformu Kullanımı}
+
+ZED stereo kamera ve Velodyne VLP16 LiDAR sensörlerini içeren mobil bir platformdan elde edilen gerçek veriler ile yöntemin performansı test edilmiştir. Titreşim ve saha koşullarının etkisini görmek için platform bir bacaklı robot üzerine yerleştirilmiştir.
+
+\subsubsection{Yöntemin Uygulanabilirliğinin Değerlendirilmesi}
+
+Önerilen tekniğin gerçek zamanlı otonom navigasyon sistemlerinde çalışabilirliği, hesaplama maliyeti, ölçeklenebilirliği ve sensör çeşitliliğine uyarlanabilirliği tartışılmıştır.
+
+\subsection{Katkılar}
+
+Bu tez, stereo kamera ve LiDAR sensörlerinin füzyonuna yönelik literatüre hem teorik hem de uygulamalı düzeyde çeşitli özgün katkılar sunmaktadır. Çalışmanın başlıca katkıları aşağıdaki şekilde özetlenebilir:
+
+\begin{itemize}
+    \item \textbf{Papoulis–Gerchberg algoritmasının ilk kez Stereo–LiDAR füzyonuna uyarlanması:} Tez kapsamında, literatürde çoğunlukla sinyal tamamlama ve süper çözünürlük problemlerinde kullanılan Papoulis–Gerchberg algoritması stereo derinlik haritalarının LiDAR ölçümleri ile iyileştirilmesi amacıyla yeniden yapılandırılmış ve bu bağlamda özgün bir füzyon yaklaşımı geliştirilmiştir. Bu yönüyle çalışma, sensör füzyonu alanına teorik bir yenilik kazandırmaktadır.
+    
+    \item \textbf{Stereo derinlik haritalarının yinelemeli biçimde iyileştirilmesine yönelik yeni bir füzyon çerçevesi önerilmesi:} Önerilen yöntem, LiDAR ölçümlerini ankraj noktaları olarak kullanarak stereo derinlik haritalarının çözünürlüğünü, doğruluğunu ve özellikle nesne sınırı keskinliğini artıran yinelemeli bir iyileştirme süreci sunmaktadır. Bu süreç, mevcut yöntemlerde karşılaşılan kenar bozulmalarının azaltılmasına katkı sağlamaktadır.
+
+    \item \textbf{Gerçek veri toplanması için çok sensörlü mobil bir platformun oluşturulması:} ZED stereo kamera, Velodyne VLP16 LiDAR ve NVIDIA Jetson Nano’dan oluşan taşınabilir bir sensör sistemi kurulmuş; bu platform titreşim ve hareket içeren bacaklı bir robot üzerine entegre edilerek gerçek dünyada kullanılabilir bir veri toplama altyapısı geliştirilmiştir. Böylece, yöntem hem sentetik hem de gerçek verilerle değerlendirilebilir hâle getirilmiştir.
+    
+    \item \textbf{Stereo–LiDAR verilerinin uyumu için eksik veri maskeleme, upsampling ve alan eşleştirme adımlarının optimize edilmesi:} Tezde, LiDAR'ın dar dikey tarama açısı ile stereo kameranın geniş görüntü alanı arasındaki farkın giderilmesi için özgün bir ön işleme hattı oluşturulmuş; maskeleme, yeniden örnekleme ve stereo boşluk doldurma adımları sistematik bir biçimde tasarlanmıştır.
+    
+    \item \textbf{Derin öğrenme gerektirmeyen, düşük işlem gücüyle çalışabilen bir çözüm geliştirilmesi:} Güncel yöntemlerin çoğunda görülen yüksek hesaplama maliyetine karşın, önerilen füzyon yapısının deterministik ve hesaplama açısından hafif olması gerçek zamanlı sistemlerde uygulanabilirliği artırmış; böylece literatürdeki yoğun DNN temelli yaklaşımlara etkili bir alternatif sunulmuştur.
+    
+    \item \textbf{Benchmark veri setleri (KITTI) üzerinde kapsamlı performans değerlendirmesi:} Geliştirilen yöntem, KITTI veri seti üzerinde kenar keskinliği, nesne sınırı doğruluğu ve genel derinlik tahmin hatası açısından mevcut yöntemlerle karşılaştırılmış ve özellikle ince detayların korunmasında üstün performans sergilediği gösterilmiştir.
+    
+    \item \textbf{Gerçek veri ile çevrim dışı değerlendirmeler sonucunda uygulama başarımının ortaya konması:} Kurulan sensör sistemiyle toplanan gerçek veriler üzerinde yapılan denemelerde, önerilen füzyon yönteminin çeşitli sensör kaynaklarından gelen ayrık derinlik bilgilerini daha stabil ve düşük hatalı bir şekilde birleştirebildiği deneysel olarak doğrulanmıştır.
+\end{itemize}
+
+\subsection{Organizasyon}
+
+Tezin organizasyonu aşağıdaki gibidir:
+
+\begin{itemize}
+    \item Kısım (1)'de konuya giriş yapılmıştır. Ayrıca tez konusundaki amacımız ve motivasyonumuz yine burada belirtilmiştir.
+    \item Kısım (2)'de tezde kullanılan matematik ve algoritmalar ile ilgili genel bir arka plan bilgisi verilmiştir.
+    \item Kısım (3)'te literatürde bu konu ile ilgili daha önce yapılan çalışmalar anlatılmış, bu çalışmaların varsa tez ile ilgili kısımları detaylandırılmıştır.
+    \item Kısım (4)'te tez sürecinde donanım üzerinde yapılan çalışmalar ve bununla elde edilen veri seti anlatılmıştır.
+    \item Kısım (5)'te varyans kestirimi yaparken kurduğumuz mantık ve bunun için kullandığımız metotlar açıklanmıştır.
+    \item Kısım (6)'da topladığımız veriseti üzerinde uyguladığımız sensör füzyonu metotları anlatılmış ve elde edilen sonuçlar gösterilmiştir.
+    \item Kısım (7)'de CitrusFarm veriseti üzerinde PG ön işlemeli ve ön işlemesiz SLAM sonuçları karşılaştırılmış ve elde edilen sonuçlar gösterilmiştir.
+    \item Kısım (8)'de denenen bağlaşık metotlar açıklanmış ve sonuçları paylaşılmıştır. Ayrıca ileride bu konuda yapılabilinecek çalışmalar bu bölümde tartışılmıştır.
+    \item Kısım (9)'da çalışma soncunda elde edilen sonuçlar değerlendirilmiştir.
+\end{itemize}
+
+\pagebreak

@@ -1,0 +1,250 @@
+\section{DONANIM ve VERİ TOPLAMA} \label{hw}
+
+Tez çerçevesinde kullanılan algoritmaları kendi veri setimiz üzerinden test edebilmek için bir veri toplama sistemi kurduk. Şekil (\ref{fig:ssv12})'de solda bu istemin ilk versiyonu Sensör Sistemi v1 (SSv1), sağda ise ikinci versiyonu Sensör Sistemi v2 (SSv2) görülebilir. SSv2'nin mekanik tasarımı bitmiş olup üretimi devam etmektedir.
+
+SSv1 ile kapalı alan verisetini topamakla birlikte TUSAGA-Aktif sitemini kullanarak referans pozisyon elde etmeye çalıştığımız ilk açık alan testlerini de gerçekleştirdik. Bu testler sırasında, bina ve ağaçların gökyüzünü kapatması nedeni ile sık sık bağlantı kopması problemleri ile karşılaşmamız nedeni ile daha fazla uydu ve ve bantta düzeltme yapan kendi RTK sistemimize geçene kadar açık alan veri seti hazırlamayı erteleme kararı aldık. 
+
+\begin{figure}[!htb]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+    \includegraphics[width=1\linewidth]{Figures/Hw/ss_v1.png}
+    \end{minipage}%
+    \hspace{0.05\textwidth}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/Hw/robot_render_small.png}
+    \end{minipage}
+    \caption{SSv1 (sol) ve SSv2 (sağ)}\label{fig:ssv12}
+\end{figure}
+
+
+
+
+\subsection{Donanım Elemanları}
+SSv1 ve SSv2, benzer görevleri yapan birimlere sahipken, versiyonlar arasında model değişiklikleri de yapılmıştır. Bunlar Tablo (\ref{tab:ssv1_vs_ssv2})'de görülebilir. Şekil (\ref{fig:ssv2_diagram})'de ise SSv2'nin blok diyagramı görülebilir.
+
+\begin{table}[!htb]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|p{4.5cm}|p{4.5cm}|}
+        \hline
+        \textbf{Özellikler}           & \textbf{SSv1}                    & \textbf{SSv2}                     \\ \hline
+        \textbf{Kullanım Şekli}      & Elde, Robot Üzerinde            & Robot Üzerinde                   \\ \hline
+        \textbf{Tek Kart Bilgisayar} & Jetson Nano 4GB                 & Jetson Orin Nx 16GB              \\ \hline
+        \textbf{LiDAR}               & Velodyne VLP-16                 & Velodyne VLP-16                  \\ \hline
+        \textbf{Stereo Kamera}       & Zed                             & Zed2                             \\ \hline
+        \textbf{INS1}                & ArNav S1A                       & ArNav S1A                        \\ \hline
+        \textbf{INS2}                & -                               & XSens MTI-7                      \\ \hline
+        \textbf{RTK}                 & TUSAGA-Aktif                    & Hacettepe EE                     \\ \hline
+        \textbf{Odometri}            & -                               & Unitree Go1 Edu                  \\ \hline
+    \end{tabular}%
+    }
+    \caption[SSv1 ve SSv2 Birimlerinin Karşılaştırılması]{SSv1 ve SSv2 Birimlerinin Karşılaştırılması.}
+    \label{tab:ssv1_vs_ssv2}
+\end{table}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{Figures//Hw/hw_diagram.png}
+    \caption{SSv2 blok diyagramı.}
+    \label{fig:ssv2_diagram}
+\end{figure}
+
+\subsubsection{Tek Kart Bilgisayar}
+Sensör sisteminde, sensörlerin kontrolü ve sensörlerden gelen verileri kaydetmek için tek kart bilgisayar kullanılmıştır. Versiyon 1'de kapalı ortam veri seti toplanırken bu işlem Jetson Nano ile yapılmıştır. Ancak, daha sonra Jetson Xavier NX'e geçilmiştir. Bunun nedenleri arasında;
+\begin{itemize}
+    \item Düşük bellek miktarı nedeniyle derleme sürecinde yaşanan sıkıntılar,
+    \item microSD hafıza kartının veri yazma hızının düşük olması nedeni ile veri kaydı sırasında önbelleğin dolması sonucunda veri atlaması,
+    \item microSD hafıza miktarının SSD'lere göre düşük kalması sonucunda tek seferde alınabilen veri miktarının sınırlı olması,
+    \item Daha eski USB versiyonu nedeniyle, bir önceki madde sonucunda gerçekleşen sürekli hafıza boşaltma işleminin yavaş kalması,
+\end{itemize} 
+gibi nedenler sayılabilir.
+
+Geliştirmeler genel olarak Jetson Xavier NX üzerinde yapılmış olsa da, hem teknoloji olarak geride kalması, hem de Jetson Orin NX'in uyumlu olduğu Seeed Studio A608 geliştirme kartında bulunan ikinci Ethernet portu sayesinde bilgisayarın, robottun ürettiği bacak odometrisi, görsel odometri ve IMU gibi sensör bilgilerini de kaydedebilmesi amacı ile Jetson Orin NX'e geçilmiştir. Tablo (\ref{tab:jetson_comparison})'de bu bilgisayarların özellikleri karşılaştırmalı olarak bulunabilir.
+
+\begin{table}[!htb]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|p{4.5cm}|p{4.5cm}|p{4.5cm}|}
+        \hline
+        \textbf{Özellikler}            & \textbf{Jetson Nano 4GB}       & \textbf{Jetson Xavier NX 16GB}    & \textbf{Jetson Orin NX 16GB}    \\ \hline
+        \textbf{GPU}                   & 128 CUDA Core Maxwell          & 384 CUDA Core Volta               & 1024 CUDA Core Ampere  \\ 
+                                       &                                & + 48 Tensor Core                  & + 32 Tensor Core                \\ \hline
+        \textbf{CPU}                   & Quad-Core ARM Cortex-A57       & 6-core ARMv8.2 Carmel             & 8-core ARM Cortex-A78AE         \\ \hline
+        \textbf{RAM}                   & 4 GB LPDDR4 @ 25.6 GB/s        & 16 GB LPDDR4x @ 51.2 GB/s         & 16 GB LPDDR5 @ 68 GB/s          \\ \hline
+        \textbf{AI Performansı}        & 0.5 TOPS                       & 21 TOPS                           & 70 TOPS                         \\ \hline
+        \textbf{Video Kodlama/}        & 4K 30 FPS                      & 4K 60 FPS                         & 4K 60 FPS                       \\ 
+        \textbf{Dekodlama}             & (H.264/H.265)                  & (H.264/H.265)                     & (H.264/H.265)                   \\ \hline
+        \textbf{Enerji Tüketimi}       & 5-10 W                         & 10-15 W                           & 10-25 W                         \\ \hline
+        \textbf{Depolama}              & microSD / eMMC                 & 16 GB eMMC                        & 16 GB eMMC                      \\ 
+                                       & (SOM varyantı)                 & (SOM)                             & (SOM)                           \\ \hline
+        \textbf{Harici SSD Desteği}    & USB 3.0 ile uyumlu             & NVMe M.2 + USB 3.1                & NVMe M.2 + USB 3.2 Gen 2        \\ \hline
+        \textbf{Ethernet}              & 10/100/1000 Mbps               & 10/100/1000 Mbps                  & 10/100/1000 Mbps                \\ 
+                                       & Gigabit LAN                    & Gigabit LAN                       & Gigabit LAN                     \\ \hline
+        \textbf{USB Portları}          & 4x USB 3.0,                    & 1x USB 3.1,                       & 1x USB 3.2 Gen 2,               \\ 
+                                       & 1x Micro-USB                   & 4x USB 2.0                        & 4x USB 2.0                      \\ \hline
+        \textbf{Diğer Portlar}         & HDMI, DisplayPort,             & HDMI, DisplayPort,                & HDMI, DisplayPort,              \\ 
+                                       & GPIO, UART                     & GPIO, UART, I2C                   & GPIO, UART, I2C                 \\ \hline
+        \textbf{Boyutlar}              & 100 mm x 80 mm                 & 70 mm x 45 mm                     & 70 mm x 45 mm                   \\ \hline
+        \textbf{Çıkış Yılı}            & 2019                           & 2020                              & 2022                            \\ \hline
+    \end{tabular}%
+    }
+    \caption[Jetson Nano, Xavier NX ve Orin NX Karşılaştırması]{Jetson Nano 4GB, Xavier NX 16GB ve Orin NX 16GB Karşılaştırması \cite{jetson_nano, jetson_xavier_nx, jetson_orin_nx}}
+    \label{tab:jetson_comparison}
+\end{table}
+
+\subsubsection{LiDAR}
+Sensör siteminin tüm versiyonlarında LiDAR olarak Velodyne VLP-16 kullanılmıştır. Piyasadaki birçok 3 boyutlu LiDAR'dan daha az açıda ölçüm almasına rağmen, görece daha ucuz fiyatı nedeni ile çok farklı alanlara yönelik veri setlerinde yaygın olarak bulunan bir sensördür. Örneğin;
+\begin{itemize}
+    \item Complex Urban Dataset\cite{dataset_ComplexUrban} otonom araçlar için,
+    \item ConSLAM\cite{dataset_conslam} inşaat sahaları için,
+    \item Ground-Challenge\cite{dataset_groundchallenge} kara araçlarında zorlu durum testleri için,
+    \item Wild-Places\cite{dataset_wildplaces} doğal ortamlar için,
+\end{itemize} 
+VLP-16 LiDAR sensörünü kullanan veri setleridir. Sensörün özellikleri Tablo (\ref{tab:vlp16_features})'de görülebilir.
+
+
+\begin{table}[!htb]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|p{9cm}|}
+        \hline
+        \textbf{Özellik}                & \textbf{Değer}                          \\ \hline
+        \textbf{Lazer Kanalları}        & 16                                      \\ \hline
+        \textbf{Maksimum Menzil}        & 100 metre                               \\ \hline
+        \textbf{Minimum Menzil}         & 1 metre                                 \\ \hline
+        \textbf{Yatay Görüş Açısı (FoV)} & 360°                                    \\ \hline
+        \textbf{Dikey Görüş Açısı (FoV)} & 30° (±15°)                              \\ \hline
+        \textbf{Açısal Çözünürlük (H)}  & 0.1° - 0.4°                             \\ \hline
+        \textbf{Dikey Açısal Çözünürlük (V)} & 2°                                  \\ \hline
+        \textbf{Tarama Hızı}            & 5 Hz - 20 Hz                            \\ \hline
+        \textbf{Veri Çıkış Hızı}        & 300,000 nokta/saniye                    \\ \hline
+        \textbf{Lazer Dalga Boyu}       & 903 nm                                  \\ \hline
+        \textbf{Çalışma Sıcaklığı}      & -10°C ile +60°C                         \\ \hline
+        \textbf{Güç Tüketimi}           & 8 W                                     \\ \hline
+        \textbf{Ağırlık}                & 830 g                                   \\ \hline
+        \textbf{Boyutlar}               & 103 mm (Çap) x 72 mm (Yükseklik)        \\ \hline
+        \textbf{Bağlantı Türü}          & Ethernet                                \\ \hline
+    \end{tabular}%
+    }
+    \caption[Velodyne VLP-16 Lidar Sensörü Teknik Özellikleri]{Velodyne VLP-16 Lidar Sensörü Teknik Özellikleri\cite{velodyne_vlp16}}
+    \label{tab:vlp16_features}
+\end{table}
+
+
+\subsubsection{Stereo Kamera}
+
+Stereo kameralar, iki farklı perspektiften görüntü alarak derinlik bilgisi çıkaran optik sistemlerdir. İki lens ve sensör yardımıyla, aynı anda elde edilen görüntüler arasında görsel farklılık (disparity) hesaplanır ve bir derinlik haritası oluşturulur. Bu sistemler, robotik, otonom araç navigasyonu ve 3D haritalama gibi alanlarda yaygın olarak kullanılır. Performansı, aydınlatma koşulları ve yüzey dokuları gibi faktörlere bağlıdır; düşük ışık ve tekrarlayan desenler gibi durumlarda sınırlı performans gösterebilir.
+
+\paragraph{ZED ve ZED 2}
+
+ZED ve ZED 2, yüksek çözünürlükte stereo görüntüler sunarak 3D haritalama ve derinlik algılama sağlayan ileri teknolojili kameralardır. ZED, temel stereo görüntü işleme için kullanılırken, ZED 2 dahili sensörlerle (ör. IMU, barometre) donatılmış ve düşük ışık koşullarında daha hassas sonuçlar sunar. Firma tarafından doğrudan ROS (Robot Operating System - Robot İşletim Sistemi) desteği sağlamaları nedeniyle robotik alanında sıkça tercih edilmektedirler. İki kameranın özellikleri Tablo (\ref{tab:zed_comparison})'de görülebilir.
+
+
+\begin{table}[!htb]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|p{4.5cm}|p{4.5cm}|}
+        \hline
+        \textbf{Özellikler}            & \textbf{ZED}                  & \textbf{ZED2}                   \\ \hline
+        \textbf{Çözünürlük (Stereo)}   & 2.2K: 1080p @ 30 FPS           & 2.2K: 1080p @ 30 FPS            \\ 
+                                      & 720p @ 60 FPS                  & 720p @ 60 FPS                   \\ 
+                                      & WVGA @ 100 FPS                 & WVGA @ 100 FPS                  \\ \hline
+        \textbf{Görüş Açısı (FoV)}     & 90°                            & 110° \\ \hline
+        \textbf{Kamera Sensörleri}     & 2x CMOS 1/3'' sensör           & 2x CMOS 1/2.3'' sensör          \\ \hline
+        \textbf{Derinlik Algılama Menzili} & 0.7 m - 20 m                   & 0.3 m - 20 m  \\ \hline
+        \textbf{IMU Desteği}           & Yok                            & Var                             \\ \hline
+        \textbf{Ortam Sensörleri}      & Yok                            & Sıcaklık, manyetometre, basınç  \\ \hline
+        \textbf{Bağlantı Arayüzü}      & USB 3.0                        & USB 3.0                         \\ \hline
+        \textbf{Güç Tüketimi}          & 1.2 W                          & 1.7 W                           \\ \hline
+        \textbf{Boyutlar}              & 175 mm x 30 mm x 33 mm         & 142 mm x 29 mm x 30 mm          \\ \hline
+        \textbf{Ağırlık}               & 159 g                          & 120 g                           \\ \hline
+        \textbf{Çıkış Yılı}            & 2015                           & 2019                            \\ \hline
+    \end{tabular}%
+    }
+    \caption[ZED ve ZED2 Kameralarının Karşılaştırması]{ZED ve ZED2 Kameralarının Karşılaştırması \cite{zed_camera, zed2_camera}}
+    \label{tab:zed_comparison}
+\end{table}
+
+
+\subsubsection{INS Sensörleri}
+
+Ataletsel Navigasyon Sistemleri (Inertial Navigation Systems - INS) hareketli bir cismin pozisyon, yön ve hız gibi durumlarını belirlemek için kullanılan sistemlerdir. Bunun için içlerinde bulunan İvme ölçer, Jiroskop, Manyetometre ve GNSS alıcıları gibi sensörleri kullanırlar. Genellikle havacılık, uzay, denizcilik, otomativ ve robotik gibi uygulama alanlarına sahiptir. İvme ölçer, Jiroskop ve Manyetometre sensörleri, başlangıç konumuna göre pozisyonu parakete hesabı ile bulur. Sensör gürültüsü ve yanlılığından (bias) hesaplamada doğal olarak oluşan sapmalar, modern INS sistemlerinde GNSS sinyalleri de füzyon algoritmalarına dahil edilerek giderilir.
+
+SSv2'de bulunan INS sensörleri ve özellikleri Tablo (\ref{tab:ins_comparison})'de verilmiştir. Bu sensörlerden daha hassas sensörlere sahip olan Xsens MTi-7 sensör füzyonu algoritmalarında kullanılacak verileri toplamak için kullanılacaktır. ArNav S1G ise tek başına kullanıldığında sensör hassasiyeti daha düşük olmasına rağmen, (daha çeşitli uydu sinyal bandından veri toplayabildiği için) RTK düzeltmeleri ile birlikte referans pozisyon elde etmek için kullanılacaktır.
+
+\begin{table}[!htb]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|p{4.5cm}|p{4.5cm}|}
+        \hline
+        \textbf{Özellikler}           & \textbf{MTi-7}                        & \textbf{ArNav S1G}                     \\ \hline
+        \textbf{Sensör Paketi}        & Jiroskoplar, ivmeölçerler, barometre  & Jiroskoplar, ivmeölçerler, manyetometre, barometre \\ \hline
+        \textbf{GNSS Entegrasyonu}    & Harici GNSS alıcı arayüzü             & Tüm büyük GNSS takım uydularını destekleyen entegre GNSS \\ \hline
+        \textbf{Doğruluk}             & 1.5° yön, 1 m konum DHİ              & \(\leq\)1 m konum \\ \hline
+        \textbf{Çıkış Hızı}           & 1 kHz'e kadar                        & 230 Hz'e kadar                         \\ \hline
+        \textbf{Uygulamalar}          & Gömülü sistemler, robotik            & Kara, deniz ve hava sistemleri         \\ \hline
+        \textbf{Yazılım Desteği}      & SDK, ROS, MATLAB                     & Özel ArNavPro yazılımı \\
+                                      &                                      & ROS desteği labımız tarafından sağlanmıştır\\ \hline
+    \end{tabular}%
+    }
+    \caption[MTi-7 ve ArNav S1G Sensörlerinin Karşılaştırması]{MTi-7 ve ArNav S1G Sensörlerinin Karşılaştırması \cite{mti7_manual,arnav_manual}}
+    \label{tab:ins_comparison}
+\end{table}
+
+
+%\subsection{Sensör sistemi}
+%\subsubsection{Sensör Sistemi Blok Diyagramı}
+
+
+
+%\subsubsection{Elektronik Altyapı}%
+%
+%\subsubsection{Mekanik Altyapı}
+%
+%\subsubsection{Yazılımsal Altyapı}
+%\paragraph{ROS}
+
+\subsection{Veri Toplama}
+\subsubsection{Kapalı Alan Veri Seti}
+Kapalı alan veri setini, Hacettepe Üniversitesi Elektrik ve Elektronik Mühendisliği Bölümü içerisinde SSv1'i kullanarak topladık. Deneyi bir koridorda yatay yönde 45 cm aralıklarla 3 sıra halinde,  dikey yönde 90 cm aralıklarla 10 m boyunca sıraladığımız ArUco işaretleyicileri arasında uzaktan kontrol ettiğimiz bacaklı robotu kullanarak aldık. Deney ortamının Web Kamerası görüntüsü Şekil (\ref{aruco_webcam})'de görülebilir.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{Figures/aruco_ss.png}
+    \end{adjustbox}
+    \caption{Kapalı Alan Deney Ortamı}
+    \label{aruco_webcam}
+\end{figure}
+
+Deneyleri iki farklı günde aldık ve bunları gün ve alınma sırasına göre isimlendirdik. Ayın 7'sinde alınan deneyler uzaktan kumanda ile alındığı için hız komutlarında gürültüye sahiplerdir. Ayın 11'inde aldığımız deneyleri ise robota sabit bir hız komutu göndererek aldık, bu nedenle yapılan hareket daha düzgündür.
+
+Toplanılar veriler;
+\begin{itemize}
+    \item Stereo Kamera (ZED)
+        \begin{itemize}
+            \item Sağ ve Sol RGBD Görüntü
+            \item Sağ ve Sol Gri Ölçekli Görüntü
+            \item Derinlik Görüntüsü
+            \item Görsel Odometri
+        \end{itemize}
+    \item LiDAR (VLP-16)
+        \begin{itemize}
+            \item Nokta Bulutu
+            \item LiDAR Odometrisi
+        \end{itemize}
+    \item Web Kamerası ve ArUco İşaretleyiciler
+        \begin{itemize}
+            \item Referans Pozisyon
+            \item Deney Videosu 
+        \end{itemize}
+\end{itemize}
+olarak sınıflandırılabilinir. 
+
+Verileri, ROS Melodic ortamında, Stereolabs'ın ZED kamera için yayınladığı ROS paketi\cite{zed_ros_wrapper}, Velodyne'ın VLP-16 LiDAR için yayınladığı ROS paketi\cite{velodyne_ros_drivers}, LeGO-LOAM\cite{legoloam} makalesi ile birlikte yayınlanan ROS paketi\cite{lego_loam_ros} ve kendi yazdığımız ArUco ROS paketini\cite{aruco_hu_neurolab} kullanılarak elde ettik. Bu verileri yine ROS ortamında .bag formatında kaydettik.
+
+   
+
+\pagebreak

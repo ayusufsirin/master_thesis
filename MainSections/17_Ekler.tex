@@ -1,0 +1,111 @@
+{\section*{\large EKLER}}
+
+\subsection*{A. \quad 1B Sensör Füzyonu Sonuçları}\label{sec:1d_results}
+
+\input{./Tables/results.tex}
+\clearpage
+
+\subsection*{B. \quad Kesin Pozitif Matris ile Yarı-Kesin Pozitif Matris Toplamının Daima Pozitif Matris Olduğunun Kanıtlanması}\label{sec:psd_proof}
+
+\subsubsection*{Problemin Kurulumu}
+Aşağıdaki şartları sağlayan \( A \), \( B \) ve \( C \) matrislerini varsayalım:
+\begin{itemize}
+    \item \( C = A + B \),
+    \item \( A \) simetrik yarı-kesin pozitif matris,
+    \item \( B \) simetrik kesin pozitif matris,
+    \item \( C \) simetrik yarı-kesin pozitif matris.
+\end{itemize}
+Amacımız bu şartları sağlayan \( A \) ve \( B \) matrislerini bulmaktır.
+
+\subsubsection*{Özdeğer Ayrışımı}
+Simetrik \( A \), \( B \) ve \( C \) matrislerini aşağıdaki gibi yazabiliriz:
+\begin{align}
+A &= Q_A \Lambda_A Q_A^T, \\
+B &= Q_B \Lambda_B Q_B^T, \\
+C &= Q_C \Lambda_C Q_C^T,
+\end{align}
+\noindent burada:
+\begin{itemize}
+    \item \( Q_A \), \( Q_B \) ve \( Q_C \) ortogonal matrislerdir \((Q_A^T Q_A = Q_B^T Q_B = Q_C^T Q_C = I)\),
+    \item \( \Lambda_A = \operatorname{diag}(\lambda_1^A, \lambda_2^A) \), \( \Lambda_B = \operatorname{diag}(\lambda_1^B, \lambda_2^B) \), \( \Lambda_C = \operatorname{diag}(\lambda_1^C, \lambda_2^C) \) özdeğer matrisleridir.
+\end{itemize}
+\noindent Bu özdeğerler şu şartları sağlar:
+\begin{align}
+\lambda_1^A &> 0, \quad \lambda_2^A = 0, \quad \text{(yarı-kesin pozitif)}, \\
+\lambda_1^B &> 0, \quad \lambda_2^B > 0, \quad \text{(kesin pozitif)}, \\
+\lambda_1^C &> 0, \quad \lambda_2^C = 0, \quad \text{(yarı-kesin pozitif)}.
+\end{align}
+
+\subsubsection*{\( C = A + B \) Eşitliğinin Hesaplanması}
+Daha genel bir çözüm yapabilmek için, \( A \) ve \( B \)'nin aynı özvektör tabanını paylaşmadığını  varsayalım. Hesaplamayı kolaylaştırmak için, \( Q_A \) ve \( Q_B \) şu şekilde olsun (\(\theta\)'nın 0 olması durumunda aynı özvektör tabanını elde ederiz.):
+\begin{align}
+Q_A &= \begin{bmatrix}
+\cos\theta & \sin\theta \\
+-\sin\theta & \cos\theta
+\end{bmatrix}, \quad Q_B = I.
+\end{align}
+Bu durumda:
+\begin{align}
+A &= Q_A \Lambda_A Q_A^T = \begin{bmatrix}
+x \cos^2\theta & x \cos\theta \sin\theta \\
+x \cos\theta \sin\theta & x \sin^2\theta
+\end{bmatrix}, \quad \Lambda_A = \begin{bmatrix} x & 0 \\ 0 & 0 \end{bmatrix}, \quad x > 0,
+\end{align}
+ve
+\begin{align}
+B &= \Lambda_B = \begin{bmatrix}
+y & 0 \\
+0 & z
+\end{bmatrix}, \quad y > 0, \; z > 0.
+\end{align}
+\( C \) matrisi şu şekilde olur:
+\begin{align}
+C = A + B = \begin{bmatrix}
+x \cos^2\theta + y & x \cos\theta \sin\theta \\
+x \cos\theta \sin\theta & x \sin^2\theta + z
+\end{bmatrix}.
+\end{align}
+
+\subsubsection*{\( C \)'nin Özdeğerleri}
+\( C \)'nin özdeğerlerini bulmak için aşağıdaki denklemi çözeriz:
+\begin{align}
+\det(C - \lambda I) = 0.
+\end{align}
+\( C - \lambda I \)'yi yerine koyarsak:
+\begin{align}
+C - \lambda I = \begin{bmatrix}
+x \cos^2\theta + y - \lambda & x \cos\theta \sin\theta \\
+x \cos\theta \sin\theta & x \sin^2\theta + z - \lambda
+\end{bmatrix}.
+\end{align}
+Determinant şu şekilde olur:
+\begin{align}
+\det(C - \lambda I) = \left(x \cos^2\theta + y - \lambda\right)\left(x \sin^2\theta + z - \lambda\right) - \left(x \cos\theta \sin\theta\right)^2. \label{determinant_eq}
+\end{align}
+
+\subsubsection*{0 Özdeğer Durumu}
+\( \lambda = 0 \) durumunda Denklem (\ref{determinant_eq}) şu hale gelir:
+\begin{align}
+\left(x \cos^2\theta + y\right)\left(x \sin^2\theta + z\right) - \left(x \cos\theta \sin\theta\right)^2 = 0. \label{zero_eigenvalue_eq}
+\end{align}
+Terimleri genişletirsek:
+\begin{align}
+\left(x \cos^2\theta + y\right)\left(x \sin^2\theta + z\right) &= x^2 \cos^2\theta \sin^2\theta + x z \cos^2\theta + y x \sin^2\theta + y z, \\
+\left(x \cos\theta \sin\theta\right)^2 &= x^2 \cos^2\theta \sin^2\theta.
+\end{align}
+Bu ifadeleri çıkarırsak:
+\begin{align}
+x z \cos^2\theta + y x \sin^2\theta + y z = 0. \label{final_eq}
+\end{align}
+
+\subsubsection*{Denklemin Analizi}
+Denklem (\ref{final_eq})'deki ilk iki terim \( x, y, z > 0 \) ve \( \cos^2\theta, \sin^2\theta \geq 0 \) şartları sağlandığında negatif olmayan bir değer alacaktır. Üçüncü terim ise aynı şartlar altında daima pozitiftir. Bu nedenle, toplamları daima pozitiftir:
+\begin{align}
+x z \cos^2\theta + y x \sin^2\theta + y z > 0.
+\end{align}
+Bu durum, denklemin sağlanamayacağı anlamına gelir.
+
+\pagebreak
+
+\include{ICOPE_results/riverside1/riverside1}
+\include{ICOPE_results/riverside2/riverside2}

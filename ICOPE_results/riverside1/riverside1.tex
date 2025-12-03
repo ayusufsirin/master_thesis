@@ -1,0 +1,102 @@
+\subsection*{C. \quad 3B Sensör Füzyonu Sonuçları}
+
+\begin{figure}[!htb]
+    \centering
+    % Subfigure (a) ape table    
+    \begin{subfigure}
+            \centering
+            % Table
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+    \textbf{} & \textbf{RMSE} & \textbf{Ort.} & \textbf{Medyan} & \textbf{Std.} & \textbf{Min} & \textbf{Max} \\ \hline
+\textbf{Düzeltilmiş Ortalama} & 6.24 & 5.15 & 4.3 & 3.52 & 0.25 & 30.0 \\ \hline
+\textbf{LiDAR} & 330.58 & 246.28 & 187.94 & 220.53 & 1.8 & 738.87 \\ \hline
+\textbf{Optimal Ortalama} & 19.07 & 16.69 & 19.35 & 9.22 & 0.0 & 38.66 \\ \hline
+\textbf{Dönüşüm Ortalama} & 262.18 & 218.94 & 140.1 & 144.22 & 4.56 & 493.65 \\ \hline
+\textbf{Global Ortalama} & 6.34 & 5.24 & 4.34 & 3.57 & 0.17 & 28.93 \\ \hline
+\textbf{Kalman Filtresi} & 5.88 & 4.74 & 3.7 & 3.48 & 0.19 & 29.73 \\ \hline
+\end{tabular}
+\caption*{riverside1 Veriseti için Mutlak Hata Tablosu}
+    \end{subfigure}
+
+    \vspace{1em} % Add vertical space between subfigures
+
+    % Subfigure (b) ape table    
+    \begin{subfigure}
+            \centering
+            % Table
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+    \textbf{} & \textbf{RMSE} & \textbf{Ort.} & \textbf{Medyan} & \textbf{Std.} & \textbf{Min} & \textbf{Max} \\ \hline
+\textbf{Düzeltilmiş Ortalama} & 1.25 & 0.6 & 0.26 & 1.1 & 0.0 & 16.94 \\ \hline
+\textbf{LiDAR} & 0.05 & 0.03 & 0.02 & 0.04 & 0.0 & 0.72 \\ \hline
+\textbf{Optimal Ortalama} & 0.93 & 0.4 & 0.16 & 0.84 & 0.0 & 10.86 \\ \hline
+\textbf{Dönüşüm Ortalama} & 0.98 & 0.47 & 0.25 & 0.85 & 0.0 & 15.13 \\ \hline
+\textbf{Global Ortalama} & 1.09 & 0.5 & 0.19 & 0.97 & 0.0 & 13.18 \\ \hline
+\textbf{Kalman Filtresi} & 1.0 & 0.44 & 0.18 & 0.9 & 0.0 & 16.11 \\ \hline
+\end{tabular}
+\caption*{riverside1 Veriseti için Görece Hata Tablosu}
+    \end{subfigure}
+
+    \vspace{1em} % Add vertical space between subfigures
+    \begin{minipage}{0.75\textwidth}
+        \centering
+        \fbox{\includegraphics[trim=0.85cm 6.2cm 0.85cm 6.2cm, clip,width=1\linewidth]{ICOPE_results/riverside1/2BT_plot.pdf}}
+        \caption*{Riverside 1 Veriseti 3B Odometri Sonucu ve Sonucun Kuşbakışı Görüntüsü}
+    \end{minipage}
+
+\end{figure}
+\begin{figure}[!htb]
+            \centering
+
+     % Subfigure (d) pozisyon error plots
+        \begin{minipage}{0.65\textwidth}
+            \centering
+        \includegraphics[width=1\linewidth]{ICOPE_results/riverside1/traj_out/ape_comparison_plot_raw.png}
+        \caption*{Riverside 1 Veriseti için Mutlak Pozisyon Hatası Sonuçları}
+        \end{minipage}%
+        
+        \begin{minipage}{0.65\textwidth}
+            \centering
+            \includegraphics[width=1\linewidth]{ICOPE_results/riverside1/traj_out/rpe_comparison_plot_raw.png}
+        \caption*{Riverside 1 Veriseti için Görece Pozisyon Hatası Sonuçları}
+        \end{minipage}
+
+    \vspace{1em} % Add vertical space between subfigures
+
+\end{figure}
+
+\begin{figure}[!htb]
+
+     % Subfigure (e) gain plots
+    \begin{subfigure}
+        \centering
+        \begin{minipage}{0.45\textwidth}
+            \centering
+        \includegraphics[trim=0.85cm 6.2cm 0.85cm 6.2cm, clip,width=1\linewidth]{ICOPE_results/riverside1/Global_weights.pdf}
+        \end{minipage}%
+        \hspace{0.05\textwidth}
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[trim=0.85cm 6.2cm 0.85cm 6.2cm, clip,width=1\linewidth]{ICOPE_results/riverside1/Dönüşüm_weights.pdf}
+        \end{minipage}
+        \caption*{Riverside 1 Veriseti için Global ve Dönüşüm Ortalama Metotlarında kullanılan LiDAR Sensörü Ağırlıkları}
+    \end{subfigure}
+
+    \vspace{3em} % Add vertical space between subfigures
+     % Subfigure (f) gain plots
+    \begin{subfigure}
+        \centering
+        \begin{minipage}{0.45\textwidth}
+            \centering
+        \includegraphics[trim=0.85cm 6.2cm 0.85cm 6.2cm, clip,width=1\linewidth]{ICOPE_results/riverside1/Global_spectrum.pdf}
+        \end{minipage}%
+        \hspace{0.05\textwidth}
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[trim=0.85cm 6.2cm 0.85cm 6.2cm, clip,width=1\linewidth]{ICOPE_results/riverside1/Dönüşüm_spectrum.pdf}
+        \end{minipage}
+        \caption*{Riverside 1 Veriseti için Global ve Dönüşüm Ortalama Metotlarında kullanılan LiDAR Sensörü Ağırlıklarının Spektrumu}
+        \label{fig:r1_spec}
+    \end{subfigure}
+\end{figure}
