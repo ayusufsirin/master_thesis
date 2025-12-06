@@ -207,44 +207,80 @@ SSv2'de bulunan INS sensörleri ve özellikleri Tablo (\ref{tab:ins_comparison})
 %\paragraph{ROS}
 
 \subsection{Veri Toplama}
-\subsubsection{Kapalı Alan Veri Seti}
-Kapalı alan veri setini, Hacettepe Üniversitesi Elektrik ve Elektronik Mühendisliği Bölümü içerisinde SSv1'i kullanarak topladık. Deneyi bir koridorda yatay yönde 45 cm aralıklarla 3 sıra halinde,  dikey yönde 90 cm aralıklarla 10 m boyunca sıraladığımız ArUco işaretleyicileri arasında uzaktan kontrol ettiğimiz bacaklı robotu kullanarak aldık. Deney ortamının Web Kamerası görüntüsü Şekil (\ref{aruco_webcam})'de görülebilir.
+
+\subsubsection{Açık Alan Veri Seti}
+
+Açık alan veri seti; RTK tabanlı ArNav INS, ZED2i stereo kamera, VLP16 LiDAR ve XSens INS sistemlerinin ROS2 ortamında eşzamanlı kaydedilmesi ile elde edilmiştir. Bu kurulumda RTK santimetre hassasiyetinde mutlak doğru güzergah bilgisini kaydetmeyi sağlarken diğer sensörler tezin test edilmesi için gerekli görüntü ve odometri verilerini kaydetmeyi sağlamıştır. Toplanan bu veri seti CitrusFarm Veriseti \cite{cıtrus_farm_dataset}'ndekiyle benzer formatta veriler içermektedir.
+
+Veri toplama işlemi, Çankaya ilçesinin Yaşamkent Mahallesinde serpme evlerin bulunduğu bir muhitte Honda marka CRV model bir SUV araç üzerine Sensor Suit V2'nin monte edilmesiyle icra edilmiştir. Deney kurulumunun iki adet görüntüsü Şekil (\ref{honda_crv_0}) ve Şekil (\ref{honda_crv_1})'de verilmiştir.
 
 \begin{figure}[!htb]
     \centering
     \begin{adjustbox}{width=\textwidth * 10 /12}
-        \includegraphics{Figures/aruco_ss.png}
+        \includegraphics{Figures/honda_crv_0.jpg}
     \end{adjustbox}
-    \caption{Kapalı Alan Deney Ortamı}
-    \label{aruco_webcam}
+    \caption{Honda CRV ve Sensor Suite V2 üstten görünümü}
+    \label{honda_crv_0}
 \end{figure}
 
-Deneyleri iki farklı günde aldık ve bunları gün ve alınma sırasına göre isimlendirdik. Ayın 7'sinde alınan deneyler uzaktan kumanda ile alındığı için hız komutlarında gürültüye sahiplerdir. Ayın 11'inde aldığımız deneyleri ise robota sabit bir hız komutu göndererek aldık, bu nedenle yapılan hareket daha düzgündür.
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{Figures/honda_crv_1.jpg}
+    \end{adjustbox}
+    \caption{Honda CRV ve Sensor Suite V2 önden görünümü}
+    \label{honda_crv_1}
+\end{figure}
+
+Toplanan veriler haritalarda çizdürüldüğünde RTK destekli küresel konumlar Şekil (\ref{yasamkent_veri})'de verildiği gibidir.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{Figures/yasamkent_veri.png}
+    \end{adjustbox}
+    \caption{Açık Alan Veri Seti Harita}
+    \label{yasamkent_veri}
+\end{figure}
+
+Veri toplama işlemi, gün batımından önce yaklaşık bir saat süreyle yapılmıştır. Güneşin yüksek lümende ışık üretmediği bu saaterde toplanan kamera görüntülerinde saturasyon belirli bir seviyede engellenmiştir. Veri toplanırken çevrede hareketli nesnelerin olmamasına da özen gösterilmiştir. Veri kayıtları olabildiğince ham veriler ile yapılmıştır. Bunun sepepleri şu şekildedir:
+
+\begin{itemize}
+    \item Uzun süreli veri kaydı yapıldığı için toplanan verilerin düşük depolama alanıda saklanabilmesi,
+    \item Stereo kamera ve LiDAR görüntülerinin ham kaydedilmesi sayesinde algoritmaların farklı frekanslarda test edilebilmesi,
+    \item Literatürde bu verisetini kullanmak isteyen akademik çalışmalara daha esnek bir alan imkanı tanınması,
+\end{itemize}
+
+gibi özetlenebilir. Stereo kamera ve LiDAR haricindeki veriler işlenmiş şekilde kaydedilmiştir.
+
+Veri toplanırken otomobil olabildiğince sabit ve yaklaşık 10 km/saat hızda hareket ettirilmiştir. Yavaş hızda toplanan bu veri aynı görüntü çerçevelerinin birden çok kez ve üst üste binecek çekilde kaydedilmesine imkan tanımıştır.
 
 Toplanılar veriler;
+
 \begin{itemize}
-    \item Stereo Kamera (ZED)
+    \item Stereo Kamera (ZED2i)
         \begin{itemize}
             \item Sağ ve Sol RGBD Görüntü
             \item Sağ ve Sol Gri Ölçekli Görüntü
-            \item Derinlik Görüntüsü
-            \item Görsel Odometri
+            \item IMU ve diğer ham sensör verileri
         \end{itemize}
     \item LiDAR (VLP-16)
         \begin{itemize}
-            \item Nokta Bulutu
-            \item LiDAR Odometrisi
+            \item Ham LiDAR veri paketi
         \end{itemize}
-    \item Web Kamerası ve ArUco İşaretleyiciler
+    \item RTK INS (ArNav)
         \begin{itemize}
-            \item Referans Pozisyon
-            \item Deney Videosu 
+            \item RTK düzeltmeli anlık küresel konum
+            \item AHRS bilgileri
+        \end{itemize}
+    \item INS (XSens)
+        \begin{itemize}
+            \item AHRS bilgileri
         \end{itemize}
 \end{itemize}
+
 olarak sınıflandırılabilinir. 
 
-Verileri, ROS Melodic ortamında, Stereolabs'ın ZED kamera için yayınladığı ROS paketi\cite{zed_ros_wrapper}, Velodyne'ın VLP-16 LiDAR için yayınladığı ROS paketi\cite{velodyne_ros_drivers}, LeGO-LOAM\cite{legoloam} makalesi ile birlikte yayınlanan ROS paketi\cite{lego_loam_ros} ve kendi yazdığımız ArUco ROS paketini\cite{aruco_hu_neurolab} kullanılarak elde ettik. Bu verileri yine ROS ortamında .bag formatında kaydettik.
-
-   
+Veriler; LiDAR, RTK ve INS için ROS Humble ortamında rosbag2, stereo kamera için ise StereoLabs svo2 formatında kaydedilmiştir. Tüm veriler zaman damgası içerdiği için farklı dosyalara kaydedilen eşzamanlı veriler çevrimdışı yeniden oynatma esnasında eşzamanlılığını koruyabilmektedir.
 
 \pagebreak

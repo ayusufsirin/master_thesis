@@ -1,302 +1,80 @@
-\section{LİTERATÜR TARAMASI}  \label{LİTERATÜR TARAMASI}
+\section{LİTERATÜR TARAMASI}  \label{sec:literature}
 
-\subsection{YALIN LiDAR ODOMETRİSİ YÖNTEMLERİ}
-Bu kısımda sadece LiDAR verisi ile yüksek hassasiyette sonuç veren algoritmalara yer verilmiştir. LOAM\cite{LOAM} ve LeGO-LOAM\cite{legoloam} opsiyonel IMU füzyonu ve ya döngü kapama becerilerine de sahipken, literatüre asıl katkıları LiDAR odometrisi konusunda olduğu ve bu beceriler aktif değilken de başarılı sonuç verdikleri için bu başlık altında değerlendirilmişlerdir.
+Bu bölümde, otonom sistemlerde derinlik algısı için kullanılan temel yöntemler, stereo ve LiDAR tabanlı derinlik kestirimi, bu iki sensörün füzyonuna yönelik yaklaşımlar ve Papoulis–Gerchberg algoritmasının sinyal ve görüntü işleme literatüründeki yeri ele alınmaktadır. Böylece, tez kapsamında önerilen Papoulis–Gerchberg tabanlı stereo–LiDAR füzyon yöntemi için kavramsal ve tarihsel arka plan sunulmakta, mevcut çalışmaların sınırlılıkları üzerinden çalışmanın katkı alanı tanımlanmaktadır.
 
-\subsubsection{LOAM} \label{sec:loam}
+\subsection{Derinlik Algısı ve Stereo Görü Yöntemleri}
 
-LOAM algoritmasının literatüre iki büyük katkısı vardır. Bunlardan birincisi, son LiDAR çerçevesinde elde edilen tüm noktalar yerine, çevrede bir düzlem ya da doğru parçasına ait olabilecek noktaları, önceki çerçeve ya da haritada belirlenmiş düzlem ya da doğru parçasına yerleştirmeye çalışarak çözülmesi gereken optimizasyon probleminin uzayını büyük oranda küçültmesidir. 
+Stereo eşleştirme ve derinlik kestirimi, otonom sürüş ve robotik navigasyon uygulamalarında uzun süredir kullanılan temel yöntemlerdendir. Scharstein ve Szeliski'nin çalışması\cite{scharstein2002taxonomy}, stereo eşleştirme problemini maliyet hesaplama, maliyet toplama, optimizasyon ve düzenleme (regularization) adımlarına ayırarak o döneme kadar önerilmiş yöntemleri sistematik bir çerçevede incelemiştir. Bu çalışma, blok eşleştirme, küresel optimizasyon ve çok ölçekli yaklaşımlar gibi klasik yöntemlerin sınıflandırılması açısından temel referans niteliğindedir.
 
-İkincisi ise problemi ilk olarak, son ve sondan bir önceki LiDAR nokta kümelerini (\begin{math}\mathcal{P}_k\end{math} ve \begin{math}\mathcal{P}_{k-1}\end{math}) karşılaştırarak yüksek frekans ve düşük doğruluğa sahip ön dönüşüm kestirimi yapar (Denklem (\ref{loam_lidar_odometry})). Daha sonra ise daha düşük frekansta son nokta bulutunu (\begin{math}\mathcal{P}_k\end{math}) oluşturduğu harita nokta bulutu \begin{math}\mathcal{P}_{map}\end{math} ile karşılaştırarak o anki nokta bulutu için yaptığı dönüşüm kestirimini günceller ve güncel nokta bulutunu bu kestirimi (\begin{math}T_k^{map}\end{math}) kullanarak haritaya ekler. Ayrıca bu dönüşümü bir dahaki haritalama işlemine kadar Denklem (\ref{loam_tf_update}) ön dönüşüm kestiriminin doğruluğunu arttırmak için kullanır.
+Geleneksel stereo yöntemleri, çoğunlukla el ile tasarlanmış eşleştirme maliyetleri (örn. SAD, SSD, NCC), pikseller arası uyumluluk varsayımları ve düzenlileştirici terimler üzerine kuruludur. Tekstürsüz bölgeler, tekrarlayan desenler, yüksek eğimli yüzeyler ve ışık değişimi gibi zorlu durumlarda bu yöntemlerin başarımı sınırlı kalmaktadır. Bu sebeple, özellikle 2010'lu yıllarla birlikte derin sinir ağlarına dayalı stereo eşleştirme yöntemleri öne çıkmaya başlamıştır.
 
-Özellikle makalenin çıktığı dönemde bilgisayarların işlem kapasitesinin tüm nokta bulutunu gerçek zamanlı olarak optimize etmek için yeterli olmadığı ve yüksek hassasiyetli nokta bulutu haritalarının çevrim dışı olarak yapıldığı dönemde gerçek zamanlı bir algoritma olarak başarılı sonuçlar vermiş sonrasında birçok varyasyonu ortaya çıkmıştır.
+Zbontar ve LeCun\cite{zbontar2016stereo} derin sinir ağlarını, stereo pikselleri arasındaki benzerlik fonksiyonunu öğrenmek için kullanarak, klasik yöntemlere göre belirgin doğruluk artışı sağlamışlardır. Daha sonra GC-Net, PSMNet, GA-Net gibi uçtan uca (end-to-end) derin stereo ağları; disparite hacmini doğrudan üç boyutlu konvolüsyonlarla işleyerek, hem küresel bağlam bilgisini hem de yerel detayları aynı mimari içinde modelleyebilmiştir. Ancak bu yöntemlerin önemli bir bölümü, yüksek çözünürlüklü girişler ve derin ağ yapıları nedeniyle görece yüksek hesaplama maliyetine sahiptir; dolayısıyla gömülü sistemler veya gerçek zamanlı platformlar üzerinde doğrudan çalıştırılmaları her zaman pratik değildir\cite{shamsafar2022review,rahim2021survey}.
 
-\paragraph{LOAM Öznitelik Çıkarımı} \label{loam_feature_extraction}
+Bu çerçevede, stereo kameralar yoğun (dense) bir derinlik haritası üretebilmekte, ancak bu harita özellikle kenar bölgeleri ve uzak mesafelerde anlamlı miktarda hata içerebilmektedir. Tez kapsamında bu zayıf yön, LiDAR'ın sağladığı seyrek fakat yüksek doğruluklu derinlik ölçümleriyle dengelenmeye çalışılmaktadır.
 
-LOAM, yeni bir LiDAR nokta bulutu mesajı geldiğinde (\begin{math}\mathcal{P}_k\end{math}), önce bu nokta bulutundaki her bir nokta için düzgünlük (smoothness) puanlaması yapar. Bu puanlama için Denklem (\ref{smoothness})'i kullanır. Denklemdeki \begin{math}c\end{math} düzgünlük puanını, \begin{math}X_{(k,i)}^L\end{math} puanı hesaplanan noktanın LiDAR koordinat sistemine göre konumunu, \begin{math}S\end{math} bu noktanın komşuluğundaki diğer noktaların oluşturduğu kümeyi ve \begin{math}X_{(k,j)}^L\end{math}, \begin{math}S\end{math} içerisindeki \begin{math}j\end{math}'inci noktanın LiDAR koordinat sistemine göre koordinatlarını ifade etmektedir.
+\subsection{LiDAR Tabanlı Derinlik Ölçümü ve 3B Algı}
 
-\begin{equation}\label{smoothness}
-c = \frac{1}{|S|\cdot||X_{(k,i)}||}\cdot\sum_{j\in S,j\neq i} ||\left(X_{(k,i)} - X_{(k,j)}  \right)||
-\end{equation}
+LiDAR sensörleri, zaman–uçuş (Time-of-Flight) prensibi ile yüksek hassasiyette mesafe ölçümü sağlayan aktif sensörlerdir. İlk lazer mesafe ölçer cihazların 1960’lı yıllarda geliştirilmesinden sonra, LiDAR teknolojisi hem hava araçlarında hem de kara araçlarında geniş alan haritalama, otonom sürüş ve robotik algı görevlerinde yaygınlaşmıştır\cite{nasa_lidar}. Mekanik taramalı 3B LiDAR sistemleri, döner bir şaft üzerinde yer alan birden çok lazer–alıcı çifti ile 360° azimut ve belirli bir dikey görüş açısı içerisinde nokta bulutu üretir; bu nokta bulutu, LiDAR merkezli küresel koordinat sisteminden Kartezyen sisteme Denklem~(\ref{Sph2Car_x})–(\ref{Sph2Car_z}) ile dönüştürülerek işlenir.
 
-Bu puanlama sonucunda, duvar gibi bir düzlemin merkezinde yer alan noktalar daha düşük puan alırken düzlemlerin kenarında ya da ağaç, sütun gibi tek eksende uzayan  objeler üzerinde bulunan noktalar yüksek puan almaktadır. Bu puanlamayı daha iyi görmek için çevrede düz bir duvar, bir ağaç ve iki duruma da uymayan bir inek olduğu bir senaryo hayal edelim. Ancak problemi daha da basitleştirmek için, duvarın bir dikdörtgen prizması, ağacın bir silindir, ineğin ise bir küre olduğunu farz edelim. Şekil (\ref{sphere_cow_w_smoothness})'de bu senaryoyu görebiliriz. Buradaki noktalar, objelerin yüzeyinde eşit aralıklarla seçilen pozisyonlara normal dağılımlı gürültü eklenmesi ile elde edilmiştir.
+LiDAR verisi, stereo kameraya göre çok daha seyrek bir örnekleme sunsa da, her bir noktanın mesafe doğruluğu genellikle daha yüksektir. Bu nedenle, LiDAR tabanlı odometri ve haritalama yöntemleri (NDT, ICP ve varyantları gibi) robotik algoritmalar için önemli bir çalışma alanı hâline gelmiştir. Ancak LiDAR noktalarının seyrek oluşu, özellikle ince detayların ve nesne sınırlarının temsilinde sınırlılıklara yol açar; ayrıca LiDAR sensörlerinin maliyeti çoğu zaman stereo kameralardan yüksektir. Bu sebeple, LiDAR’ın doğruluğunu stereo kameranın yoğun örnekleme yeteneği ile birleştiren füzyon yöntemleri literatürde giderek daha fazla önem kazanmıştır.
 
-\begin{figure}[!htb]
-    \centering
-    \begin{adjustbox}{width=\textwidth * 12 /12}
-        \includegraphics{Figures/sphere_cow_smoothness.png}
-    \end{adjustbox}
-    %\caption{Farklı geometrilere sahip şekiller üzerindeki noktaların düzgünlük dağılımları.}
-    \begin{adjustbox}{width=\textwidth * 12 /12}
-        \includegraphics{Figures/sphere_cow_smoothness_mooore_points.png}
-    \end{adjustbox}
-    \caption{Farklı geometrilere sahip şekiller üzerindeki noktaların düzgünlük dağılımları.}
-    \label{sphere_cow_w_smoothness}
-\end{figure}
+\subsection{Stereo–LiDAR Füzyon Yöntemleri}
 
-\begin{figure}[!htb]
-    \centering
-    \begin{adjustbox}{width=\textwidth * 12 /12}
-        \includegraphics{Figures/surf_edge.png}
-    \end{adjustbox}
-    \caption[MULRAN Riverside 2 Veriseti üzerinde Öznitelik Çıkarımı sonucu.]{MULRAN Riverside 2 Veriseti üzerinde Öznitelik Çıkarımı sonucunu RViz görüntüsü. En yüksek puana sahip kenar noktaları mavi, daha düşük puana sahip kenar noktaları ise yeşil kürelerle gösterilmiştir. En düşük puana sahip düzlem noktaları kırmızı, daha yüksek puana sahip yüzey noktaları ise pembe renktedir.}
-    \label{fig:rviz_surf_corner}
-\end{figure}
+Stereo–LiDAR füzyonu, stereo kameradan elde edilen yoğun fakat gürültülü derinlik haritası ile LiDAR’dan gelen seyrek fakat güvenilir derinlik ölçümlerini birleştirerek hem doğruluk hem de çözünürlük açısından üstün bir derinlik temsili elde etmeyi amaçlar. Literatürde bu amaçla önerilmiş yöntemler genel olarak üç grupta incelenebilir: (1) Geometrik/klasik (öğrenme tabanlı olmayan) yöntemler, (2) derin sinir ağlarına dayalı yöntemler ve (3) hibrit yaklaşımlar.
 
-Şekil (\ref{sphere_cow_w_smoothness})'de de görülebileceği üzere objelerin merkezinde yani daha düzgün yerlerde yer alan noktalar daha düşük düzgünlük puanına sahipken, kenarlarında yer alan noktaların puanı daha yüksektir. Öte yandan küresel ineğimizde görülebileceği üzere diğerlerine göre düzensiz objelerde bulunan noktalar daha ortalama değerler alma eğilimindedir. Objelerin boyutları ya da obje üzerinden alınan ölçüm sayısı arttıkça bu durum daha net olarak gözlemlenebilir.
+\subsubsection{Öğrenme Tabanlı Olmayan Stereo–LiDAR Füzyonu}
 
-Tüm noktaların puanlaması yapıldıktan sonra belirli bir eşik değerinin altında kalan noktalar düzlemsel nokta bulutu \begin{math}\mathcal{H}_k^L\end{math}, daha büyük bir eşik değerinin üstünde kalan noktalar ise kenar nokta bulutu \begin{math}\mathcal{E}_k^L\end{math} içerisine eklenir. Şekil (\ref{fig:rviz_surf_corner})'de bu nokta bulutlarının RViz'de görselleştrilmiş halini görebiliriz. Eğer noktanın ölçümü sırasındaki yansıma açısı çok büyükse (bulunduğu düzlem ölçüm yönüne neredeyse paralel ise) ya da nokta, daha öndeki bir objenin hemen arkasında kaldığı için noktanın komşuluğunun bir kısmı öndeki objenin gölgesinde kalıyorsa bu noktalar bulutlara dahil edilmez.
+Erken dönem çalışmalarda, stereo disparite haritalarını LiDAR derinlik ölçümleri yardımıyla iyileştiren geometrik yöntemler ön plana çıkmıştır. Parks ve ark.\cite{parks2018fusion} ve Park ve ark.\cite{park2019stereolidar}, LiDAR verisini stereo disparite hesabına ek bir ipucu olarak dahil eden, çoğunlukla maliyet hacmini yeniden ağırlıklandırma veya yerel düzeltme mekanizmalarına dayalı yöntemler önermişlerdir. Bu çalışmalar, stereo eşleştirme aşamasına LiDAR verisini gömerek, özellikle düşük tekstürlü bölgelerde disparite hatalarını azaltmayı hedefler. Ancak LiDAR’ın yüksek doğruluğu tam anlamıyla “ankraj noktası” olarak kullanılmamakta, daha çok lokal düzeltme sinyali rolü üstlenmektedir.
 
-\paragraph{LOAM Karşılıklık Bulma ve LiDAR Odometrisi} \label{loam_feature_assoc}
+Diğer bir grup yöntem, stereo ve LiDAR verilerini derinlik alanında birleştiren, çoğunlukla filtrasyon ve interpolasyon tabanlı yaklaşımlardır. Bu yöntemlerde, LiDAR noktaları derinlik düzlemine projekte edilerek, stereo haritasındaki hatalı veya boş bölgeler filtreler ve interpolasyon şemaları ile düzeltilir. Bu tür teknikler görece düşük hesaplama maliyetine sahip olsalar da, çoğunlukla sabit kernel yapıları veya basit ağırlıklandırma kuralları kullandıkları için, özellikle nesne sınırlarında ayrık sensör karakteristiklerini yeterince iyi yansıtamayabilirler.
 
-Bu adımda, \begin{math}k\end{math}'ıncı taramada elde edilen \begin{math}\mathcal{H}_k^L\end{math} ve \begin{math}\mathcal{E}_k^L\end{math}'deki her bir nokta için, \begin{math}\mathcal{H}_{k-1}^L\end{math} ve \begin{math}\mathcal{E}_{k-1}^L\end{math}'deki karşılıklar bulunur. Daha sonra ise bu noktalar üzerinden hesaplanan maliyet fonksiyonunu minimize eden dönüşüm \begin{math}T_k^{k-1}\end{math} LM-Optimizasyonu kullanılarak hesaplanır. Bu adım iteratif bir adımdır ve \begin{math}n\end{math}'inci iterasyonun sonunda \begin{math}\mathcal{H}_k^L\end{math} ve \begin{math}\mathcal{E}_k^L\end{math} bulutlarındaki noktaların konumu Denklem (\ref{surf_update}) ve Denklem (\ref{edge_update}) kullanılarak güncellenir.
+\subsubsection{Derin Sinir Ağlarına Dayalı Stereo–LiDAR Füzyonu}
 
-\begin{equation}\label{surf_update}
-\tilde{\mathcal{H}}_{k,n}^L = \tilde{T}_{k,n}^{k-1}\mathcal{H}_k^L
-\end{equation}
-\begin{equation}\label{edge_update}
-\tilde{\mathcal{E}}_{k,n}^L = \tilde{T}_{k,n}^{k-1}\mathcal{E}_k^L
-\end{equation}
+Son yıllarda, stereo–LiDAR füzyonu için derin sinir ağlarına dayalı yöntemler literatürde baskın hâle gelmiştir. Choe ve ark.\cite{choe2021fusion} ve Yang ve ark.\cite{yang2019fusion}, LiDAR verisini stereo ağlarının erken katmanlarına entegre eden mimariler önermiş, böylece derinlik tahmin sürecini tek bir uçtan uca öğrenilebilir çerçeve içinde modellemişlerdir. Bu çalışmalarda LiDAR girdisi, ya ek bir kanal olarak görüntüyle birlikte ağa verilir ya da ara özellik haritaları üzerine projekte edilerek ağın daha iyi derinlik temsilleri öğrenmesine yardımcı olur.
 
-\subparagraph*{Kenar noktası için karşılık bulma ve maliyet fonksiyonu hesaplama} adımında karşılık bulmak istediğimiz nokta \begin{math}\tilde{X}_{k,i}^L\end{math} olsun. İlk olarak \begin{math}\mathcal{E}_{k-1}^L\end{math} içerisindeki \begin{math}X_{k,i}^L\end{math}'e en yakın nokta \begin{math}X_{k-1,j}^L\end{math} bulunur. Daha sonra ise bu noktanın elemanı olduğu kenarın doğrultusunu bulmak için \begin{math}\mathcal{E}_{k-1}^L\end{math} içerisindeki \begin{math}X_{k-1,j}^L\end{math}'e en yakın nokta \begin{math}X_{k-1,l}^L\end{math} bulunur.
+Mai ve ark.\cite{mai2021fusion} ile Li ve Cao\cite{li2020fusion} gibi çalışmalar, stereo–LiDAR füzyonunu hem derinlik doğruluğunu hem de süper çözünürlük performansını artırmak için kullanır; LiDAR ölçümleri, ağın düşük çözünürlüklü girişten yüksek çözünürlüklü derinlik haritası üretmesine rehberlik eder. Bu yöntemler, KITTI gibi kıyaslama veri setlerinde yüksek skorlar elde etmekle birlikte, çoğunlukla büyük hacimli eğitim verisi, güçlü donanım ve uzun eğitim süreleri gerektirir.
 
-Noktalar bulunduktan sonra bunlar Denklem (\ref{edge_cost})'ye yerleştirilerek \begin{math}\tilde{X}_{k,i}^L\end{math} noktasının maliyeti hesaplanır. Bu denklem, \begin{math}\tilde{X}_{k,i}^L\end{math} noktasının \begin{math}(X_{k-1,j}^L,X_{k-1,l}^L)\end{math} doğrusuna olan dik uzaklığını vermektedir ve amacımız da zaten bu noktanın bu doğruya olan uzaklığını azaltmaktır.
+Buna ek olarak, FastFusion gibi yöntemler (örneğin \cite{fastfusion}) yüksek doğruluklu, uçtan uca derinlik füzyon mimarileri sunarak stereo–LiDAR birleşimiyle yüksek performans sergilemekte, ancak bu başarı çoğu zaman hesaplama maliyeti ve mimari karmaşıklık pahasına elde edilmektedir. Bu durum, gömülü sistemler veya düşük güçlü mobil platformlarda gerçek zamanlı uygulamalar için önemli bir kısıt teşkil etmektedir.
 
-\begin{equation}\label{edge_cost}
-d_\mathcal{E} = \frac{||\left(\tilde{X}_{(k,i)} - X_{(k-1,j)}  \right)\times\left(\tilde{X}_{(k,i)} - X_{(k-1,l)}  \right)||}
-{||\left(X_{(k-1,j)} - X_{(k-1,l)}  \right)||}
-\end{equation}
+\subsubsection{Hibrit ve Bağlantılı Yaklaşımlar}
 
-\subparagraph*{Düzlem noktası için karşılık bulma ve maliyet fonksiyonu hesaplama} adımında karşılık bulmak istediğimiz nokta yine \begin{math}\tilde{X}_{k,i}^L\end{math} olsun. İlk olarak \begin{math}\mathcal{H}_{k-1}^L\end{math} içerisindeki \begin{math}X_{k,i}^L\end{math}'e en yakın nokta \begin{math}X_{k-1,j}^L\end{math} bulunur. Daha sonra ise bu noktanın elemanı olduğu düzlemi bulmak için \begin{math}\mathcal{H}_{k-1}^L\end{math} içerisindeki \begin{math}X_{k-1,j}^L\end{math}'e en yakın iki nokta \begin{math}X_{k-1,l}^L\end{math} ve \begin{math}X_{k-1,m}^L\end{math} bulunur.
+Bazı çalışmalar, stereo–LiDAR füzyonunu doğrudan derinlik tahmini yerine hareket kestirimi (odometri) ve haritalama bağlamında ele almaktadır. Örneğin LiDAR–kamera odometrisi veya LiDAR–görsel–inertiyal odometri sistemlerinde, LiDAR ve görüntü verisi birlikte kullanılarak hareket kestirimi yapılmakta, dolaylı olarak stereo–LiDAR ilişkisi de modellendirilmektedir. Ancak bu tür çalışmaların önemli bir kısmında, stereo–LiDAR füzyonu doğrudan tek bir derinlik haritası üretmekten ziyade, optimizasyon probleminin hata fonksiyonunda dolaylı bir bağlayıcı rol üstlenmektedir.
 
-Noktalar bulunduktan sonra bunlar Denklem (\ref{surf_cost})'ye yerleştirilerek \begin{math}\tilde{X}_{k,i}^L\end{math} noktasının maliyeti hesaplanır. Denklemin sağ tarafı \begin{math}(X_{k-1,j}^L,X_{k-1,l}^L,X_{k-1,m}^L)\end{math} düzleminin normal birim vektörünü vermektedir. Bu  normalin \begin{math}<X_{k-1,j}^L,X_{k,i}^L>\end{math} vektörü ile iç çarpımı alınarak, \begin{math}\tilde{X}_{k,i}^L\end{math} noktasının \begin{math}(X_{k-1,j}^L,X_{k-1,l}^L,X_{k-1,m}^L)\end{math} düzlemine olan dik uzaklığı elde edilmektedir ve amacımız da zaten bu noktanın bu düzleme olan uzaklığını azaltmaktır.
+Bu tezde ise, doğrudan \emph{derinlik haritası füzyonu} ele alınmakta, stereo ve LiDAR verisi tek bir 2B derinlik düzleminde, Papoulis–Gerchberg algoritmasının sunduğu yinelemeli çerçeve içinde birleştirilmektedir. Böylece, derin öğrenme tabanlı yaklaşımların yüksek hesaplama maliyeti olmaksızın, LiDAR doğruluğu stereo derinlik haritasına aktarılmaktadır.
 
-\begin{equation}\label{surf_cost}
-d_\mathcal{H} = \left(\tilde{X}_{(k,i)} - X_{(k-1,j)}  \right) \cdot \frac{
- \left(X_{(k-1,j)} - X_{(k-1,l)}  \right)\times\left(X_{(k-1,j)} - X_{(k-1,m)}  \right)}
-{||\left( \left(X_{(k-1,j)} - X_{(k-1,l)}  \right)\times\left(X_{(k-1,j)} - X_{(k-1,m)}  \right)\right)||}
-\end{equation}
+\subsection{Papoulis–Gerchberg Algoritması ve İlgili Çalışmalar}
 
-\subparagraph*{LiDAR Odometrisi,} bir önceki adımda tüm öznitelik noktalarının maliyeti bulunduktan sonra, LM-Optimizasyonu kullanılarak elde edilir (Denklem (\ref{eq:loam_opt_problem})). \begin{math}n\end{math}'inci iterasyonda bu noktalar için en düşük maliyeti veren dönüşüm \begin{math}\tilde{T}_{k,n}^{k-1}\end{math}'dir. Burada her bir öz nitelik noktası, problem matrisinin bir sırasına denk gelmektedir. Denklem (\ref{surf_update}) ve (\ref{edge_update}) kullanılarak, nokta kümesinin pozisyonu güncellenir. Eğer bu adımda hesaplanan dönüşüm yakınsamışsa (mutlak yerdeğiştirme mesafesi ve dönme açısı bir değerin altındaysa) ya da belirlenen iterasyon limitine ulaşılmışsa, en son elde edilen dönüşüm \begin{math}\widehat{T}_k^{k-1}\end{math},Denklem (\ref{loam_lidar_odometry}) kullanılarak önceki çerçevede elde edilen pozisyonun üzerine eklenir ve güncel çerçevenin pozisyonu \begin{math}\widehat{T}^0_k\end{math} bulunur. Bu kestirim, LiDAR'ın çalışma frekansıyla aynı frekansta, düşük doğruluğa sahip bir kestirimdir.
-\begin{equation}\label{eq:loam_opt_problem}
-\min_{\mathbf{T}_{k}} \sum_{} \Big( d_\mathcal{E}^2 + d_\mathcal{H}^2 \Big)
-\end{equation}
-\begin{equation}\label{loam_lidar_odometry}
-\widehat{T}^0_k=\widehat{T}_{k-1}^0\ \widehat{T}_k^{k-1}
-\end{equation}
+Papoulis–Gerchberg (PG) algoritması, band-sınırlı sinyallerin eksik veya bozulmuş örneklerden yeniden oluşturulması amacıyla geliştirilmiş, yinelemeli bir sinyal işleme yöntemidir. Orijinal formülasyonunda, bir sinyalin zaman (veya uzay) alanında bilinen örnekleri ile frekans alanında bilinen spektral kısıtları art arda uygulanarak, eksik bölümler doldurulur ve sinyal band-sınırlılık varsayımı altında yeniden inşa edilir.
 
-\paragraph{LOAM Haritalama ve Kestirim İyileştirme}
-
-LOAM'ın haritalama adımı, odometri adımından daha düşük frekansta gerçekleşir. Haritaya eklenecek LiDAR çerçevesi, \ref{loam_feature_extraction} Öznitelik Çıkarımı adımında düzlemsel (\begin{math}\mathcal{H}_k^L\end{math}) ve kenar (\begin{math}\mathcal{E}_k^L\end{math}) nokta bulutu olarak kümelere ayrılmış bir şeklinde ele alınır. Ancak bu adımda \ref{loam_feature_assoc} Karşılıklık Bulma ve LiDAR Odometrisi adımındaki gibi referans olarak bir önceki nokta bulutu yerine, daha önceki haritalama adımlarında oluşturulan tüm harita (\begin{math}\mathcal{P}^{map}\end{math}, \begin{math}\mathcal{H}^{map}\end{math} ve \begin{math}\mathcal{E}^{map}\end{math}) kullanılır. Bu nedenle, \begin{math}\mathcal{H}_k^L\end{math} ve \begin{math}\mathcal{E}_k^L\end{math} bir önceki kestirim iyileştirme aşamasında Denklem (\ref{loam_tf_update}) ile elde edilen pozisyon \begin{math}\widehat{T}_{k+i_{(i<p)}}^{map}\end{math}'ye taşınır. (\begin{math}p\end{math} değeri burada bir periyottaki LiDAR çerçevesi sayısını ifade etmektedir.) Bunun sonucunda Denklem (\ref{surf_update}) ve (\ref{edge_update}), Denklem (\ref{surf_update_map}) ve (\ref{edge_update_map}) formunu alır. Yeni başlangıç noktasına göre olan dönüşüm, yine Denklem (\ref{edge_cost}), (\ref{surf_cost}) ve LM-Optimizasyonu kullanılarak kestirilir.
-
-\begin{equation}\label{surf_update_map}
-\tilde{\mathcal{H}}_{k,n}^{map} = {T}_{k-p}^{map}\ \tilde{T}_{k,n}^{k-p}\ \mathcal{H}_k^L
-\end{equation}
-\begin{equation}\label{edge_update_map}
-\tilde{\mathcal{E}}_{k,n}^{map} = {T}_{k-p}^{map}\ \tilde{T}_{k,n}^{k-p}\ \mathcal{E}_k^L
-\end{equation}
-
-Eğer dönüşüm kestirimi \begin{math} \tilde{T}_{k,n}^{k-p}\end{math} bir değere yakınsarsa, bu dönüşüm değeri Denklem (\ref{loam_lidar_odometry})'e benzer şekilde haritalamanın sonucu olarak Denklem (\ref{loam_lidar_odometry_map}) kullanılarak hesaplanılır. \begin{math}T^{map}_k\end{math} hesaplandıktan sonra \begin{math}\mathcal{P}_k^{map}\end{math}, \begin{math}\mathcal{H}_{k}^{map}\end{math} ve \begin{math}\mathcal{E}_{k}^{map}\end{math} haritaya eklenir. Haritada homojen nokta dağılımı sağlamak amacı ile eğer bir voksel içerisinde birden fazla nokta bulunuyorsa bunların ağırlıklı ortalaması alınır.
-
-\begin{equation}\label{loam_lidar_odometry_map}
-T^{map}_k= T_{k-p}^{map}\ T_{k}^{k-p}
-\end{equation}
-
-Kestirim iyileştirme adımında, \begin{math}k\end{math}'inci haritalama adımında elde edilen dönüşüm, bir sonraki haritalama adımına (\begin{math}k+p\end{math}) kadar LiDAR Odometrisi adımı sonucunda elde edilen sonucu iyileştirmek için Denklem (\ref{loam_tf_update})'deki gibi kullanılır. Burada yapılan işlem, \begin{math}k\end{math}'inci adımı başlangıç kabul ettiğimizde, LiDAR Odometrisi adımının hesapladığı dönüşümü, yine bu adımın hesapladığı, \begin{math}\widehat{T}^{0}_k\end{math} pozisyonu yerine daha doğru olan \begin{math}T^{map}_k\end{math} pozisyonunu referans alarak hesaplamaktır.
-
-
-\begin{equation}\label{loam_tf_update}
-\widehat{T}_{k+i}^{map} = T_k^{map}\ {\widehat{T}^{0^{-1}}_k}\ \widehat{T}_{k+i}^0,\qquad i<p
-\end{equation}
-
-\subsubsection{LeGO-LOAM}
-
-LeGO-LOAM\cite{legoloam} LOAM'ın en yaygın kullanılan varyasyonlarından biridir ve bu tez sürecinde yapılan çalışmalar bu bu varyasyona dayanmaktadır. Orijinal LOAM'ın üzerine eklediği 3 temel katkısı vardır. Bunlar; 
+Algoritmanın iki ana operatörü şu şekilde özetlenebilir:
 \begin{itemize}
-    \item Öznitelik çıkarımı adımında, yer düzlemini ayırarak bu düzlemi yuvarlanma (roll) ve yunuslama (pitch) yönündeki kestirimde kullanması
-    \item LiDAR Odometrisi adımında dönüşüm kestirimi yaparken tüm pozisyon değerlerini tek seferde hesaplamak yerine, bu problemi parçalara bölerek küçük bir kestirim doğruluğu kaybı karşısında işlem hızında büyük oranda kazanç elde etmesi
-    \item  Haritalama adımında algoritmaya döngü kapama becerisi kazandırması
-\end{itemize} olarak tanımlanabilir.
-
-Yer düzlemini ayırma adımında, kara araçlarının seyir sürecinde genel olarak yuvarlanma ve yunuslama yönlerinde düşük açı değerlerine sahip hareket yapıyor olmalarından faydalanılır. Yuvarlanma ve yunuslama açıları düşük olduğunda LiDAR'ın tarama düzlemi aracın hareket düzlemine paralel olacaktır. Buradan hareketle, nokta bulutu içerisindeki noktalardan dikey açısı belirli bir negatif değerin altında olanlar eğer eğer düşük düzgünlük puanına sahiplerse, bu noktalar büyük ihtimalle yer düzlemine aittir. Bu nedenle Bu iki kriteri de sağlayan noktalar yer nokta bulutu \begin{math}\mathcal{G}_{k}^L\end{math} olarak ayrıca sınıflandırılır.
-
-LiDAR odometrisi adımında Optimizasyon problemi 2 aşamada çözülür. İlk olarak yer düzlemini tespit etmek için \begin{math}\mathcal{G}_{k}^L\end{math} ve \begin{math}\mathcal{E}_{k}^L\end{math} nokta bulutları, Denklem (\ref{surf_cost}) ve (\ref{edge_cost}) ile birlikte kullanılır. Bu bulutlardaki tüm noktalar için maliyet hesaplandıktan sonra elde edilen Jakobiyen matrisi ve maliyet vektörü, tüm dönüşüm değerleri yerine sadece yuvarlanma, yunuslama ve \begin{math}z\end{math} eksenlerindeki dönüşüm değerlerini kestirmek için kullanılır. Daha sonra ise \begin{math}\hat{\mathcal{H}}_{k}^L\end{math} ve Denklem (\ref{surf_cost}) kullanılarak elde edilen maliyet matrisi, $x$, $y$ ve sapma (roll) eksenlerindeki hareketi kestirmek için kullanılır. 
-
-Orijinal LOAM makalesi haritalama adımında sadece dönüşümün sonucunu hafızasında tutmaktadır. Ancak döngü kapama becerisinin için, haritalama adımında elde edilen tüm dönüşümlerin hafızada tutulup, döngü kapama tespiti durumunda belirlenen hatayı, bu dönüşümlere dağıtılması gerekmektedir. LeGO-LOAM bu işlem için faktör graf (factor graph) \cite{gtsam}\cite{factor_graphs_for_robot_perception} yapısını kullanır. Burada her bir düğüm (node) \begin{math}\mathscr{N}_m, \quad m\approx k/p
-\end{math} haritalama adımında kestirimi yapılan pozisyona karşılık gelir. Bir döngü kapama tespit edildiğinde, o ana kadar birikmiş hata o döngü içindeki düğümlere dağıtılır. Bu durumda Denklem (\ref{loam_lidar_odometry_map}) ve (\ref{loam_tf_update}), Denklem (\ref{lego_loam_lidar_odometry_map}) ve (\ref{lego_loam_tf_update}) formunu alır. \begin{math}m\end{math} ie  \begin{math}k/p\end{math} ifadeleri arasında eşitlik yerine yakınsama kullanılma nedeni, haritalama adımının periyodunun her zaman sabit olmayıp, kestirimin yakınsaması ve, belirli bir limitin üzerinde rotasyon veya yer değiştirme kriterlerinin sağlanması gibi şartlara da bağımlı olmasıdır.
-
-\begin{equation}\label{lego_loam_lidar_odometry_map}
-T^{map}_k= \prod_{n=1}^{m} T_{\mathscr{N}_n}^{\mathscr{N}_{n-1}} ,\qquad m\approx k/p
-\end{equation}
-\begin{equation}\label{lego_loam_tf_update}
-\widehat{T}_{k+i}^{map} = T_{\mathscr{N}_m}^{map}\ {\widehat{T}^{0^{-1}}_k}\ \widehat{T}_{k+i}^0,\qquad i<p, m\approx k/p
-\end{equation}
-
-
-Ayrıca, haritalama için referans nokta bulutu oluşturulurken, başlangıçtan beri toplanan tüm nokta bulutları yerine, o anki pozisyona uzaklığı LiDAR'ın görüş mesafesinde olan (örneğin VLP-16 için 100m) düğümler, referans kümesi uzayını küçültüp algoritma hızını arttırmak ve hafıza ihtiyacını azaltmak amacıyla, her vokselde tek bir nokta bulunacak şekilde birleştirilerek kullanılır.
-
-\subsubsection[KISS-ICP]{KISS-ICP\cite{KISS-ICP}}
-
-KISS-ICP, sade ve etkili bir Iterative Closest Point (ICP) algoritması sunarak gerçek zamanlı SLAM uygulamalarında performans ve sadelik arasında bir denge kurmayı hedefler. Bu algoritma, yalnızca temel ICP adımlarını kullanarak, optimizasyon sürecini mümkün olduğunca basitleştirirken doğruluğu da korur. Makalenin ana katkıları şu şekilde özetlenebilir:
-
-\begin{itemize}
-    \item \textbf{Basitlik:} Algoritma, karmaşık optimizasyon tekniklerinden ve ek parametrizasyonlardan kaçınarak yalnızca temel ICP adımlarını uygular. Bu, hem anlaşılabilirliği artırır hem de uygulamayı kolaylaştırır.
-    \item \textbf{Hız:} Yüksek işlem hızına sahip olan KISS-ICP, gerçek zamanlı haritalama ve yerelleştirme uygulamalarında etkili bir şekilde çalışır.
-    \item \textbf{Genel Performans:} KISS-ICP, hem iç hem de dış mekanlarda geniş bir veri seti üzerinde test edilmiş ve doğruluk, hız ve kararlılık açısından başarılı sonuçlar elde etmiştir.
+    \item Uzay alanındaki projeksiyon operatörü, bilinen örneklerin konumlarında sinyal değerlerini sabitler ve bilinmeyen bölgelerde güncellenmesine izin verir.
+    \item Frekans alanındaki projeksiyon operatörü ise sinyal spektrumunu belirli bir bantla sınırlar veya seçilmiş frekans bileşenlerini bastırır/güçlendirir.
 \end{itemize}
+Bu iki kısıt, ardışık adımlarda uygulanarak sinyalin eksik kısımlarının kademeli olarak “doldurulması” sağlanır.
 
-KISS-ICP algoritması, iki temel aşamadan oluşur:
+PG algoritmasının görüntü işleme literatüründeki ilk uygulamalarından biri, görüntü tamamlama (image inpainting) problemine yöneliktir. İlgili çalışmalarda\cite{pg-image-inpaint-2009}, görüntüdeki maskeleme bölgeleri eksik veri alanı olarak ele alınmakta, bilinen pikseller sabitlenirken frekans alanındaki band-sınırlılık varsayımı ile bu bölgeler yinelemeli olarak doldurulmaktadır. Bu yaklaşım, özellikle düşük frekans baskın sahnelerde başarılı sonuçlar vermiştir; ancak tek bir görüntü modalitesi ile çalışmakta ve sahne geometrisinin karmaşık olduğu durumlarda sınırlılıklara sahiptir.
 
-\begin{enumerate}
-    \item \textbf{Nokta Eşleştirme:} Algoritma, kaynak noktalarının hedef noktalara en yakın komşu eşleştirmelerini bulur. Bu süreçte, noktaların öklid mesafesi kullanılarak en uygun eşleşmeler tespit edilir:
-    \begin{equation}
-        \min \limits_{i} \| \mathbf{p}_i - \mathbf{q}_j \|_2,
-    \end{equation}
-    burada $\mathbf{p}_i$ kaynak noktasını ve $\mathbf{q}_j$ hedef noktasını temsil eder.
+Özbay ve ark.\cite{ozbay2015pg3d}, Papoulis–Gerchberg algoritmasını 3B LiDAR nokta bulutu verisi üzerinde kullanarak, yüksek çözünürlüklü menzil ölçümü elde etmeyi amaçlayan bir yöntem önermiştir. Çalışmada, LiDAR’dan gelen seyrek nokta bulutları, dinamik PG tabanlı bir yapı ile daha yoğun bir menzil imgesine dönüştürülmekte, böylece nokta yoğunluğu artırılırken ölçüm gürültüsünün etkisi azaltılmaktadır. Bu çalışma, PG algoritmasının LiDAR verisi ile birlikte kullanılabileceğini göstermesi açısından önemlidir; ancak tek bir sensör modalitesi (LiDAR) ile çalışmakta ve stereo–LiDAR füzyonu problemine doğrudan değinmemektedir.
 
-    \item \textbf{Rijit Dönüşüm Hesaplama:} Eşleşen noktalar kullanılarak optimal bir dönüşüm matrisi $\mathbf{T}$ hesaplanır. Bu dönüşüm matrisi, hem bir döndürme matrisi $\mathbf{R}$ hem de bir öteleme vektörü $\mathbf{t}$ içerir:
-    \begin{equation}
-        \mathbf{T} = \begin{bmatrix} \mathbf{R} & \mathbf{t} \\ 0 & 1 \end{bmatrix}.
-    \end{equation}
-    Dönüşüm, eşleşen noktalar arasındaki hata fonksiyonunu minimize ederek elde edilir:
-    \begin{equation}
-        \min \limits_{\mathbf{R}, \mathbf{t}} \sum_{i} \| \mathbf{R}\mathbf{p}_i + \mathbf{t} - \mathbf{q}_j \|_2^2.
-    \end{equation}
-\end{enumerate}
+PG algoritmasının dinamik varyantları üzerine yapılan çalışmalar (örneğin \cite{uyanikDynamicPG} gibi) ise, zaman içinde değişen 3B menzil imgelerini ardışık PG adımları ile işleyerek ölçüm yoğunluğunu artırmayı ve gürültüyü bastırmayı hedefler. Bu tür yöntemler, ardışık çerçeveler arasında hareket bilgisini de hesaba katan dinamik bir modelleme sunar. Ancak bilindiği kadarıyla, literatürde PG algoritmasını \emph{çoklu sensör füzyonu} bağlamında, özellikle stereo–LiDAR derinlik haritası füzyonu için kullanan bir çalışma bulunmamaktadır.
 
-KISS-ICP'nin başarısı, bu basit fakat etkili adımların optimizasyonunda yatmaktadır. Ek olarak, algoritmanın uygulaması hem yazılım hem de donanım açısından düşük maliyetlidir, bu da onu geniş bir kullanım yelpazesi için ideal hale getirir. Algoritmanın SLAM ve otonom navigasyon gibi alanlardaki potansiyeli, doğruluğu ve hızından kaynaklanmaktadır. Ayrıca, KISS-ICP'nin açık kaynaklı olarak sunulması nedeniyle algoritma kısa sürede geniş bir topluluğa ulaşmıştır. Bu sayede, algoritma daha çeşitli senaryolarda test edilmiş ve topluluk tarafından geliştirilmeye devam edilmiştir.
-
-\subsection{FÜZYONLU LiDAR ODOMETRİSİ YÖNTEMLERİ}
-
-\subsubsection[P$^3$-LOAM]{P$^3$-LOAM\cite{p3loam}}
-
-P\( ^3\)-LOAM, LiDAR-SLAM ve PPP tekniklerini gevşek (loosely coupled) bir şekilde birleştirerek, özellikle kentsel kanyon ortamlarında küresel konumlandırma doğruluğunu artıran bir SLAM sistemi sunar. Sistem, LiDAR-SLAM ve PPP arasındaki entegrasyonu güçlendirmek için iki ana katkı sağlar:
-
+Bu tez, PG algoritmasını:
 \begin{itemize}
-    \item \textbf{LiDAR-SLAM Kovaryans Tahmini:} Sistem, ICP algoritmasının SVD tabanlı bir hata yayılım modeliyle LiDAR-SLAM'in konumlandırma kovaryansını tahmin eder. Bu yaklaşım, çoklu sensör entegrasyonu için daha hassas ağırlıklandırma sağlar.
-    \item \textbf{GNSS RAIM Destekli LiDAR-SLAM:} GNSS gözlemlerindeki yanlış verileri elimine etmek için, LiDAR-SLAM'den alınan sonuçlarla GNSS RAIM (Receiver Autonomous Integrity Monitoring) algoritması desteklenir. Böylece, GNSS'nin güvenilirliği ve doğruluğu artırılır.
+    \item Yoğun stereo derinlik haritasını \emph{arka plan} sinyali,
+    \item Seyrek LiDAR derinlik ölçümlerini ise \emph{yüksek güvenilirlikli ankraj noktaları}
 \end{itemize}
+olarak kabul eden yeni bir formda ele alarak, algoritmanın sinyal tamamlama bağlamından sensör füzyonu bağlamına taşınmasını önermektedir. Böylece PG algoritması, ilk kez stereo kamera ve LiDAR verilerini aynı yinelemeli çerçevede birleştiren deterministik bir füzyon aracı olarak kullanılmaktadır.
 
-P\( ^3\)-LOAM, bir ön yüz (frontend) ve bir arka yüz (backend) yapısına sahiptir. Ön yüzde, LiDAR nokta bulutlarının kaydı ve PPP sonuçları işlenirken, arka yüzde 15 serbestlik dereceli bir değişken optimizasyonuyla tüm sensörlerden gelen veriler entegre edilir. Deneyler, P3-LOAM'ın diğer yöntemlere kıyasla daha yüksek doğruluk ve kullanılabilirlik sağladığını göstermiştir.
+\subsection{Derinlik Füzyonu, SLAM ve Gerçek Zamanlı Uygulamalar}
 
-Sonuç olarak, P3-LOAM, LiDAR ve PPP'nin özelliklerini etkili bir şekilde birleştirerek, büyük ölçekli ve karmaşık çevrelerde güvenilir bir küresel konumlandırma ve haritalama çözümü sunar.
+Stereo–LiDAR füzyonu yalnızca tek karelik derinlik iyileştirmesi için değil, aynı zamanda odometri ve SLAM sistemlerinin doğruluğunun artırılması için de önemlidir. Görsel odometri, LiDAR odometrisi ve LiDAR–görsel–inertiyal odometri yöntemleri, derinlik haritalarını ve nokta bulutlarını kullanarak hareket kestirimi yapar; bu süreçte derinlik kalitesinin artması, odometri hatalarının ve harita gürültüsünün azalmasına doğrudan katkı sağlar.
 
-\subsubsection[KINEMATIC-ICP]{KINEMATIC-ICP\cite{kinematic_icp}}
+Güncel literatürde, bu tür sistemlerin önemli bir kısmı derin öğrenme tabanlı bileşenler (monoküler derinlik tahmini, semantik segmentasyon vb.) ile zenginleştirilmektedir. Ancak derin ağların eğitimi ve çalıştırılması için gereken hesaplama kapasitesi, gömülü sistemlerde gerçek zamanlı çalışmayı zorlaştırmaktadır\cite{shamsafar2022survey}. Bu sebeple, deterministik ve lineer cebir temelli algoritmalarla gerçek zamanlı derinlik füzyonu elde etmek, özellikle mobil robotlar ve otonom araçlar için hâlâ güncelliğini koruyan bir araştırma problemidir.
 
-Kinematic-ICP, tekerlekli mobil robotlar için LiDAR odometri algoritmalarını iyileştirmek amacıyla kinematik kısıtlamaları geleneksel ICP (Iterative Closest Point) algoritmasına entegre eden bir yöntem sunar. Bu yöntem, robot kinematiğini hesaba katarak daha doğal ve doğru bir hareket tahmini sağlar. Algoritmanın öne çıkan katkıları şunlardır:
+Tez kapsamında önerilen yöntem, Papoulis–Gerchberg algoritmasını lineer cebir çerçevesinde formüle ederek GPU üzerinde paralel olarak çalıştırmaya uygun hâle getirmekte, böylece derin öğrenme tabanlı yöntemlere kıyasla daha düşük parametre sayısı ve daha öngörülebilir hesaplama maliyetine sahip bir füzyon çözümü sunmayı hedeflemektedir. Bu yönüyle çalışma, hem klasik sinyal işleme literatürü (PG algoritması ve türevleri) hem de modern stereo–LiDAR füzyon ve SLAM literatürü arasında bir köprü kurmaktadır.
 
-\begin{itemize}
-    \item \textbf{Kinematik Entegrasyon:} Algoritma, tekerlekli mobil robotların kinematik modelini kullanarak, LiDAR nokta bulutlarının hizalanmasını optimize eder. Bu, robot hareketinin doğal ve fiziksel olarak anlamlı bir şekilde tahmin edilmesini sağlar.
-    \item \textbf{Uyarlanabilirlik:} LiDAR ölçümleri ve tekerlek odometrisinin ağırlıklarını dinamik olarak ayarlayarak, özellik açısından zayıf ortamlarda dahi doğru sonuçlar üretir.
-    \item \textbf{Üstün Performans:} Kinematic-ICP, hem iç hem de dış mekanlarda yapılan deneylerde, mevcut yöntemlere kıyasla daha yüksek doğruluk ve kararlılık sağlamıştır.
-\end{itemize}
-
-Kinematic-ICP, hareket tahmini sürecinde iki ana aşama içerir:
-
-\begin{enumerate}
-    \item \textbf{Başlangıç Tahmini:} Robotun tekerlek odometrisi, LiDAR verisinin işlenmesi için başlangıç pozisyon tahmini olarak kullanılır. Bu tahmin, aşağıdaki şekilde ifade edilir:
-    \begin{equation}
-        \hat{T}_t = T_{t-1} O_t,
-    \end{equation}
-    burada $T_{t-1}$ önceki pozisyonu, $O_t$ ise tekerlek odometrisinden gelen göreli hareket bilgisini temsil eder.
-
-    \item \textbf{Kinematik Kısıtlı Optimizasyon:} ICP algoritması, robotun kinematik modeliyle uyumlu bir şekilde nokta bulutu hizalaması gerçekleştirir. Bu süreç, aşağıdaki optimizasyon problemiyle ifade edilir:
-    \begin{equation}
-        \min \limits_{\Delta u} \chi(\hat{T}_t \oplus \Delta u),
-    \end{equation}
-    burada $\Delta u$ kinematik düzeltme vektörünü, $\oplus$ ise SE(3) uzayında düzeltme uygulamasını temsil eder.
-\end{enumerate}
-
-Algoritmanın başarısı, hem kinematik modelin kullanılması hem de LiDAR verilerinin ve tekerlek odometrisinin dinamik olarak optimize edilmesine dayanmaktadır. Örneğin, tekerlek kayması gibi durumlarda algoritma, LiDAR verisine daha fazla ağırlık vererek bu zorlukları aşabilir. Ek olarak, aşağıdaki regularizasyon terimi, translasyonel kısmı kontrol altında tutar:
-\begin{equation}
-    G(\hat{T}_t \oplus \Delta u) = \chi(\hat{T}_t \oplus \Delta u) + \frac{1}{\beta_t} \Delta x^2,
-\end{equation}
-    burada $\beta_t$, LiDAR ve tekerlek odometrisinin güvenirliğine bağlı olarak ayarlanır.
-
-Deneysel sonuçlar, Kinematic-ICP'nin hem açık alanlarda hem de büyük ölçekli depo ortamlarında tekerlek odometrisine kıyasla daha doğru sonuçlar ürettiğini göstermektedir. Algoritmanın kodu, topluluk tarafından geliştirilmek üzere açık kaynak olarak sunulmuştur.
-
-Sonuç olarak, Kinematic-ICP, mobil robotların doğal hareketlerini kinematik modelle uyumlu bir şekilde tahmin ederek, LiDAR odometrisi için önemli bir ilerleme sunmaktadır.
-
-%\subsubsection[An Integrated GNSS/LiDAR-SLAM Pose Estimation Framework for Large-Scale Map Building in Partially GNSS-Denied Environments]{An Integrated GNSS/LiDAR-SLAM Pose Estimation Framework for Large-Scale Map Building in Partially GNSS-Denied Environments\cite{integrated_GNSS_LOAM}}
-
-%Bu makale, GNSS erişiminin kısmen sınırlı olduğu büyük ölçekli dış ortamlar için entegre bir GNSS/LiDAR-SLAM poz tahmin çerçevesi sunar. Çerçeve, LiDAR ve GNSS teknolojilerinin birbirini tamamlayan özelliklerini kullanarak haritalama görevini iki moda ayırır:
-
-%\begin{itemize}
-%    \item \textbf{GNSS-LiDAR Haritalama Modu:} GNSS sinyallerinin erişilebilir olduğu açık alanlarda GNSS RTK konumlandırma, LiDAR verilerinin kaydı için başlangıç pozisyonu olarak kullanılır. Yüksek maliyetli ataletsel cihazlara ihtiyaç duymadan yönelim tahmini yapılır.
-%    \item \textbf{LiDAR-Only Haritalama Modu:} GNSS sinyallerinin erişilemediği alanlarda, yalnızca LiDAR-SLAM algoritmaları ile haritalama yapılır. Bu süreçte, sürüklenme hataları bir grafik optimizasyon algoritması ile düzeltilir.
-%\end{itemize}
-
-%LiDAR ile ilgili kısımlar, özellikle sürüklenme hatalarının düzeltilmesi ve doğru nokta bulutu kaydı için kullanılan yöntemlere odaklanmaktadır. LiDAR-SLAM algoritması, her iki mod arasında geçiş yaparken başlangıç koordinatlarını hizalamak için kullanılır. Örneğin, GNSS-LiDAR modundan LiDAR-Only moda geçildiğinde, önceki GNSS destekli poz verileri LiDAR-SLAM algoritmasının başlangıç noktası olarak alınır. Bu, sürüklenme hatalarını azaltmaya yardımcı olur.
-
-%Makale ayrıca, LiDAR verilerinden özellik çıkarımı, GNSS ile otomatik koordinat hizalama ve grafik tabanlı optimizasyon süreçlerini detaylandırır. Özellikle, drift hata düzeltmesi için geri yayılım tabanlı bir yöntem sunularak, LiDAR-Only modunda uzun mesafelerdeki doğruluk artırılmıştır.
-
-%Sonuç olarak, bu çerçeve, GNSS'nin kısmen erişilemediği alanlarda LiDAR verilerini kullanarak yüksek hassasiyetli haritalama ve poz tahmini yapabilen güçlü bir çözüm sunmaktadır. Deneysel sonuçlar, yöntemin hem kentsel hem de açık alanlardaki başarısını doğrulamaktadır.
-
-
-\subsubsection[LIO-EKF]{LIO-EKF\cite{lio-ekf}}
-
-LIO-EKF, LiDAR ve IMU'yu klasik bir EKF (Extended Kalman Filter - Genişletilmiş Kalman Filtresi)  şeması ile birleştirerek yüksek frekanslı ve hassas poz tahmini sağlayan bir LiDAR-inertial odometri sistemidir. Bu sistem, LiDAR taramalarını ve IMU ölçümlerini sıkı bir şekilde birleştirerek düşük sürüklenmeli hareket tahmini sunar. Ana katkılar şu şekilde özetlenebilir:
-
-\begin{itemize}
-    \item \textbf{Adaptif Veri Eşleme:} LiDAR gürültüsü, harita kesiklilik hataları ve IMU'dan gelen hareket belirsizliği göz önüne alınarak adaptif bir eşik belirleme yöntemi sunar. Bu yaklaşım, veri eşleme için gereken parametreleri büyük ölçüde azaltır.
-    \item \textbf{Basitleştirilmiş Hesaplama:} Klasik EKF şeması, diğer karmaşık optimizasyon yöntemlerine kıyasla daha hızlıdır ve IMU çerçeve oranına yakın bir hızda çalışır.
-\end{itemize}
-
-LIO-EKF'nin metodolojisi üç ana bileşenden oluşur:
-
-\begin{enumerate}
-    \item \textbf{Hata Durum Modeli:} IMU ölçümlerini kullanarak robotun pozisyon, hız ve yönelim hatalarını tahmin eden bir hata durumu vektörü tanımlar.
-    \item \textbf{LiDAR Gözlem Modeli:} LiDAR taramalarından gelen nokta bulutu verilerini lokal haritalarla eşleştirir ve poz tahminini günceller.
-    \item \textbf{Adaptif Eşik:} Veri eşleşmeleri için kullanılan eşiği, sensör gürültüsü ve hareket belirsizliklerini dikkate alarak otomatik olarak ayarlar.
-\end{enumerate}
-
-Deneysel sonuçlar, LIO-EKF'nin mevcut LiDAR-inertial odometri sistemleriyle benzer doğruluk sağlarken önemli ölçüde daha hızlı olduğunu göstermektedir. Ayrıca, karmaşık ortamlarda ve farklı hareket profillerinde yüksek performans sunarak sistemin genelleme kabiliyetini kanıtlamıştır.
-
-\subsubsection[LIO-Fusion]{LIO-Fusion\cite{lio-fusion}}
-
-LIO-Fusion, GNSS, yeniden konumlandırma (relocalization) ve tekerlek odometrisi verilerini etkili bir şekilde birleştirerek LIO'yu (LiDAR-Inertial Odometry - LiDAR - Ataletsel Odometri) güçlendiren bir sistem sunar. Bu yöntem, zorlu algı koşullarında robotların 6 serbestlik derecesine sahip hareketlerini güvenilir bir şekilde tahmin etmeyi amaçlar. Algoritma, bir faktör grafik çerçevesi kullanarak farklı sensörlerden gelen göreli ve mutlak ölçümleri entegre eder. Bu yaklaşım, sensör verilerindeki bozulmalara ve eksikliklere karşı dirençli bir sistem oluşturur.
-
-Sistemin temel bileşenleri şunlardır:
-\begin{itemize}
-    \item \textbf{Global Güçlendirme Modülü:} GNSS ve yeniden konumlandırma faktörlerinin güvenilirlik durumunu değerlendirir ve yalnızca sağlıklı olanları entegre ederek küresel hata birikimini azaltır.
-    \item \textbf{Yerel Güçlendirme Modülü:} Tekerlek odometrisini desteklemek için yerel odometri faktörünü güçlendirir ve LiDAR bozulmalarına karşı dayanıklılığı artırır.
-\end{itemize}
-
-Algoritmanın çalışmasında öne çıkan aşamalar şunlardır:
-\begin{enumerate}
-    \item \textbf{Başlangıç:} LiDAR nokta bulutlarından özellik çıkarımı, IMU ön entegrasyonu ve GNSS kalibrasyonu gibi işlemleri içerir.
-    \item \textbf{Faktör Grafik Optimizasyonu:} LiDAR, IMU, GNSS ve tekerlek odometrisi ölçümleri arasında sıkı bir entegrasyon sağlar ve düşük sürüklenmeli odometri sonuçları elde eder.
-\end{enumerate}
-
-Deneysel sonuçlar, LIO-Fusion'ın kentsel ve tehlikeli ortamlar gibi zorlu senaryolarda yüksek doğruluk ve sağlamlık sağladığını göstermiştir. Algoritma, mevcut yöntemlere kıyasla daha düşük hata oranlarıyla birlikte daha doğru haritalama ve konumlandırma sunmaktadır. LIO-Fusion, otonom robotların karmaşık ortamlarda güvenilir bir şekilde çalışmasını sağlamak için önemli bir katkı sağlamaktadır.
-
-
-\subsection{LiDAR VERİSETİ ÇALIŞMALARI}
-
-\subsubsection[MULRAN VERİSETİ]{MULRAN VERİSETİ\cite{mulran}}
-
-MulRan, kentsel alanlarda yer tanıma araştırmaları için radar ve LiDAR verilerinden oluşan çok modlu bir veri seti sunar. Veri seti, uzun süreli yer tanıma ve SLAM algoritmalarının doğrulamasına olanak tanıyacak şekilde, yapısal ve zamansal çeşitliliği içeren veri örnekleriyle tasarlanmıştır. Başlıca katkılar şunlardır:
-
-\begin{itemize}
-    \item \textbf{Çoklu Çevre ve Seans:} MulRan, DCC, KAIST, Riverside ve Sejong City gibi farklı çevrelerden, tekrarlı rotaları ve farklı zaman dilimlerini kapsayan veri dizileri içerir.
-    \item \textbf{Radar ve LiDAR Entegrasyonu:} 3D LiDAR ve dönen radar sensörlerinden gelen veriler, yer tanıma performansını değerlendirmek için birlikte sunulmuştur.
-    \item \textbf{Yeniden Ziyaret ve Döngü Algılama:} Çeşitli yapısal senaryolarda yer tanıma ve döngü kapatma doğruluğunu test etmek amacıyla aylar arası yeniden ziyaret senaryoları tasarlanmıştır.
-\end{itemize}
-
-Veri seti, 6D poz referanslarıyla birlikte, radar ve LiDAR verilerinin polar görüntü ve nokta bulutu formatlarında temsillerini sağlar. Önerilen Scan Context tabanlı radar tanıma yöntemi, radarın uzun menzilli algılama yeteneklerinin yer tanıma görevlerinde LiDAR'ı geride bırakabildiğini göstermiştir. MulRan veri seti, yer tanıma ve SLAM algoritmalarının gelişimi için kapsamlı bir platform sunmaktadır.
-
-\subsubsection[M2DGR VERİSETİ]{M2DGR VERİSETİ\cite{m2dgr}}
-
-M2DGR, zemin robotları için çoklu sensör ve çoklu senaryo SLAM veri seti sunan, geniş kapsamlı bir veri koleksiyonudur. Bu veri seti, hem iç hem de dış mekanlarda yüksek çeşitlilikte ortamları kapsayarak SLAM algoritmalarının geliştirilmesi ve değerlendirilmesi için zengin bir kaynak sağlar. Öne çıkan katkılar şu şekildedir:
-
-\begin{itemize}
-    \item \textbf{Zengin Sensör Çeşitliliği:} Veri seti, altı balık gözü kamera, bir gökyüzü kamerası, bir kızılötesi kamera, bir olay kamerası, bir Visual-Inertial (VI) sensör, bir LiDAR, bir IMU ve GNSS-IMU navigasyon sistemlerini içerir. Tüm sensörler kalibre edilmiş ve senkronize edilmiştir.
-    \item \textbf{Çeşitli Senaryolar:} Veri seti, asansör kullanımı, tamamen karanlık ortamlar, açık hava-ev içi geçişleri gibi pratikte sıkça karşılaşılan zorlu durumları içeren 36 farklı veri dizisi sunar.
-    \item \textbf{Yüksek Kaliteli Gerçek Gezinge Verileri:} Gerçek gezinge (trajecktory) verileri, RTK/IMU sistemi, lazer 3D takip cihazı ve hareket yakalama sistemi kullanılarak elde edilmiştir.
-\end{itemize}
-
-M2DGR veri seti, SLAM algoritmalarını hem görsel hem de LiDAR tabanlı yöntemlerle değerlendirmek için bir temel sağlar. Deneyler, mevcut yöntemlerin belirli senaryolarda başarısız olduğunu ve bu nedenle daha sağlam çözümlerin geliştirilmesi gerektiğini ortaya koymaktadır.
-
-Sonuç olarak, M2DGR, zengin sensör çeşitliliği ve senaryolarıyla SLAM araştırmaları için kapsamlı bir referans sunar ve bu alanda ilerlemeyi teşvik eder.
-
-\pagebreak
+% NOT:
+% Buraya, kendi tezinizde kullanacağınız ek kaynaklara göre yeni alt başlıklar (örneğin “Gerçek Zamanlı GPU Uygulamaları”, 
+% “Derinlik Haritaları için Değerlendirme Metrikleri”, “KITTI ve Diğer Veri Setleri” vb.) ekleyebilir, 
+% ilgili makaleleri kısaca özetleyerek literatür taramasını genişletebilirsiniz.
