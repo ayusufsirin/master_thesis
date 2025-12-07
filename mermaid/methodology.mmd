@@ -1,0 +1,46 @@
+flowchart LR
+    %% ========== Nodes ==========
+    CameraNode([Camera Node])
+    ImageProc([image_proc Node])
+    LidarNode([VLP16 Driver])
+    FusionNode([Fusion Node])
+    NavNode([Navigation Node])
+    TFBroadcaster([TF Broadcaster])
+
+    %% ========== Topics ==========
+    rgb_image((/camera/image))
+    camera_info((/camera/camera_info))
+    depth_image((/camera/depth))
+    lidar_packets((/velodyne_packets))
+    lidar_points((/velodyne_points))
+    fused_data((/fusion/output))
+
+    %% ========== Connections ==========
+    CameraNode --> rgb_image
+    CameraNode --> camera_info
+    ImageProc --> depth_image
+    rgb_image --> ImageProc
+    camera_info --> ImageProc
+
+    LidarNode --> lidar_packets
+    lidar_packets --> LidarNode
+
+    LidarNode --> lidar_points
+
+    rgb_image --> FusionNode
+    depth_image --> FusionNode
+    lidar_points --> FusionNode
+
+    FusionNode --> fused_data
+    fused_data --> NavNode
+
+    TFBroadcaster --> NavNode
+
+    %% ========== Styling ==========
+    classDef node fill:#3d85c6,stroke:#1c4587,color:white,font-weight:bold;
+    classDef topic fill:#f6b26b,stroke:#b45f06,color:black;
+    classDef tf fill:#93c47d,stroke:#38761d,color:black,font-weight:bold;
+
+    class CameraNode,ImageProc,LidarNode,FusionNode,NavNode node;
+    class TFBroadcaster tf;
+    class rgb_image,camera_info,depth_image,lidar_packets,lidar_points,fused_data topic;

@@ -1,0 +1,49 @@
+flowchart LR
+
+%% ============ NODES ===============
+camera_node(["Stereo Camera Driver"]):::node
+lidar_upsample(["Lidar Upsample Node"]):::node
+lidar_node(["Lidar Driver"]):::node
+localization(["Localization Node"]):::node
+pg(["Fusion Node"]):::node
+image_proc(["Image Processing Node"]):::node
+
+%% ============ TOPICS ===============
+cam_rgb_left[("/camera/rgb/left/image")]:::topic
+cam_rgb_right[("/camera/rgb/right/image")]:::topic
+cam_depth[("/camera/depth/image")]:::topic
+cam_info[("/camera/rgb/info")]:::topic
+cam_depth_info[("/camera/depth/info")]:::topic
+lidar_pc[("/lidar/point_cloud")]:::topic
+lidar_pc_cum[("/lidar/point_cloud/cumulative")]:::topic
+odom[("/odom")]:::topic
+pg_depth[("/pg/depth")]:::topic
+
+tf_map_odom[("/tf: map → odom")]:::tf
+tf_odom_base[("/tf: odom → base_link")]:::tf
+
+%% ============ FLOWS ================
+camera_node --> cam_rgb_left --> image_proc
+camera_node --> cam_rgb_right --> image_proc
+camera_node --> cam_info --> image_proc
+image_proc --> cam_depth
+image_proc --> cam_depth_info
+
+lidar_node --> lidar_pc --> localization
+
+localization --> odom
+
+lidar_pc_cum --> pg
+cam_depth_info --> pg
+cam_depth --> pg --> pg_depth
+
+lidar_pc --> lidar_upsample --> lidar_pc_cum
+odom --> lidar_upsample
+
+localization --> tf_map_odom
+localization --> tf_odom_base
+
+%% ============ STYLING ===============
+classDef node fill:#3d85c6,stroke:#1c4587,color:#fff,rx:6,ry:6;
+classDef topic fill:#f6b26b,stroke:#b45f06,color:#000,rx:4,ry:4;
+classDef tf fill:#93c47d,stroke:#38761d,color:#000,rx:4,ry:4;
