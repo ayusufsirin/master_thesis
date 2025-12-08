@@ -1,0 +1,306 @@
+\section{DİNAMİK PAPAULISH-GERCHBERG}  \label{sec:dynamic_pg}
+
+\subsection{Mathematical Formulation of the Depth Fusion Pipeline}
+
+In this section, we formalize the mathematical model underlying our ROS--CuPy based ZED--LiDAR fusion node. The implementation operates on synchronized depth images from a stereo camera (ZED) and point clouds from a LiDAR sensor and produces a fused depth image and a corresponding point cloud in real time.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/pg.png}
+    \end{adjustbox}
+    \caption{Füzyon algoritması akış diyagramı 0}
+    \label{methodology_2}
+\end{figure}
+
+\subsubsection*{Notation and Inputs}
+
+Let the ZED depth image be
+\begin{equation}
+  D_{\text{ZED}}^{\text{orig}}(v,u) \in \mathbb{R} \cup \{\text{NaN}\},
+\end{equation}
+with pixel coordinates
+\begin{equation}
+  u \in \{0,\dots,W-1\}, \quad v \in \{0,\dots,H-1\}.
+\end{equation}
+
+The LiDAR returns a 3D point cloud
+\begin{equation}
+  \mathcal{P}_{\text{L}}
+  =
+  \left\{
+    \mathbf{p}_k
+    =
+    \begin{bmatrix}
+      x_k \\ y_k \\ z_k
+    \end{bmatrix}
+    \in \mathbb{R}^3
+  \right\}_{k=1}^{N}.
+\end{equation}
+
+Camera intrinsics (from the ROS \texttt{CameraInfo} message) are given by
+\begin{equation}
+  f_x, f_y \quad \text{(focal lengths)}, \qquad
+  c_x, c_y \quad \text{(principal point)}.
+\end{equation}
+
+We define a crop region
+\begin{equation}
+  \Omega_c = \left\{ (v,u) \;\middle|\;
+    t \le v < H - b,\
+    \ell \le u < W - r
+  \right\},
+\end{equation}
+where
+\begin{equation}
+  t = \texttt{MORTAL\_ROWS\_TOP}, \quad
+  b = \texttt{MORTAL\_ROWS\_BOTTOM}, \quad
+  \ell = \texttt{MORTAL\_COLUMNS\_LEFT}, \quad
+  r = \texttt{MORTAL\_COLUMNS\_RIGHT}.
+\end{equation}
+The consistency threshold between ZED and LiDAR depth is denoted by
+\begin{equation}
+  \tau = \texttt{ZED\_VLP\_DIFF\_MAX}.
+\end{equation}
+
+\subsubsection*{LiDAR Cartesian to Spherical Representation}
+
+For each LiDAR point $\mathbf{p}_k = (x_k, y_k, z_k)^\top$, we define a spherical representation
+\begin{align}
+  r_k     &= \sqrt{x_k^2 + y_k^2 + z_k^2}, \\
+  \theta_k &= \arctan\!\left( \frac{z_k}{\sqrt{x_k^2 + y_k^2}} \right), \\
+  \phi_k   &= \arctan\!\left( \frac{y_k}{x_k} \right),
+\end{align}
+so that
+\begin{equation}
+  \mathbf{s}_k =
+  \begin{bmatrix}
+    r_k \\ \theta_k \\ \phi_k
+  \end{bmatrix}.
+\end{equation}
+This representation is used for angular filtering and diagnostics in the implementation.
+
+\subsubsection*{LiDAR to Camera Projection and Depth Image}
+
+\paragraph{Axis Remapping.}
+The LiDAR points are first remapped into a camera-like coordinate system via
+\begin{equation}
+  \begin{bmatrix}
+    X_k \\ Y_k \\ Z_k
+  \end{bmatrix}
+  =
+  R
+  \begin{bmatrix}
+    x_k \\ y_k \\ z_k
+  \end{bmatrix},
+  \qquad
+  R =
+  \begin{bmatrix}
+    0 & -1 & 0 \\
+    0 &  0 & -1 \\
+    1 &  0 & 0
+  \end{bmatrix},
+\end{equation}
+so that $Z_k$ is forward, $X_k$ is horizontal and $Y_k$ is vertical in the camera frame.
+
+\paragraph{Pinhole Projection.}
+Using the pinhole camera model, the projected image coordinates are
+\begin{align}
+  \tilde{u}_k &= \frac{X_k f_x}{Z_k} + c_x, \\
+  \tilde{v}_k &= \frac{Y_k f_y}{Z_k} + c_y.
+\end{align}
+Discretization to pixel indices is performed by rounding:
+\begin{equation}
+  u_k = \operatorname{round}(\tilde{u}_k), \qquad
+  v_k = \operatorname{round}(\tilde{v}_k).
+\end{equation}
+
+We only keep points that project to a valid pixel and lie in front of the camera:
+\begin{equation}
+  \mathcal{K}
+  =
+  \left\{ k \;\middle|\;
+  0 \le u_k < W,\
+  0 \le v_k < H,\
+  Z_k > 0,\
+  Z_k \text{ finite} \right\}.
+\end{equation}
+
+\paragraph{LiDAR Depth Image Construction.}
+The LiDAR depth image $D_{\text{L}}(v,u)$ is defined as the minimum range $Z_k$ over all points that project to the corresponding pixel:
+\begin{equation}
+  D_{\text{L}}(v,u) =
+  \begin{cases}
+    \displaystyle
+    \min\limits_{k \in \mathcal{K} : (v_k,u_k) = (v,u)} Z_k,
+    & \text{if such } k \text{ exists}, \\[1.2ex]
+    \text{NaN}, & \text{otherwise}.
+  \end{cases}
+\end{equation}
+This corresponds to a nearest-surface depth image derived from the LiDAR point cloud.
+
+\subsubsection*{ZED Depth Inpainting}
+
+The raw ZED depth map $D_{\text{ZED}}^{\text{orig}}(v,u)$ may contain invalid values (NaN or $\pm\infty$). We define the invalidity mask
+\begin{equation}
+  M(v,u) =
+  \begin{cases}
+    1, & \text{if } D_{\text{ZED}}^{\text{orig}}(v,u) \text{ is NaN or } \pm\infty, \\
+    0, & \text{otherwise}.
+  \end{cases}
+\end{equation}
+
+We initialize an inpainted depth map by
+\begin{equation}
+  D^{(0)}(v,u) =
+  \begin{cases}
+    D_{\text{ZED}}^{\text{orig}}(v,u), & M(v,u) = 0, \\
+    0, & M(v,u) = 1.
+  \end{cases}
+\end{equation}
+
+Then we iteratively propagate valid neighbouring depths into invalid regions using a 4-connected neighbourhood
+\begin{equation}
+  \mathcal{N}(v,u) =
+  \{(v-1,u), (v+1,u), (v,u-1), (v,u+1)\}.
+\end{equation}
+At iteration $t+1$, for each pixel with $M(v,u) = 1$, we update
+\begin{equation}
+  D^{(t+1)}(v,u)
+  =
+  \frac{
+    \displaystyle
+    \sum\limits_{(p,q) \in \mathcal{N}(v,u)}
+      D^{(t)}(p,q)\,
+      \mathbf{1}_{\{M(p,q) = 0\}}
+  }{
+    \displaystyle
+    \sum\limits_{(p,q) \in \mathcal{N}(v,u)}
+      \mathbf{1}_{\{M(p,q) = 0\}}
+    + \varepsilon
+  },
+\end{equation}
+where $\mathbf{1}_{\{\cdot\}}$ is the indicator function and $\varepsilon \ll 1$ is a small constant to prevent division by zero. Valid pixels ($M(v,u)=0$) remain unchanged in this iteration.
+
+After a fixed number $T$ of iterations, we obtain the inpainted ZED depth map
+\begin{equation}
+  D_{\text{ZED}}(v,u) = D^{(T)}(v,u).
+\end{equation}
+The original invalid pixels are retained by reapplying the mask at the end.
+
+\subsubsection*{Cropping and ZED--LiDAR Consistency Filtering}
+
+We restrict the inpainted ZED depth and LiDAR depth to the crop region $\Omega_c$:
+\begin{align}
+  D_{\text{ZED}}^{c}(v,u) &= D_{\text{ZED}}(v,u),
+  & (v,u) &\in \Omega_c, \\
+  D_{\text{L}}^{c}(v,u)   &= D_{\text{L}}(v,u),
+  & (v,u) &\in \Omega_c.
+\end{align}
+
+To reject inconsistent LiDAR measurements, we apply a consistency filter based on the ZED depth:
+\begin{equation}
+  D_{\text{L}}^{c}(v,u) \leftarrow
+  \begin{cases}
+    D_{\text{L}}^{c}(v,u),
+      & \text{if } \left| D_{\text{ZED}}^{c}(v,u) - D_{\text{L}}^{c}(v,u) \right| \le \tau, \\[0.8ex]
+    \text{NaN},
+      & \text{otherwise},
+  \end{cases}
+  \qquad (v,u) \in \Omega_c.
+\end{equation}
+
+In the current implementation, the PG depth in the crop region is taken directly from the filtered LiDAR depth:
+\begin{equation}
+  D_{\text{PG}}^{c}(v,u) = D_{\text{L}}^{c}(v,u),
+  \qquad (v,u) \in \Omega_c.
+\end{equation}
+
+\subsubsection*{Final Fused Depth Map}
+
+The final fused depth map $D_{\text{PG}}(v,u)$, which is published as \texttt{PG\_DEPTH\_TOPIC}, is constructed as follows:
+
+\begin{enumerate}
+  \item Initialize with the original ZED depth:
+  \begin{equation}
+    D_{\text{PG}}(v,u) \leftarrow D_{\text{ZED}}^{\text{orig}}(v,u).
+  \end{equation}
+
+  \item In the crop region, overwrite with LiDAR depth wherever it is valid:
+  \begin{equation}
+    D_{\text{PG}}(v,u) =
+    \begin{cases}
+      D_{\text{L}}^{c}(v,u),
+        & (v,u) \in \Omega_c,\ D_{\text{L}}^{c}(v,u) \text{ finite}, \\[0.8ex]
+      D_{\text{ZED}}^{\text{orig}}(v,u),
+        & \text{otherwise}.
+    \end{cases}
+  \end{equation}
+
+  \item Enforce the original ZED invalidity mask:
+  \begin{equation}
+    D_{\text{PG}}(v,u) \leftarrow \text{NaN}
+    \quad \text{for all } (v,u) \text{ such that } M(v,u) = 1.
+  \end{equation}
+\end{enumerate}
+
+Combining these steps, we can concisely express the fused depth as
+\begin{equation}
+  D_{\text{PG}}(v,u) =
+  \begin{cases}
+    \text{NaN},
+      & M(v,u) = 1, \\[0.8ex]
+    D_{\text{L}}^{c}(v,u),
+      & (v,u) \in \Omega_c,\ D_{\text{L}}^{c}(v,u) \text{ finite}, \\[0.8ex]
+    D_{\text{ZED}}^{\text{orig}}(v,u),
+      & \text{otherwise}.
+  \end{cases}
+\end{equation}
+
+\subsubsection*{Back-Projection to 3D and Output Point Cloud}
+
+The fused depth map $D_{\text{PG}}(v,u)$ is converted back to 3D using the camera intrinsics. For each pixel $(v,u)$ with a finite depth
+\begin{equation}
+  d = D_{\text{PG}}(v,u),
+\end{equation}
+the point in the camera frame is
+\begin{align}
+  X_{\text{cam}}(v,u) &= \frac{(u - c_x)\, d}{f_x}, \\
+  Y_{\text{cam}}(v,u) &= \frac{(v - c_y)\, d}{f_y}, \\
+  Z_{\text{cam}}(v,u) &= d.
+\end{align}
+
+The implementation applies an axis remapping so that the output frame uses
+\begin{align}
+  x'(v,u) &= Z_{\text{cam}}(v,u) = d, \\
+  y'(v,u) &= -X_{\text{cam}}(v,u) = -\frac{(u - c_x)\, d}{f_x}, \\
+  z'(v,u) &= -Y_{\text{cam}}(v,u) = -\frac{(v - c_y)\, d}{f_y}.
+\end{align}
+Thus, the resulting 3D point corresponding to pixel $(v,u)$ is
+\begin{equation}
+  \mathbf{p}'(v,u)
+  =
+  \begin{bmatrix}
+    x'(v,u) \\
+    y'(v,u) \\
+    z'(v,u)
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    d \\[0.4ex]
+    -\dfrac{(u - c_x)\, d}{f_x} \\[1.0ex]
+    -\dfrac{(v - c_y)\, d}{f_y}
+  \end{bmatrix}.
+\end{equation}
+
+Collecting all valid pixels yields the fused point cloud
+\begin{equation}
+  \mathcal{P}_{\text{PG}}
+  =
+  \left\{
+    \mathbf{p}'(v,u)
+    \;\middle|\;
+    D_{\text{PG}}(v,u) \text{ is finite}
+  \right\},
+\end{equation}
+which is serialized as a \texttt{sensor\_msgs/PointCloud2} message and published on the fused point cloud topic.

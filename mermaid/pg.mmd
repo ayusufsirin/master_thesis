@@ -1,0 +1,99 @@
+flowchart TB
+
+%% ================== CONTEXT ====================
+    subgraph external_inputs["External Inputs to Fusion Node"]
+        direction LR
+        lidar_pc_cum[("/lidar/point_cloud/cumulative")]:::topic
+        cam_depth[("/camera/depth/image (D_ZED^orig)")]:::topic
+        cam_depth_info[("/camera/depth/info (fx, fy, cx, cy)")]:::topic
+        cam_rgb_left[("/camera/rgb/left/image")]:::topic
+        odom[("/odom")]:::topic
+    end
+
+%% ================== FUSION NODE ====================
+    subgraph fusion_node["Fusion Node (PG Algorithm)"]
+        direction LR
+    %% ---------- LIDAR PREPROCESSING ----------
+        subgraph lidar_preproc["LiDAR Preprocessing"]
+            direction TB
+            lp_in["LiDAR PointCloud2\n(lidar_pc_cum)"]:::topic
+            msg2pts_node["msg2pts()\nROS → CuPy XYZ"]:::stage
+            cart2sph_node["cart_to_sph_pts()\n(x,y,z) → (r, θ, φ)"]:::stage
+            proj_node["cart_pts_to_depth_image()\nProjection with (fx, fy, cx, cy)"]:::stage
+            D_L["LiDAR Depth Image\nD_L(v,u)"]:::data
+            lp_in --> msg2pts_node --> cart2sph_node --> proj_node --> D_L
+        end
+
+    %% ---------- ZED PREPROCESSING ----------
+        subgraph zed_preproc["ZED Depth Preprocessing"]
+            direction TB
+            zed_in["ZED Depth Image\nD_ZED^orig(v,u)"]:::topic
+            mask_node["Invalid Mask M(v,u)\n(NaN / ±∞)"]:::stage
+            inpaint_node["inpaint_depth_cupy_nanaware()\nIterative 4-neighbour fill"]:::stage
+            D_ZED["Inpainted ZED Depth\nD_ZED(v,u)"]:::data
+            zed_in --> mask_node --> inpaint_node --> D_ZED
+        end
+
+    %% ---------- CROPPING & CONSISTENCY ----------
+        subgraph crop_consistency["Cropping + ZED–LiDAR Consistency Filter"]
+            direction TB
+            crop_node["Crop to Ω_c\n(MORTAL_* parameters)"]:::stage
+            D_ZED_c["D_ZED^c(v,u)"]:::data
+            D_L_c["D_L^c(v,u)"]:::data
+            consistency_node["|D_ZED^c - D_L^c| ≤ τ ?\nIf not: D_L^c(v,u) ← NaN"]:::stage
+            D_L_c_filt["Filtered LiDAR Crop\nD_L^c, filt(v,u)"]:::data
+            D_ZED --> crop_node --> D_ZED_c
+            D_L --> crop_node --> D_L_c
+            D_ZED_c --> consistency_node
+            D_L_c --> consistency_node --> D_L_c_filt
+        end
+
+    %% ---------- FUSION RULE ----------
+        subgraph fusion_rule["Depth Fusion Rule"]
+            direction TB
+            pg_crop["PG Crop\nD_PG^c(v,u) = D_L^c,filt(v,u)"]:::stage
+            pg_full["Full Fused Depth Map\nD_PG(v,u)"]:::data
+            mask_apply["Reapply Original Mask\nM(v,u)=1 ⇒ D_PG(v,u)=NaN"]:::stage
+            D_L_c_filt --> pg_crop --> pg_full --> mask_apply
+        end
+
+    %% ---------- BACK-PROJECTION ----------
+        subgraph backproj["Back-Projection to 3D Point Clouds"]
+            direction TB
+            to_cam_frame["Depth → Camera Frame\n(X_cam,Y_cam,Z_cam)"]:::stage
+            axis_remap["Axis Remapping\n(x',y',z') = (Z_cam, -X_cam, -Y_cam)"]:::stage
+            pc_pg["Fused Point Cloud\n𝒫_PG"]:::data
+            pc_zed["ZED Point Cloud\nfrom D_ZED(v,u)"]:::data
+            pc_zed_orig["ZED Original PC\nfrom D_ZED^orig(v,u)"]:::data
+            pc_vlp_dbg["LiDAR Debug PC\nfrom D_L(v,u)"]:::data
+            pg_full --> to_cam_frame --> axis_remap --> pc_pg
+            D_ZED --> to_cam_frame --> pc_zed
+            zed_in --> to_cam_frame --> pc_zed_orig
+            D_L --> to_cam_frame --> pc_vlp_dbg
+        end
+
+    end
+%% fusion_node
+
+%% ================== WIRING EXTERNAL → INTERNAL ====================
+    lidar_pc_cum --> lp_in
+    cam_depth --> zed_in
+    cam_depth_info --> proj_node
+    cam_depth_info --> to_cam_frame
+    cam_rgb_left --> fusion_node
+    odom --> fusion_node
+%% ================== OUTPUT TOPICS ====================
+    pg_depth[("/pg/depth\nD_PG(v,u)")]:::topic
+    pg_fused_pc[("/pg/fused_point_cloud\n𝒫_PG")]:::topic
+    pg_zed_pc[("/pg/zed_point_cloud\nfrom D_ZED")]:::topic
+    pg_zed_orig_pc[("/pg/zed_original_point_cloud\nfrom D_ZED^orig")]:::topic
+    pg_vlp_debug_pc[("/pg/vlp_debug_point_cloud\nfrom D_L")]:::topic
+    pg_full --> pg_depth
+    pc_pg --> pg_fused_pc
+    pc_zed --> pg_zed_pc
+    pc_zed_orig --> pg_zed_orig_pc
+    pc_vlp_dbg --> pg_vlp_debug_pc
+%% ================== STYLING ====================
+    classDef stage fill: #3d85c6, stroke: #1c4587, color: #fff, rx: 6, ry: 6;
+    classDef data fill: #f6b26b, stroke: #b45f06, color: #000, rx: 4, ry: 4;
+    classDef topic fill: #ffe599, stroke: #b7b7b7, color: #000, rx: 4, ry: 4;
