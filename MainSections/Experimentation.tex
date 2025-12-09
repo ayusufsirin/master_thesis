@@ -1,0 +1,41 @@
+\section{DENEY} \label{experimentation}
+
+\subsection{Yöntem}
+
+Dinamik Papoulish-Gerchberg algoritmasının SLAM'e katkısını ölçülebilir kılmak için bu tez kapsamında oluşturulan SensorSuiteV2 ve benzer veri tiplerini içeren açık kaynak CitrusFarm versiseti kullanılmıştır. Bu verisetlerindeki veriler RTABMap aracı kullanılarak doğrudan ve algoritmayla ön işlemeden geçirilerek işlenmiştir.
+
+Algoritma katkısının hangi algoritma adımlarıca majör olarak sağlandığını bulabilmek için deneyler superposition prensibine uygun olarak decompose edilmiştir. Ön işleme (PG algoritması) farklı adımları bypass geçilerek geriye kalan kısımlarının iyileşmeye katkısı değerlendirilmiştir. En sonunda kümülatif katkının süperpozisyon prensipine uygun olup olmadığı değerlendirilmiştir.
+
+Deney esnasında decompose edilen parçalar şu şekildedir:
+
+\begin{itemize}
+    \item Bütünleşik algoritmanın çıktısı derinlik imajı
+    \item PG iterason sayısını N adet discrete değer ile üretilen derinlik imajı (N çeşitlendirerek iyileşme lineerlinin test edilmesi amaçlanmıştır N=[0, 33])
+    \item Lidar upsampleda kullanilan geriye dönük lidar frame sayısının çeşitlendirilmesi algoritma çıktısı derinlik imajı N[1,10]
+\end{itemize}
+
+Tüm bu deney çıktılarının SLAM performanlarının karşılaştırılması için odometri çıktıları birleştirilerek elde edilen güzergahlar RTK GPS verisi ile karşılaştırılmıştır.
+
+Kendi verisetimizde loop-closure içeren kısımları da barındırdığımız için path örtüşmesi kıyasının yanı sıra aynı pozisyondan geçerkenki drift değerleri de kıyaslanmıştır.
+
+SLAM çıktısının bir diğeri üç boyutlu harita olduğu için aynı zamanda üç boyutlu harita performansları da kıyaslanmıştır. Burada temel ölçü olarak harita çözünürlüğü, harita alignment hatası ve bir de gözle yapılan kıyasların görsellerine tez kapsamında yer verilmiştir.Bahsedilen son metrik öznel yargılar işerebileceği gibi ektra eklendiği için bilimsel bir kanıt amacı günülmemiş, yalnızca bir bakış açısı katılması amaçlanmıştır.
+
+Deneyde yalnızca Lidar ve IMU tabanlı SLAM algoritmaları ile karşılaştırmaya girilmemiştir. Bunun temel sebebi Lidarın seyrek veri yapısının renksiz ve düşük çözünürlüklü SLAM çıktısının stereo depth ile elde edilen SLAM çıktısıyla karşılaştırılmasının çok fazla metrik değişiminden dolayı sağlıksız olmasıdır.
+
+\subsubsection{Bütünleşik algoritma parametreleri ve akışı}
+
+Algoritma baştan uca tüm parametrelerin en iyi sonucu vereceği tahmin edilen dahiliyle deneye sokulmuştur
+
+\subsubsection{Değişken PG iterasyon sayısı}
+
+\subsubsection{Değişken Lidar upsample Lidar History sayısı}
+
+
+\subsection{CitrusFarm Veriseti}
+
+Bu başlık altında Deney senaryolarında bahsi geçen deneyler CitrusFarm veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
+
+\subsection{SensorSuiteV2 Veriseti}
+
+Bu başlık altında Deney senaryolarında bahsi geçen deneyler SensorSuite veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
+
