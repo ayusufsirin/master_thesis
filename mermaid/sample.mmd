@@ -1,0 +1,34 @@
+flowchart LR
+
+%% ============ NODES ===============
+camera_node(["📷 camera_node"])
+image_proc(["🖼 image_proc"])
+lidar_node(["🌐 lidar_driver"])
+localization(["📍 localization_node"])
+control(["🕹 control_node"])
+
+%% ============ TOPICS ===============
+rgb_image[("/camera/rgb_image")]
+lidar_scan[("/lidar/scan")]
+odom[("/odom")]
+velocity_cmd[("/cmd_vel")]
+tf_map_odom[("/tf: map → odom")]
+tf_odom_base[("/tf: odom → base_link")]
+
+%% ============ FLOWS ================
+camera_node --> rgb_image --> image_proc
+lidar_node --> lidar_scan --> localization
+localization --> odom --> control
+control --> velocity_cmd
+
+localization --> tf_map_odom
+localization --> tf_odom_base
+
+%% ============ STYLING ===============
+classDef node fill:#3d85c6,stroke:#1c4587,color:#fff,rx:6,ry:6;
+classDef topic fill:#f6b26b,stroke:#b45f06,color:#000,rx:4,ry:4;
+classDef tf fill:#93c47d,stroke:#38761d,color:#000,rx:4,ry:4;
+
+class camera_node,image_proc,lidar_node,localization,control node;
+class rgb_image,lidar_scan,odom,velocity_cmd topic;
+class tf_map_odom,tf_odom_base tf;
