@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM debian:bookworm-slim
 
 # ───────────── Install wget for fetching certs ─────────────
 RUN apt update -y && apt install -y wget
@@ -16,8 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8
 
 # ---- System deps (LaTeX + Node + Mermaid/Chromium deps) ----
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git wget \
     make \
     python3 \
@@ -29,8 +28,10 @@ RUN apt-get install -y --no-install-recommends \
     texlive-xetex \
     texlive-luatex \
     texlive-lang-all \
-    # Mermaid CLI headless chromium deps
-    chromium-browser \
+    texlive-science \
+    # Mermaid CLI browser + deps (REAL chromium, not snap)
+    chromium \
+    chromium-sandbox \
     fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
@@ -58,10 +59,8 @@ RUN apt-get install -y --no-install-recommends \
     libxshmfence1 \
     libxss1 \
     libxtst6 \
-    xdg-utils
-
-RUN apt-get install -y --no-install-recommends \
-    texlive-science
+    xdg-utils \
+ && rm -rf /var/lib/apt/lists/*
 
 # ---- Install Node.js (LTS) + npm ----
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -74,14 +73,15 @@ ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} ${USER} && useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USER}
 
-# ---- Install mermaid-cli globally for that user ----
-# npm config (Nexus registry etc.)
+# ---- npm config (Nexus registry etc.) ----
 COPY .npmrc /home/${USER}/.npmrc
 RUN chown ${USER}:${USER} /home/${USER}/.npmrc
 
+# ---- Install mermaid-cli globally for that user ----
 ENV NPM_CONFIG_PREFIX=/home/${USER}/.npm-global
 ENV PATH=/home/${USER}/.npm-global/bin:$PATH
 
+# (keep if your environment needs it; otherwise you can remove)
 ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 USER ${USER}
@@ -89,8 +89,8 @@ WORKDIR /work
 
 RUN npm install -g @mermaid-js/mermaid-cli
 
-# Tell mermaid-cli which browser to use (important in containers)
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Tell mermaid-cli which browser to use
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
-# Default command
-CMD ["bash"]
+CMD ["latexmk", "-pdf", "-interaction=nonstopmode", "-pvc"]
