@@ -108,7 +108,7 @@
 \renewcommand{\thesection}{\arabic{section}.}
 %\renewcommand{\theappendix}{\theappendix\arabic{appendix}.}
 %\renewcommand{\thechapter}{\arabic{appendix}.}
-\usepackage{chngcntr}
+%\usepackage{chngcntr}
 \counterwithout{equation}{section}
 %\counterwithin{figure}{section}
 %\counterwithin{table}{section}
@@ -149,7 +149,7 @@
 \setcounter{dbltopnumber}{9}
 \usepackage{graphicx}
 \usepackage{epstopdf}
-\usepackage[scriptsize]{subfigure}
+%\usepackage[scriptsize]{subfigure}
 \usepackage{booktabs}
 \usepackage{rotating}
 \usepackage{listings}
@@ -161,8 +161,8 @@
 %\renewcommand{\epigraphsize}{\normalsize} % Set the size of the epigraph text
 \let\originalepigraph\epigraph 
 \renewcommand\epigraph[2]{\originalepigraph{\textit{#1}}{\textsc{#2}}}
-\usepackage{amsmath}
-\usepackage{amssymb}
+%\usepackage{amsmath}
+%\usepackage{amssymb}
 \DeclareMathOperator*{\bigast}{\ast}
 \usepackage{lipsum}
 \usepackage{pgfplotstable} % For importing tables from CSV
