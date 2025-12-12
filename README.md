@@ -1,4 +1,12 @@
 ```bash
+docker build . -t master_latex
+```
+
+```bash
+docker run --rm -it --privileged --shm-size=1g -v $PWD:/ws/ -w /ws master_latex
+```
+
+```bash
 latexmk -pdf -gg -interaction=nonstopmode main.tex
 ```
 
