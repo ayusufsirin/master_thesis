@@ -358,7 +358,58 @@ Gerçek veri üzerinde yapılan deneylerde, sensörlerin anlık olarak algılaya
 
 Filtreleme sürecinde kullanılan cutoff frekansı, Papoulis--Gerchberg algoritmasının yakınsama karakteristiğini doğrudan etkilemektedir. Bu çalışmada, farklı normalize cutoff frekans değerleri için (0.01--0.16 aralığında) sabit iterasyon sayısı altında elde edilen çıktılar karşılaştırılmıştır. Düşük cutoff değerlerinde, yüksek frekans bileşenlerinin büyük ölçüde bastırıldığı ve bunun sonucunda özellikle ince geometrik detayların kaybolduğu gözlemlenmiştir. Buna karşılık, yüksek cutoff değerlerinde ise sensörler arası uyumsuzluklardan kaynaklanan yüksek frekanslı bileşenlerin yeterince bastırılamadığı görülmüştür.
 
-Sentetik satranç tahtası (checkerboard) verisi üzerinde gerçekleştirilen deneyler, cutoff frekansının uygun seçilmesi halinde PG algoritmasının teorik beklentilerle uyumlu şekilde çalıştığını doğrulamıştır. Ancak gerçek veri üzerinde, ZED kamera ve VLP LiDAR sensörlerinin görüş alanlarının (Field of View, FOV) tam olarak örtüşmemesi nedeniyle, aynı cutoff değerlerinin her durumda benzer sonuçlar üretmediği tespit edilmiştir. Bu durum, cutoff frekansının sabit bir parametre olarak değil, sensör geometrisi ve veri dağılımına bağlı olarak değerlendirilmesi gerektiğini göstermektedir.
+Sentetik satranç tahtası (checkerboard) verisi üzerinde gerçekleştirilen deneyler (Şekil~\ref{fig:pg_cutoff_comparison}), cutoff frekansının uygun seçilmesi halinde PG algoritmasının teorik beklentilerle uyumlu şekilde çalıştığını doğrulamıştır. Ancak gerçek veri üzerinde, ZED kamera ve VLP LiDAR sensörlerinin görüş alanlarının (Field of View, FOV) tam olarak örtüşmemesi nedeniyle, aynı cutoff değerlerinin her durumda benzer sonuçlar üretmediği tespit edilmiştir. Bu durum, cutoff frekansının sabit bir parametre olarak değil, sensör geometrisi ve veri dağılımına bağlı olarak değerlendirilmesi gerektiğini göstermektedir.
+
+\begin{figure}[H]
+    \centering
+
+    % -------- Row 1 --------
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.01_100.png}
+        \caption{Cutoff = 0.01, Iter = 100}
+        \label{fig:pg_001}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.02_100.png}
+        \caption{Cutoff = 0.02, Iter = 100}
+        \label{fig:pg_002}
+    \end{subfigure}
+
+    \vspace{0.8em}
+
+    % -------- Row 2 --------
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.04_100.png}
+        \caption{Cutoff = 0.04, Iter = 100}
+        \label{fig:pg_004}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.08_100.png}
+        \caption{Cutoff = 0.08, Iter = 100}
+        \label{fig:pg_008}
+    \end{subfigure}
+
+    \vspace{0.8em}
+
+    % -------- Row 3 --------
+    \begin{subfigure}[t]{\textwidth}
+        \centering
+        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.16_100.png}
+        \caption{Cutoff = 0.16, Iter = 100}
+        \label{fig:pg_016}
+    \end{subfigure}
+
+    \caption{Papoulis--Gerchberg algoritmasında farklı normalize cutoff frekansları için elde edilen çıktılar.
+    Düşük cutoff değerlerinde yüksek frekans bileşenlerinin baskılandığı, yüksek cutoff değerlerinde ise detayların
+    daha belirgin hâle geldiği gözlemlenmektedir.}
+    \label{fig:pg_cutoff_comparison}
+\end{figure}
 
 Ayrıca, derinlik imajlarının kare olmayan boyutlara sahip olması durumunda, frekans alanında kullanılan dairesel maskelemenin hatalı sonuçlar ürettiği gözlemlenmiştir. Bu problem, eliptik maske kullanımı ile giderilmiş ve dikdörtgen ve kare imajlar arasında tutarlı sonuçlar elde edilmiştir.
 
@@ -366,17 +417,9 @@ Ayrıca, derinlik imajlarının kare olmayan boyutlara sahip olması durumunda, 
 
 Varsayılan olarak kullanılan brick-wall (ideal) düşük geçiren filtre, frekans alanında keskin bir kesim uygulaması nedeniyle uzaysal alanda salınımlara (ringing artefaktları) yol açmaktadır. Bu durum, özellikle sensörler arası mesafenin fazla olduğu bölgelerde, PG çıktısında yapay dalgalanmalara neden olmaktadır. Bu nedenle, çalışmada brick-wall filtreye alternatif olarak Gaussian ve Butterworth filtreler değerlendirilmiştir.
 
-Gaussian filtre, frekans alanında yumuşak bir geçiş sağladığından, yüksek frekans bileşenlerini kademeli olarak bastırmakta ve uzaysal alanda daha kararlı sonuçlar üretmektedir. Butterworth filtre ise geçiş bölgesinin eğimini kontrol edilebilir kılması sayesinde, brick-wall filtreden daha yumuşak, Gaussian filtreden ise daha seçici bir yapı sunmaktadır. Yapılan deneyler, her iki filtrenin de brick-wall filtreye kıyasla, özellikle spike oluşumlarını belirgin şekilde azalttığını göstermiştir.
+Farklı filtre tiplerinin aynı parametrelerdeki çıktıları Şekil~\ref{fig:pg_filter_comparison} içinde birlikte sunulmuştur. Gaussian filtre (Şekil~\ref{fig:pg_gaussian}), frekans alanında yumuşak bir geçiş sağladığından, yüksek frekans bileşenlerini kademeli olarak bastırmakta ve uzaysal alanda daha kararlı sonuçlar üretmektedir. Butterworth filtre (Şekil~\ref{fig:pg_butterworth}) ise geçiş bölgesinin eğimini kontrol edilebilir kılması sayesinde, brick-wall filtreden (Şekil~\ref{fig:pg_brickwall}) daha yumuşak, Gaussian filtreden ise daha seçici bir yapı sunmaktadır. Yapılan deneyler, her iki filtrenin de brick-wall filtreye kıyasla, özellikle spike oluşumlarını belirgin şekilde azalttığını göstermiştir.
 
 Bununla birlikte, Gaussian ve Butterworth filtrelerin kullanımı sonucunda, zemin düzlemi gibi LiDAR verisinin yoğun olduğu bölgelerde bozulmalar meydana geldiği gözlemlenmiştir. Bu durum, filtreleme işleminin tüm sahneye homojen biçimde uygulanmasının her zaman ideal olmadığını ve baskın geometrik yapıların ayrı ele alınması gerektiğini ortaya koymaktadır.
-
-\subsubsection{Filtrelerin Çapraz Karşılaştırılması}
-
-Filtre tiplerinin karşılaştırmalı analizi hem sentetik hem de gerçek veri üzerinde gerçekleştirilmiştir. Sentetik veride, ideal koşullar altında tüm filtrelerin benzer yakınsama davranışı sergilediği görülürken, gerçek veri üzerinde belirgin farklar ortaya çıkmıştır. Brick-wall filtre, keskin frekans kesimi nedeniyle yüksek frekanslı hataları bastırmakta yetersiz kalmış ve PG çıktısında artefaktlara yol açmıştır. Gaussian filtre, sensörler arası uyumsuzlukları daha iyi tolere etmiş ancak zemin bölgelerinde aşırı yumuşamaya neden olmuştur. Butterworth filtre ise bu iki uç arasında bir denge sağlayarak, hem spike oluşumlarını azaltmış hem de genel geometrik bütünlüğü daha iyi korumuştur.
-
-Ayrıca, ZED ve VLP referans çerçeveleri arasında hesaplanan varyans (covariance) temelli maskeleme yaklaşımı, filtreleme süreciyle birlikte kullanıldığında, yüksek varyanslı LiDAR noktalarının PG güncellemesine dahil edilmemesi sayesinde daha kararlı sonuçlar elde edilmesini sağlamıştır. Bu yaklaşım, algoritmanın zorlayıcı ve fiziksel olarak anlamsız düzeltmeler yapması yerine, yalnızca güvenilir bölgelerde iyileştirme gerçekleştirmesine olanak tanımaktadır.
-
-Sonuç olarak, bu çalışmada elde edilen bulgular, üç boyutlu veri füzyonunda filtre seçiminin yalnızca matematiksel değil, aynı zamanda fiziksel sahne yapısı ve sensör karakteristikleriyle birlikte değerlendirilmesi gerektiğini göstermektedir. Filtre tipi, cutoff frekansı ve maskeleme stratejilerinin birlikte ele alındığı bir yapı, Papoulis--Gerchberg tabanlı iyileştirme algoritmasının gerçek veri üzerindeki başarımını anlamlı ölçüde artırmaktadır.
 
 \begin{figure}[H]
     \centering
@@ -432,65 +475,24 @@ Sonuç olarak, bu çalışmada elde edilen bulgular, üç boyutlu veri füzyonun
     \label{fig:pg_filter_comparison}
 \end{figure}
 
+\subsubsection{Filtrelerin Çapraz Karşılaştırılması}
+
+Filtre tiplerinin karşılaştırmalı analizi hem sentetik hem de gerçek veri üzerinde gerçekleştirilmiştir. Sentetik veride, ideal koşullar altında filtrelerin benzer yakınsama davranışı sergilediği görülürken, gerçek veri üzerinde belirgin farklar ortaya çıkmıştır. Brick-wall filtre, frekans alanında keskin bir kesim uyguladığı için PG çıktısında artefaktlara ve yer yer kararsız yakınsamaya neden olmuştur. Bu çalışmada tercih edilen Gaussian filtre ise yumuşak geçiş karakteristiği sayesinde sensörler arası uyumsuzlukları daha iyi tolere etmiş ve görsel olarak daha kararlı, daha tutarlı bir iyileştirme sağlamıştır. Butterworth filtre belirli senaryolarda dengeli bir alternatif sunsa da, yapılan deneylerde en tutarlı sonuçlar Gaussian filtre ile elde edilmiştir (Bakınız Şekil~\ref{fig:pg_gaussian_vs_brickwall_citrus}).
 
 \begin{figure}[H]
     \centering
 
-    % -------- Row 1 --------
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
-        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.01_100.png}
-        \caption{Cutoff = 0.01, Iter = 100}
-        \label{fig:pg_001}
+        \includegraphics[height=5.5cm]{./Figures/pg_filter_selection/pg_nan_filled_1.png}
+        \caption{Brick-wall LPF ile elde edilen PG çıktısı (Kırmızı noktalar PG, sarı noktalar ZED, yeşil noktalar VLP çıktısı)}
+        \label{fig:pg_brickwall_not_variance_filtered}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
-        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.02_100.png}
-        \caption{Cutoff = 0.02, Iter = 100}
-        \label{fig:pg_002}
-    \end{subfigure}
-
-    \vspace{0.8em}
-
-    % -------- Row 2 --------
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.04_100.png}
-        \caption{Cutoff = 0.04, Iter = 100}
-        \label{fig:pg_004}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.08_100.png}
-        \caption{Cutoff = 0.08, Iter = 100}
-        \label{fig:pg_008}
-    \end{subfigure}
-
-    \vspace{0.8em}
-
-    % -------- Row 3 --------
-    \begin{subfigure}[t]{\textwidth}
-        \centering
-        \includegraphics[height=6cm]{./Figures/pg_filter_selection/dama_0.16_100.png}
-        \caption{Cutoff = 0.16, Iter = 100}
-        \label{fig:pg_016}
-    \end{subfigure}
-
-    \caption{Papoulis--Gerchberg algoritmasında farklı normalize cutoff frekansları için elde edilen çıktılar.
-    Düşük cutoff değerlerinde yüksek frekans bileşenlerinin baskılandığı, yüksek cutoff değerlerinde ise detayların
-    daha belirgin hâle geldiği gözlemlenmektedir.}
-    \label{fig:pg_cutoff_comparison}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-
-    \begin{subfigure}[t]{\textwidth}
-        \centering
-        \includegraphics[width=10cm]{./Figures/pg_filter_selection/variance_filtered.png}
-        \caption{Brick-wall LPF ile elde edilen PG çıktısı (Kırmızı noktalar PG çıktısı)}
+        \includegraphics[height=5.5cm]{./Figures/pg_filter_selection/variance_filtered.png}
+        \caption{Brick-wall LPF ve Varyans Filtresi ile elde edilen PG çıktısı (Kırmızı noktalar PG, sarı noktalar ZED, yeşil noktalar VLP çıktısı)}
         \label{fig:pg_brickwall_variance_filtered}
     \end{subfigure}
 
@@ -498,8 +500,8 @@ Sonuç olarak, bu çalışmada elde edilen bulgular, üç boyutlu veri füzyonun
 
     \begin{subfigure}[t]{\textwidth}
         \centering
-        \includegraphics[width=10cm]{./Figures/pg_filter_selection/citrus_gaussian_0.16_33.png}
-        \caption{Gaussian LPF ile elde edilen PG çıktısı (Beyaz noktalar PG çıktısı)}
+        \includegraphics[width=0.5\linewidth]{./Figures/pg_filter_selection/citrus_gaussian_0.16_33.png}
+        \caption{Gaussian LPF ve Varyans Filtresi ile elde edilen PG çıktısı (Beyaz noktalar ZED, kırmızı noktalar VLP, gökkuşağı noktalar PG çıktısı)}
         \label{fig:pg_gaussian_citrus}
     \end{subfigure}
 
@@ -509,3 +511,7 @@ Sonuç olarak, bu çalışmada elde edilen bulgular, üç boyutlu veri füzyonun
     Bu nedenle, ilgili deney setinde Gaussian filtre, Brick-wall filtreye kıyasla daha tutarlı bir PG iyileştirmesi sunmuştur.}
     \label{fig:pg_gaussian_vs_brickwall_citrus}
 \end{figure}
+
+Ayrıca, ZED ve VLP referans çerçeveleri arasında hesaplanan varyans (covariance) temelli maskeleme yaklaşımı, filtreleme süreciyle birlikte kullanıldığında, yüksek varyanslı LiDAR noktalarının PG güncellemesine dahil edilmemesi sayesinde daha kararlı sonuçlar elde edilmesini sağlamıştır. Bu yaklaşım, algoritmanın zorlayıcı ve fiziksel olarak anlamsız düzeltmeler yapması yerine, yalnızca güvenilir bölgelerde iyileştirme gerçekleştirmesine olanak tanımaktadır.
+
+Sonuç olarak, bu çalışmada elde edilen bulgular, üç boyutlu veri füzyonunda filtre seçiminin yalnızca matematiksel değil, aynı zamanda fiziksel sahne yapısı ve sensör karakteristikleriyle birlikte değerlendirilmesi gerektiğini göstermektedir. Filtre tipi, cutoff frekansı ve maskeleme stratejilerinin birlikte ele alındığı bir yapı, Papoulis--Gerchberg tabanlı iyileştirme algoritmasının gerçek veri üzerindeki başarımını anlamlı ölçüde artırmaktadır.
