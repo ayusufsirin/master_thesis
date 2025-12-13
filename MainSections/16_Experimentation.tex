@@ -30,7 +30,6 @@ Algoritma baştan uca tüm parametrelerin en iyi sonucu vereceği tahmin edilen 
 
 \subsubsection{Değişken Lidar upsample Lidar History sayısı}
 
-
 \subsection{CitrusFarm Veriseti}
 
 Bu başlık altında Deney senaryolarında bahsi geçen deneyler CitrusFarm veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
@@ -39,3 +38,44 @@ Bu başlık altında Deney senaryolarında bahsi geçen deneyler CitrusFarm veri
 
 Bu başlık altında Deney senaryolarında bahsi geçen deneyler SensorSuite veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
 
+\subsection{Paralel İşleme Performansı}
+
+GPU ile sinyal işlemeye dayalı yöntemler geliştirildiği için çeşitli GPU modelleri ile deneyler tekrarlandı. PG algoritması başarımının iterasyon sayısı ile doğru orantılı olduğu ve işlem gücü dar boğazının asıl PG iterasyon sayılarından meydana geldiği göz önünde bulundurularak bağımsız değişkenin GPU çeşiti ve bağımlı değişkenin 100 mili saniyedeki maksimum PG iterasyon sayısı oldu bir deney yapıldı. Deney sonucunda NVidia GPU'lardaki Cuda çekirdek sayıları ile maksimum PG iterasyonu sayısı arasında Şekil~\ref{fig:cuda_core_vs_pg_iter}'de verilen sayısal sonuçlara ulaşıldı.
+
+\begin{figure}[H]
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[height=7cm]{./Figures/pg_filter_selection/dama_brick-wall_0.64_2000.png}
+        \caption{Karşılaştırma eğrisi}
+        \label{fig:cuda_core_vs_pg_iter_chart}
+    \end{subfigure}
+
+    \vspace{0.8em}
+
+    % ---------- Row 3 ----------
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabular}{lcc}
+            \toprule
+            \textbf{GPU}           & \textbf{Cuda Çekirdeği Sayısı} & \textbf{Max PG İterasyon Sayısı} \\
+            \midrule
+            Nvidia Jatson Orin NX? & ?                              & 10?                              \\
+            RTX2060                & ?                              & 33                               \\
+            T4000?                 & ?                              & 50?                              \\
+            A4000?                 & ?                              & 100                              \\
+            \bottomrule
+        \end{tabular}
+
+        \caption{Nümerik karşılaştırma}
+        \label{fig:cuda_core_vs_pg_iter_table}
+    \end{subfigure}
+
+    \caption{NVidia GPU ve PG iterasyon sayısı karşılaştırması}
+    \label{fig:cuda_core_vs_pg_iter}
+\end{figure}
+
+Algoritmanın emekleme ve ilk adım safhaları değerlendirilmdiğinde bu değerler oldukça yüksek başarıyı ifade etmektedir. 3B point cloud verisinde yaptığımız ilk PG iterasyonu (tek iterasyon) CPU üzerinde paralel işleme olmaksızın 50 saniyede (50 s) tamamlanırken gelinen son noktada bir iterasyon tüm GPU çetileri göz çnüne alındığında milisaniyenin onda biri (0.1 ms) mertebelerine düşürülmüştür.
+
+Önerdiğimiz yöntemin gerçek zamanlı çalıştırılabilmesi için ekstra efor harcanmış ve başarılı olunmuştur.
