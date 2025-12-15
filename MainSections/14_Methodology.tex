@@ -1,0 +1,24 @@
+\section{METODOLOJİ}  \label{sec:metodology}
+
+Uyanık ve Ozbayın calismalarindan esinlenilerek lidar noktalarinin coznurlugu arttirilarak stero kamera verisi cozunurlugune yaklastirilmaya calisilmistir. Ancak bu tez kapsaminda lidar yogunluk arttirimi icin PG yerine daha sade bir yontem kullanilmis ve PG multimodal fusion asamasinda kullanilmistir. Methodolojinin genel bir akis semasi Sekil~\ref{methodology_0}'de verildigi gibidir.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/fusion_flow.png}
+    \end{adjustbox}
+    \caption{Füzyon algoritması akış diyagramı 0}
+    \label{methodology_0}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/methodology.png}
+    \end{adjustbox}
+    \caption{Füzyon algoritması akış diyagramı 1}
+    \label{methodology_1}
+\end{figure}
+
+\input{./MainSections/14.1_LidarUpsample}
+\input{./MainSections/14.2_DynamicPG}
