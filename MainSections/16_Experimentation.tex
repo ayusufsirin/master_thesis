@@ -2,7 +2,7 @@
 
 \subsection{Yöntem}
 
-Dinamik Papoulish-Gerchberg algoritmasının SLAM'e katkısını ölçülebilir kılmak için bu tez kapsamında oluşturulan SensorSuiteV2 ve benzer veri tiplerini içeren açık kaynak CitrusFarm versiseti kullanılmıştır. Bu verisetlerindeki veriler RTABMap aracı kullanılarak doğrudan ve algoritmayla ön işlemeden geçirilerek işlenmiştir.
+Dinamik Papoulish-Gerchberg algoritmasının SLAM'e katkısını ölçülebilir kılmak için bu tez kapsamında oluşturulan SensorSuiteV2 ve benzer veri tiplerini içeren açık kaynak CitrusFarm versiseti kullanılmıştır. Bu verisetlerindeki veriler RTABMap aracı kullanılarak doğrudan veya algoritmayla ön işlemeden geçirilerek işlenmiştir.
 
 Algoritma katkısının hangi algoritma adımlarıca majör olarak sağlandığını bulabilmek için deneyler superposition prensibine uygun olarak decompose edilmiştir. Ön işleme (PG algoritması) farklı adımları bypass geçilerek geriye kalan kısımlarının iyileşmeye katkısı değerlendirilmiştir. En sonunda kümülatif katkının süperpozisyon prensipine uygun olup olmadığı değerlendirilmiştir.
 
@@ -24,11 +24,22 @@ Deneyde yalnızca Lidar ve IMU tabanlı SLAM algoritmaları ile karşılaştırm
 
 \subsubsection{Bütünleşik algoritma parametreleri ve akışı}
 
-Algoritma baştan uca tüm parametrelerin en iyi sonucu vereceği tahmin edilen dahiliyle deneye sokulmuştur
+Algoritma baştan uca tüm parametrelerin en iyi sonucu vereceği tahmin edilen dahiliyle deneye sokulmuştur.
+
+Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
 
 \subsubsection{Değişken PG iterasyon sayısı}
 
+Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
+
 \subsubsection{Değişken Lidar upsample Lidar History sayısı}
+
+Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
+
+Alt başlıklarda verilen deney yöntemleri tek bir tablo altına toplanmış ve matris yapı ile çaprazlanarak deneyler tamamlanmıştır.
+Bu deneylerin sonuçları grafikler ve tablolar ile nicel olarak ele alınmalıdır.
+APE ve benzeri yöntemler ile ilgili numerik çıktılar buraya eklenmelidir.
+XYZ güzergah karşılaştırmaları eklenmelidir.
 
 \subsection{CitrusFarm Veriseti}
 

@@ -1,0 +1,12 @@
+\subsection{Depth Map Fitting}
+
+Ön işleme kısmında lidar ve stereo verilerini alarak başlar. Öncelikle Lidar nokta kümesi derinlik haritasına dönüştürülür. Daha sonra stereo derinlik haritası ve lidar derinlik haritası arasında bir overlapping işlemi yapılır ve kesişim bölgesinde bulunan derinlik haritası imajları bir sonraki adım için hazırlanmış olur.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/depth_map_fitting.png}
+    \end{adjustbox}
+    \caption{DMF akış şeması}
+    \label{fig:depth_map_fitting_flow}
+\end{figure}

@@ -1,4 +1,17 @@
-\subsection{LiDAR NOKTA YOĞUNLUĞU ARTTIRIMI}
+\subsection{LiDAR Nokta Yoğunluğu Arttırımı} \label{lidar_upsample}
+
+Lidar verisi doğası gereği seyrek bir yapıya sahiptir. Seyrek yapıdaki Lidar verisini işlem hattına sokarak stereo imaj yakınsatmasında kullanıldığı takdirde kılavuz görevi gören lidar noktalarının yetersizliği sebebiyle PG sonrası stereo derinlik haritasının daha da kötüleşmesi gibi bir problem görülmüştür. Bundan dolayı lidar noktalarına bir ön işleme uygulanarak odometri verisi ile fuse edilmiştir. Bu füsyon, temelde odometry verileri kullanılarak lidar noktalarının translate ve rotate ettirilmesi ve kümülatif nokta kümesi elde edilmesidir.
+
+Bakıldığında LIO (lidar inertial odometry) operasyonu gibi görünse de çok daha basit bir yapı önerilmiştir. Düşük boyutlu window'larda bu işlemi yapmak çok temel bir harita elde ederken algoritmayı bu aşamada SLAM yapma gereksiniminden kurtarmıştır.
+
+\begin{figure}[!htb]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/lidar_upsample.png}
+    \end{adjustbox}
+    \caption{LU akış şeması}
+    \label{fig:lidar_upsample}
+\end{figure}
 
 \subsubsection{Point cloud and odometry notation}
 

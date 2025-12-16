@@ -1,5 +1,31 @@
 \section{METODOLOJİ}  \label{sec:metodology}
 
+\subsection{PG Tabanlı Stereo–LiDAR Füzyonu İçin İşlem Hattı}
+
+Bu çalışmada önerilen yöntem, PG algoritmasının klasik formundan yola çıkılarak aşağıdaki temel aşamalar etrafında kurgulanmıştır:
+
+\begin{enumerate}
+    \item \textbf{Ön İşleme:}
+    Stereo kameradan elde edilen disparite haritası derinlik haritasına dönüştürülür ve uygunsa filtrelenir. LiDAR nokta bulutu, kamera koordinat sistemine taşınır ve pinhole kamera modeli ile derinlik çerçevesine projeksiyon yapılarak tek kanallı bir LiDAR derinlik imgesi elde edilir.
+    % TODO: Burada kullandığın kalibrasyon ve projeksiyon denklemlerini (iç/dış parametre matrisleri) ekleyebilirsin.
+
+    \item \textbf{Maskeleme ve Veri Zenginleştirme:}
+    Stereo derinlik haritasındaki boş veya düşük güvenilirlikli bölgeler için stereo maske oluşturulur; LiDAR projeksiyonunda veri olmayan noktalar için de LiDAR null maskesi tanımlanır. İstenirse önceki LiDAR çerçeveleri kullanılarak tarihçeye dayalı bir doldurma (history-based infill) yapılabilir.
+
+    \item \textbf{Papoulis–Gerchberg Yinelemeleri:}
+    Stereo derinlik haritası yoğun arka plan, LiDAR derinlik imgesi ise yüksek güvenilirlikli nokta kümesi olarak kabul edilir. Her yinelemede:
+    \begin{itemize}
+        \item Uzay alanında LiDAR ölçümleri sabitlenir, stereo derinlik değerleri LiDAR ankrajları ile tutarlı olacak şekilde güncellenir,
+        \item Frekans alanında, yüksek frekans bileşenlerini mümkün olduğunca koruyup orta frekans bölgesini bastıran bir filtreleme uygulanır (özellikle kenar keskinliği için önemlidir).
+        % TODO: Kullandığın filtreyi (örneğin bant-reject veya low-pass filtre) matematiksel olarak tanımlayabilirsin.
+    \end{itemize}
+
+    \item \textbf{Art İşleme:}
+    Yinelemeler sonucunda elde edilen derinlik haritası, stereo ve LiDAR maskeleri kullanılarak tutarlılık açısından kontrol edilir; düşük güvenilirlikli bölgeler elenir, gerekli durumlarda yumuşatma (smoothing) ve kenar keskinleştirme adımları uygulanır.
+\end{enumerate}
+
+Bu işlem hattı, derin öğrenme tabanlı modellere kıyasla daha düşük hesaplama maliyetiyle çalışabilen, fakat LiDAR doğruluğunu stereo derinlik haritalarına etkin bir biçimde aktarabilen deterministik bir füzyon çerçevesi sunmaktadır. İlerleyen bölümlerde, bu genel yapı ayrıntılandırılacak ve hem KITTI veri seti hem de kurulan mobil sensör düzeneği üzerinden elde edilen sonuçlarla desteklenecektir.
+
 Uyanık ve Ozbayın calismalarindan esinlenilerek lidar noktalarinin coznurlugu arttirilarak stero kamera verisi cozunurlugune yaklastirilmaya calisilmistir. Ancak bu tez kapsaminda lidar yogunluk arttirimi icin PG yerine daha sade bir yontem kullanilmis ve PG multimodal fusion asamasinda kullanilmistir. Methodolojinin genel bir akis semasi Sekil~\ref{methodology_0}'de verildigi gibidir.
 
 \begin{figure}[!htb]
@@ -21,4 +47,5 @@ Uyanık ve Ozbayın calismalarindan esinlenilerek lidar noktalarinin coznurlugu 
 \end{figure}
 
 \input{./MainSections/14.1_LidarUpsample}
-\input{./MainSections/14.2_DynamicPG}
+\input{./MainSections/14.2_DepthMapFitting}
+\input{./MainSections/14.3_DynamicPG}
