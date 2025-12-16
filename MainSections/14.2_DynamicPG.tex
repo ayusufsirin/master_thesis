@@ -1,6 +1,6 @@
-\section{DİNAMİK PAPOULISH-GERCHBERG}  \label{sec:dynamic_pg}
+\subsection{DİNAMİK PAPOULISH-GERCHBERG}  \label{sec:dynamic_pg}
 
-\subsection{Mathematical Formulation of the Depth Fusion Pipeline}
+\subsubsection{Mathematical Formulation of the Depth Fusion Pipeline}
 
 In this section, we formalize the mathematical model underlying our ROS--CuPy based ZED--LiDAR fusion node. The implementation operates on synchronized depth images from a stereo camera (ZED) and point clouds from a LiDAR sensor and produces a fused depth image and a corresponding point cloud in real time.
 
@@ -13,7 +13,7 @@ In this section, we formalize the mathematical model underlying our ROS--CuPy ba
     \label{methodology_2}
 \end{figure}
 
-\subsubsection*{Notation and Inputs}
+\subsubsubsection*{Notation and Inputs}
 
 Let the ZED depth image be
 \begin{equation}
@@ -63,7 +63,7 @@ The consistency threshold between ZED and LiDAR depth is denoted by
     \tau = \texttt{ZED\_VLP\_DIFF\_MAX}.
 \end{equation}
 
-\subsubsection*{LiDAR Cartesian to Spherical Representation}
+\subsubsubsection*{LiDAR Cartesian to Spherical Representation}
 
 For each LiDAR point $\mathbf{p}_k = (x_k, y_k, z_k)^\top$, we define a spherical representation
 \begin{align}
@@ -80,7 +80,7 @@ so that
 \end{equation}
 This representation is used for angular filtering and diagnostics in the implementation.
 
-\subsubsection*{LiDAR to Camera Projection and Depth Image}
+\subsubsubsection*{LiDAR to Camera Projection and Depth Image}
 
 \paragraph{Axis Remapping.}
 The LiDAR points are first remapped into a camera-like coordinate system via
@@ -139,7 +139,7 @@ The LiDAR depth image $D_{\text{L}}(v,u)$ is defined as the minimum range $Z_k$ 
 \end{equation}
 This corresponds to a nearest-surface depth image derived from the LiDAR point cloud.
 
-\subsubsection*{ZED Depth Inpainting}
+\subsubsubsection*{ZED Depth Inpainting}
 
 The raw ZED depth map $D_{\text{ZED}}^{\text{orig}}(v,u)$ may contain invalid values (NaN or $\pm\infty$). We define the invalidity mask
 \begin{equation}
@@ -188,7 +188,7 @@ After a fixed number $T$ of iterations, we obtain the inpainted ZED depth map
 \end{equation}
 The original invalid pixels are retained by reapplying the mask at the end.
 
-\subsubsection*{Cropping and ZED--LiDAR Consistency Filtering}
+\subsubsubsection*{Cropping and ZED--LiDAR Consistency Filtering}
 
 We restrict the inpainted ZED depth and LiDAR depth to the crop region $\Omega_c$:
 \begin{align}
@@ -216,7 +216,7 @@ In the current implementation, the PG depth in the crop region is taken directly
     \qquad (v,u) \in \Omega_c.
 \end{equation}
 
-\subsubsection*{Final Fused Depth Map}
+\subsubsubsection*{Final Fused Depth Map}
 
 The final fused depth map $D_{\text{PG}}(v,u)$, which is published as \texttt{PG\_DEPTH\_TOPIC}, is constructed as follows:
 
@@ -257,7 +257,7 @@ Combining these steps, we can concisely express the fused depth as
     \end{cases}
 \end{equation}
 
-\subsubsection*{Back-Projection to 3D and Output Point Cloud}
+\subsubsubsection*{Back-Projection to 3D and Output Point Cloud}
 
 The fused depth map $D_{\text{PG}}(v,u)$ is converted back to 3D using the camera intrinsics. For each pixel $(v,u)$ with a finite depth
 \begin{equation}
@@ -305,7 +305,7 @@ Collecting all valid pixels yields the fused point cloud
 \end{equation}
 which is serialized as a \texttt{sensor\_msgs/PointCloud2} message and published on the fused point cloud topic.
 
-\subsection{Sentetik Veri ile Algoritmanın Doğrulanması}
+\subsubsection{Sentetik Veri ile Algoritmanın Doğrulanması}
 Gerçek sensör verisiyle yapılan iyileştirme denemelerinde gözlemlenen artefaktların (özellikle ``spike'' benzeri geometrilerin ve yakınsama kararsızlıklarının) kaynağını daha net ayırt edebilmek amacıyla, algoritmanın doğrulama aşamasında kontrollü bir sentetik veri seti kullanılmıştır. Bu doğrulama yaklaşımının temel motivasyonu; sensör gürültüsü, görüş alanı (FOV) uyuşmazlığı, eşzamanlılık sapmaları, hareket kaynaklı bozulmalar ve eksik örneklem gibi gerçek dünya etkilerini geçici olarak devre dışı bırakarak, Papoulis--Gerchberg (PG) tabanlı iyileştirme sürecinin ``beklenen'' davranışını gözlemleyebilmektir.
 
 Bu kapsamda dama tahtası (satranç tahtası) formunda üretilmiş sentetik desen üzerinden iki ayrı kaynak veri hazırlanmıştır: (i) ZED stereo kamera temsili nokta/derinlik verisi ve (ii) VLP-16 LiDAR temsili nokta bulutu. Şekil~\ref{fig:synthetic_validation_triplet} içerisinde sırasıyla ZED temsili veri (Şekil~\ref{fig:dama_zed}), VLP temsili veri (Şekil~\ref{fig:dama_vlp}) ve PG çıktısı (Şekil~\ref{fig:dama_pg}) birlikte sunulmuştur. Bu deneyde, desenin yüksek kontrastlı ve düzenli geometrik yapısı sayesinde, PG algoritmasının frekans alanındaki kısıtlama ve uzamsal alandaki yeniden yapılandırma adımlarının ürettiği etki kolayca izlenebilmiştir.
@@ -348,13 +348,13 @@ Elde edilen sonuçlar, algoritmanın sentetik veri üzerinde kararlı bir yakın
 
 Dolayısıyla bu doğrulama adımı, çalışmanın devamında gerçekleştirilen filtre tipi seçimi ve parametre ayarlama sürecine metodolojik bir temel sağlamaktadır. Sentetik veri deneyinde algoritmanın ``ideal'' koşullarda çalıştığının gösterilmesi sayesinde, bir sonraki aşamada ele alınan filtre seçimi (Brick-wall, Gaussian, Butterworth) ve cutoff/iterasyon gibi parametrelerin belirlenmesi, gerçek veride ortaya çıkan artefaktları azaltmaya ve yakınsamayı daha kararlı hâle getirmeye yönelik sistematik bir optimizasyon problemi olarak ele alınabilmiştir. Bu nedenle, sentetik doğrulama sonrasında Bölüm~\ref{sec:pg_filter_selection} ve Bölüm~\ref{sec:pg_parameter_tuning} altında sunulan filtre/parametre analizlerine geçilmiştir.
 
-\subsection{3B İçin Filtre Seçimi}
+\subsubsection{3B İçin Filtre Seçimi}
 
 Bu çalışmada, LiDAR (VLP-16) ve stereo kamera (ZED) verilerinin birlikte kullanıldığı üç boyutlu veri füzyonu sürecinde, Papoulis--Gerchberg (PG) tabanlı iyileştirme algoritmasının filtreleme parametrelerine olan duyarlılığı incelenmiştir. PG algoritması, eksik veya örtüşmeyen frekans bileşenlerinin iteratif olarak yeniden yapılandırılmasına dayandığından, özellikle frekans alanında uygulanan filtreleme işlemleri, sonuç geometrisi üzerinde belirleyici bir etkiye sahiptir.
 
 Gerçek veri üzerinde yapılan deneylerde, sensörlerin anlık olarak algılayamadığı ancak zamansal olarak biriktirilmiş (historical) LiDAR noktalarının, PG algoritmasını fiziksel olarak anlamlı olmayan yakınsama davranışlarına zorladığı gözlemlenmiştir. Bu durum, düşük geçiren filtrelerin (Low-Pass Filter, LPF) yanlış yapılandırılması halinde, uzaysal alanda orijine doğru uzanan ve “spike” benzeri yapay geometrilerin ortaya çıkmasına neden olmaktadır. Bu bağlamda, filtreleme süreci yalnızca gürültü bastırma amacıyla değil, aynı zamanda sensörler arası tutarsızlıkların etkisini sınırlamak için ele alınmıştır.
 
-\subsubsection{Cutoff Frekansını Ayarlama}
+\subsubsubsection{Cutoff Frekansını Ayarlama}
 
 Filtreleme sürecinde kullanılan cutoff frekansı, Papoulis--Gerchberg algoritmasının yakınsama karakteristiğini doğrudan etkilemektedir. Bu çalışmada, farklı normalize cutoff frekans değerleri için (0.01--0.16 aralığında) sabit iterasyon sayısı altında elde edilen çıktılar karşılaştırılmıştır. Düşük cutoff değerlerinde, yüksek frekans bileşenlerinin büyük ölçüde bastırıldığı ve bunun sonucunda özellikle ince geometrik detayların kaybolduğu gözlemlenmiştir. Buna karşılık, yüksek cutoff değerlerinde ise sensörler arası uyumsuzluklardan kaynaklanan yüksek frekanslı bileşenlerin yeterince bastırılamadığı görülmüştür.
 
@@ -413,7 +413,7 @@ Sentetik satranç tahtası (checkerboard) verisi üzerinde gerçekleştirilen de
 
 Ayrıca, derinlik imajlarının kare olmayan boyutlara sahip olması durumunda, frekans alanında kullanılan dairesel maskelemenin hatalı sonuçlar ürettiği gözlemlenmiştir. Bu problem, eliptik maske kullanımı ile giderilmiş ve dikdörtgen ve kare imajlar arasında tutarlı sonuçlar elde edilmiştir.
 
-\subsubsection{Filtre Tipi Seçimi}
+\subsubsubsection{Filtre Tipi Seçimi}
 
 Varsayılan olarak kullanılan brick-wall (ideal) düşük geçiren filtre, frekans alanında keskin bir kesim uygulaması nedeniyle uzaysal alanda salınımlara (ringing artefaktları) yol açmaktadır. Bu durum, özellikle sensörler arası mesafenin fazla olduğu bölgelerde, PG çıktısında yapay dalgalanmalara neden olmaktadır. Bu nedenle, çalışmada brick-wall filtreye alternatif olarak Gaussian ve Butterworth filtreler değerlendirilmiştir.
 
@@ -475,7 +475,7 @@ Bununla birlikte, Gaussian ve Butterworth filtrelerin kullanımı sonucunda, zem
     \label{fig:pg_filter_comparison}
 \end{figure}
 
-\subsubsection{Filtrelerin Çapraz Karşılaştırılması}
+\subsubsubsection{Filtrelerin Çapraz Karşılaştırılması}
 
 Filtre tiplerinin karşılaştırmalı analizi hem sentetik hem de gerçek veri üzerinde gerçekleştirilmiştir. Sentetik veride, ideal koşullar altında filtrelerin benzer yakınsama davranışı sergilediği görülürken, gerçek veri üzerinde belirgin farklar ortaya çıkmıştır. Brick-wall filtre, frekans alanında keskin bir kesim uyguladığı için PG çıktısında artefaktlara ve yer yer kararsız yakınsamaya neden olmuştur. Bu çalışmada tercih edilen Gaussian filtre ise yumuşak geçiş karakteristiği sayesinde sensörler arası uyumsuzlukları daha iyi tolere etmiş ve görsel olarak daha kararlı, daha tutarlı bir iyileştirme sağlamıştır. Butterworth filtre belirli senaryolarda dengeli bir alternatif sunsa da, yapılan deneylerde en tutarlı sonuçlar Gaussian filtre ile elde edilmiştir (Bakınız Şekil~\ref{fig:pg_gaussian_vs_brickwall_citrus}).
 

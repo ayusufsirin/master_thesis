@@ -1,6 +1,6 @@
-\section{LiDAR NOKTA YOĞUNLUĞU ARTTIRIMI}
+\subsection{LiDAR NOKTA YOĞUNLUĞU ARTTIRIMI}
 
-\subsection{Point cloud and odometry notation}
+\subsubsection{Point cloud and odometry notation}
 
 At each time step \(t_k\), the robot publishes:
 \begin{itemize}
@@ -48,7 +48,7 @@ We denote the homogeneous coordinates by
   \in \mathbb{R}^4.
 \end{equation}
 
-\subsection{Rigid-body transformation of the point cloud}
+\subsubsection{Rigid-body transformation of the point cloud}
 
 Each point is transformed from the LiDAR frame to the odometry frame using
 the odometry-derived pose:
@@ -93,7 +93,7 @@ so that
 \(\mathbf{y}_{k,j} = \mathbf{x}_{k,j} + \mathbf{p}_k\),
 i.e.\ only a translation is applied.
 
-\subsection{Sliding-window cumulative point cloud}
+\subsubsection{Sliding-window cumulative point cloud}
 
 Let \(H \in \mathbb{N}\) denote the history size
 (\texttt{PC\_HISTORY\_SIZE} in the implementation).
@@ -139,12 +139,12 @@ and odometry poses \((\mathbf{R}_k, \mathbf{p}_k)\) on
   &&\text{published on \texttt{/cumulative\_origin\_point\_cloud}.}
 \end{align}
 
-\subsection{Timing and real-time metrics}
+\subsubsection{Timing and real-time metrics}
 
 In addition to the geometric transformations, the node monitors several
 timing-related quantities in order to assess its real-time behavior.
 
-\subsubsection{Timestamps and latency}
+\subsubsubsection{Timestamps and latency}
 
 For each synchronized pair of messages at step \(k\), we denote:
 \begin{itemize}
@@ -167,7 +167,7 @@ is then approximated as
 which in the implementation is logged as
 \(\texttt{latency\_ms} = 1000 \, L_k\).
 
-\subsubsection{Processing time}
+\subsubsubsection{Processing time}
 
 Let \(\tau^{\text{start}}_k\) and \(\tau^{\text{end}}_k\) denote the wall-clock
 times at the beginning and at the end of the processing loop for step \(k\).
@@ -214,7 +214,7 @@ Collectively,
   T^{\text{cum-origin\_create}}_k.
 \end{equation}
 
-\subsubsection{Input and processing rates}
+\subsubsubsection{Input and processing rates}
 
 To estimate the input rate of synchronized point cloud--odometry pairs,
 we use the sequence of arrival timestamps
@@ -247,7 +247,7 @@ defined as
 \end{equation}
 and is logged as \(\texttt{throughput\_ratio}\).
 
-\subsubsection{Queue occupancy and history size}
+\subsubsubsection{Queue occupancy and history size}
 
 The internal processing queue has a finite capacity \(Q_{\max}\). Let
 \(q_k \in \{0, 1, \dots, Q_{\max}\}\) denote the number of messages waiting
@@ -257,7 +257,7 @@ sliding window for the cumulative clouds is bounded by
 \(H = \texttt{PC\_HISTORY\_SIZE}\), and the current number of stored point
 clouds at time step \(k\) is logged as \(\texttt{cumulative\_points}\).
 
-\subsubsection{Real-time condition}
+\subsubsubsection{Real-time condition}
 
 A necessary condition for real-time operation over a given interval is that
 the system is able to keep up with the input rate, i.e.
