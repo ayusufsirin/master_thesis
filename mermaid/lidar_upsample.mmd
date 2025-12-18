@@ -1,0 +1,86 @@
+flowchart TB
+
+%% ================== CONTEXT ====================
+    subgraph external_inputs["External Inputs to LU Node"]
+        direction LR
+        lidar_pc_in[("/velodyne_points <br> PointCloud2 @ $t_k$")]:::topic
+        odom_in[("/odom <br> pose $(\\mathbf{p}_k,\\mathbf{q}_k)$ @ $t_k$")]:::topic
+    end
+
+%% ================== LU NODE ====================
+    subgraph lu_node["LU Node (LiDAR Upsample via Odometry Fusion)"]
+        direction LR
+
+    %% ---------- SYNC ----------
+        subgraph sync_block["Time Synchronization"]
+            direction TB
+            sync_node["Synchronize <br> (PointCloud2, Odometry)"]:::stage
+        end
+
+    %% ---------- TRANSFORM ----------
+        subgraph transform_block["Rigid-Body Transform (LiDAR → Odom)"]
+            direction TB
+            msg2pts_node["msg2pts() <br> ROS → XYZ array"]:::stage
+            build_T_node["Build $\\mathbf{T}_k \\in SE(3)$ <br> from $\\mathbf{R}_k=\\mathcal{R}(\\mathbf{q}_k),\\ \\mathbf{p}_k$"]:::stage
+            transform_node["Transform points <br> $\\mathbf{y}_{k,j}=\\mathbf{R}_k\\mathbf{x}_{k,j}+\\mathbf{p}_k$ <br> (impl: often $\\mathbf{R}_k=\\mathbf{I}$)"]:::stage
+            Yk["Transformed cloud <br> $\\mathcal{Y}_k$"]:::data
+            pub_Yk[("/transformed_point_cloud <br> $\\mathcal{Y}_k$")]:::topic
+
+            msg2pts_node --> build_T_node --> transform_node --> Yk --> pub_Yk
+        end
+
+    %% ---------- CUMULATIVE (ODOM FRAME) ----------
+        subgraph cum_block["Sliding-Window Cumulative Cloud (Odom Frame)"]
+            direction TB
+            buf_node["Append $\\mathcal{Y}_k$ to history <br> keep last $H$ frames"]:::stage
+            stack_node["Stack/Union <br> $\\mathcal{Y}^{cum}_k = \\bigcup_{i=k-H+1}^{k} \\, \\mathcal{Y}_i$"]:::stage
+            Ycum["Cumulative cloud <br> $\\mathcal{Y}^{cum}_k$"]:::data
+            pub_Ycum[("/cumulative_point_cloud <br> $\\mathcal{Y}^{cum}_k$")]:::topic
+
+            buf_node --> stack_node --> Ycum --> pub_Ycum
+        end
+
+    %% ---------- CUMULATIVE (ORIGIN-ALIGNED) ----------
+        subgraph origin_block["Origin-Aligned Cumulative Cloud"]
+            direction TB
+            to_origin_node["Translate back to origin-aligned frame"]:::stage
+            buf_origin_node["Append origin-aligned cloud <br> keep last $H$ frames"]:::stage
+            stack_origin_node["Stack/Union <br> $\\mathcal{Z}^{cum}_k$"]:::stage
+            Zcum["Cumulative origin cloud <br> $\\mathcal{Z}^{cum}_k$"]:::data
+            pub_Zcum[("/cumulative_origin_point_cloud <br> $\\mathcal{Z}^{cum}_k$")]:::topic
+
+            to_origin_node --> buf_origin_node --> stack_origin_node --> Zcum --> pub_Zcum
+        end
+
+    %% ---------- METRICS ----------
+        subgraph metrics_block["Timing + Real-time Metrics"]
+            direction TB
+            stamps_node["Timestamps <br> $\\tau^{pc}_k,\\tau^{in}_k,\\tau^{out}_k$"]:::stage
+            latency_node["Latency <br> $L_k=\\tau^{out}_k-\\tau^{pc}_k$"]:::stage
+            proc_node["Processing time <br> $T^{proc}_k=\\tau^{end}_k-\\tau^{start}_k$"]:::stage
+            rates_node["Rates <br> $\\lambda_{in},\\lambda_{proc},\\rho=\\lambda_{proc}/\\lambda_{in}$"]:::stage
+        end
+
+    end
+%% lu_node
+
+%% ================== WIRING EXTERNAL → INTERNAL ====================
+    lidar_pc_in --> sync_node
+    odom_in --> sync_node
+
+    sync_node --> msg2pts_node
+    sync_node --> stamps_node
+
+    sync_node --> build_T_node
+    sync_node --> buf_node
+
+    Yk --> buf_node
+    Ycum --> to_origin_node
+
+    pub_Zcum --> latency_node
+    stamps_node --> latency_node --> proc_node --> rates_node
+
+%% ================== STYLING ====================
+    classDef stage fill: #3d85c6, stroke: #1c4587, color: #fff, rx: 6, ry: 6;
+    classDef data fill: #f6b26b, stroke: #b45f06, color: #000, rx: 4, ry: 4;
+    classDef topic fill: #ffe599, stroke: #b7b7b7, color: #000, rx: 4, ry: 4;
