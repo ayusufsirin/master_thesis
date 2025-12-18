@@ -66,8 +66,8 @@ for v in "${variants[@]}"; do
     pattern="${p}_${suffix}"
 
     for m in "${metrics[@]}"; do
-      outdir="out/${file}/${pattern}/${m}"
-      mkdir -p "$outdir"
+      outdir="out"
+#      mkdir -p "$outdir"
 
       # One command per line
       echo "docker run --rm -i \-v \"$PWD:/work\" -w /work --entrypoint python3 \"$IMAGE\" \"$ANALYZE\" --files ${inputs[*]} --pattern \"$pattern\" --metric \"$m\" --outdir \"$outdir\"" \
