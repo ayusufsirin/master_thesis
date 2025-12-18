@@ -1,8 +1,104 @@
-\subsection{Depth Map Fitting}
+\subsection{Depth Map Fitting} \label{sec:depth_map_fitting}
 
-Ön işleme kısmında lidar ve stereo verilerini alarak başlar. Öncelikle Lidar nokta kümesi derinlik haritasına dönüştürülür. Daha sonra stereo derinlik haritası ve lidar derinlik haritası arasında bir overlapping işlemi yapılır ve kesişim bölgesinde bulunan derinlik haritası imajları bir sonraki adım için hazırlanmış olur.
+Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kamera düzlemine projekte ederek bir LiDAR derinlik imgesi üretmek ve stereo (ZED) derinlik haritası ile aynı piksel uzayında \textit{örtüşen (overlap)} bölgede tutarlı bir derinlik haritası elde etmektir. Bu işlem, PG yinelemelerinden bağımsız olarak, iki sensörün aynı geometri üzerinde hizalanmış tek bir derinlik alanı üretmesini sağlar.
 
-\begin{figure}[!htb]
+\subsubsection{Girdiler ve gösterim}
+
+Zaman adımı $t_k$ için:
+\begin{itemize}
+    \item ZED derinlik imgesi: $D_{\text{ZED}}^{\text{orig}}(v,u)$,
+    \item Kamera iç parametreleri (pinhole): $(f_x,f_y,c_x,c_y)$,
+    \item Kamera koordinat sisteminde (veya kamera frame'ine dönüştürülmüş) LiDAR nokta kümesi:
+    $\mathcal{P}_k=\{\mathbf{p}_i\}_{i=1}^{N_k}$, $\mathbf{p}_i=[X_i,Y_i,Z_i]^\top$.
+\end{itemize}
+
+Burada $(u,v)$ piksel koordinatlarını, $(X,Y,Z)$ ise kamera koordinat sistemini temsil eder ve $Z>0$ kamera ekseni boyunca ileri yön derinliktir.
+
+\subsubsection{LiDAR nokta bulutundan derinlik imgesine projeksiyon}
+
+Her bir $\mathbf{p}_i$ noktası pinhole model ile görüntü düzlemine projekte edilir:
+\begin{equation}
+u_i = \mathrm{round}\!\left(\frac{f_x X_i}{Z_i}+c_x\right),
+\qquad
+v_i = \mathrm{round}\!\left(\frac{f_y Y_i}{Z_i}+c_y\right).
+\end{equation}
+
+Geçerli projeksiyon kümesi şu şekilde tanımlanır:
+\begin{equation}
+\mathcal{V} =
+\left\{
+i \,\middle|\,
+0\le u_i < W,\;
+0\le v_i < H,\;
+Z_i>0,\;
+Z_i \in \mathbb{R}
+\right\}.
+\end{equation}
+
+LiDAR derinlik imgesi $D_{\text{L}}(v,u)$, aynı piksele düşen birden fazla nokta olması durumunda en yakın derinliği (z-buffer) seçerek oluşturulur:
+\begin{equation}
+D_{\text{L}}(v,u) =
+\min_{i \in \mathcal{V}:\ (u_i,v_i)=(u,v)} Z_i,
+\qquad
+\text{aksi halde } D_{\text{L}}(v,u)=\mathrm{NaN}.
+\end{equation}
+
+\subsubsection{ZED derinlik ön-işleme ve geçersiz maske}
+
+ZED derinlik haritasındaki geçersiz ölçümler için maske:
+\begin{equation}
+M(v,u) \triangleq \mathbb{I}\big(D_{\text{ZED}}^{\text{orig}}(v,u)\ \text{sonlu değil}\big)
+\end{equation}
+tanımlanır. İlerleyen adımlarda işlem kararlılığı için $D_{\text{ZED}}^{\text{orig}}$ üzerinde NaN-farkındalıklı bir doldurma (inpainting) uygulanarak
+$D_{\text{ZED}}(v,u)$ elde edilir. Bu aşama yalnızca ara hesaplama içindir; nihai sonuçta $M$ maskesi tekrar uygulanır.
+
+\subsubsection{Örtüşme bölgesi (cropping) ve tutarlılık filtresi}
+
+İşlem yalnızca iki sensörün aynı görüş hacminde güvenilir olduğu bir ROI üzerinde yapılır. Bu kırpılmış bölge:
+\begin{equation}
+\Omega_c =
+\left\{
+(v,u)\ \middle|\
+t \le v < H-b,\;
+\ell \le u < W-r
+\right\}
+\end{equation}
+ile tanımlanır (burada $t,b,\ell,r$ ilgili kırpma parametreleridir). Kırpılmış imgeler:
+\begin{equation}
+D_{\text{ZED}}^{c} = D_{\text{ZED}}|_{\Omega_c},
+\qquad
+D_{\text{L}}^{c} = D_{\text{L}}|_{\Omega_c}.
+\end{equation}
+
+LiDAR projeksiyonundaki sıçramaları (spike) bastırmak için ZED ile farkı çok büyük olan LiDAR pikselleri elenir. Geçerli LiDAR ankraj maskesi:
+\begin{equation}
+M_{\text{L}}(v,u) \triangleq
+\mathbb{I}\big(D_{\text{L}}^{c}(v,u)\ \text{sonlu}\big)\;
+\wedge\;
+\mathbb{I}\big(\lvert D_{\text{ZED}}^{c}(v,u) - D_{\text{L}}^{c}(v,u)\rvert \le \tau\big),
+\quad (v,u)\in\Omega_c
+\end{equation}
+olarak tanımlanır. Burada $\tau$ sensörler arası maksimum izin verilen derinlik farkıdır.
+
+\subsubsection{Derinlik haritası oturtma (fitting) ve yeniden birleştirme}
+
+Kırpılmış bölgede \textit{fitted} derinlik haritası, geçerli LiDAR ankrajları varsa LiDAR değerini, yoksa ZED değerini seçen birleştirme kuralı ile tanımlanır:
+\begin{equation}
+D_{\text{fit}}^{c}(v,u) =
+\begin{cases}
+D_{\text{L}}^{c}(v,u), & \text{eğer } M_{\text{L}}(v,u)=1,\\
+D_{\text{ZED}}^{c}(v,u), & \text{aksi halde.}
+\end{cases}
+\end{equation}
+
+Ardından $D_{\text{fit}}^{c}$, tam çözünürlüklü görüntüye yerleştirilerek $D_{\text{fit}}(v,u)$ elde edilir (ROI dışı pikseller $D_{\text{ZED}}^{\text{orig}}$'dan korunur). Son olarak, özgün ZED geçersiz maskesi tekrar uygulanır:
+\begin{equation}
+M(v,u)=1 \ \Rightarrow\ D_{\text{fit}}(v,u)=\mathrm{NaN}.
+\end{equation}
+
+Bu çıktı, bir sonraki füzyon adımına (PG veya doğrudan geri-izdüşüm) giriş olarak kullanılır.
+
+\begin{figure}[H]
     \centering
     \begin{adjustbox}{width=\textwidth * 10 /12}
         \includegraphics{mermaid/depth_map_fitting.png}

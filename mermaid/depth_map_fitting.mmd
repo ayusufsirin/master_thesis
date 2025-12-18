@@ -1,0 +1,74 @@
+flowchart TB
+
+%% ================== CONTEXT ====================
+    subgraph external_inputs["External Inputs to DMF Node"]
+        direction LR
+        lidar_pc_cum[("/lidar/point_cloud/cumulative <br> PointCloud2")]:::topic
+        cam_depth[("/camera/depth/image <br> $$D_{\\mathrm{ZED}}^{\\mathrm{orig}}(v,u)$$")]:::topic
+        cam_info[("/camera/depth/info <br> $$f_x,f_y,c_x,c_y$$")]:::topic
+    end
+
+%% ================== DMF NODE ====================
+    subgraph dmf_node["DMF Node (Depth Map Fitting)"]
+        direction LR
+
+    %% ---------- LIDAR → DEPTH IMAGE ----------
+        subgraph lidar_proj["LiDAR Projection"]
+            direction TB
+            msg2pts_node["PointCloud2 → XYZ array"]:::stage
+            proj_node["Project to image (pinhole) <br> $$(X,Y,Z) \\mapsto (u,v)$$"]:::stage
+            zbuf_node["Z-buffer (nearest depth) <br> $$\\min Z$$ per pixel"]:::stage
+            D_L["LiDAR depth image <br> $$D_{\\mathrm{L}}(v,u)$$"]:::data
+            msg2pts_node --> proj_node --> zbuf_node --> D_L
+        end
+
+    %% ---------- ZED PREPROCESS ----------
+        subgraph zed_preproc["ZED Preprocessing"]
+            direction TB
+            mask_node["Invalid mask <br> $$M(v,u)=\\mathbb{I}(\\neg\\mathrm{finite})$$"]:::stage
+            inpaint_node["NaN-aware inpainting <br> $$D_{\\mathrm{ZED}}^{\\mathrm{orig}} \\to D_{\\mathrm{ZED}}$$"]:::stage
+            D_ZED["Preprocessed ZED depth <br> $$D_{\\mathrm{ZED}}(v,u)$$"]:::data
+            cam_depth --> mask_node --> inpaint_node --> D_ZED
+        end
+
+    %% ---------- OVERLAP + CONSISTENCY ----------
+        subgraph overlap_block["Overlap ROI + Consistency Filter"]
+            direction TB
+            crop_node["Crop to ROI $$\\Omega_c$$"]:::stage
+            D_ZED_c["$$D_{\\mathrm{ZED}}^{c}$$"]:::data
+            D_L_c["$$D_{\\mathrm{L}}^{c}$$"]:::data
+            consist_node["Consistency gate <br> $$|D_{\\mathrm{ZED}}^{c}-D_{\\mathrm{L}}^{c}|\\le\\tau$$"]:::stage
+            M_L["Valid LiDAR anchor mask <br> $$M_{\\mathrm{L}}$$"]:::data
+            D_ZED --> crop_node --> D_ZED_c
+            D_L --> crop_node --> D_L_c
+            D_ZED_c --> consist_node
+            D_L_c --> consist_node --> M_L
+        end
+
+    %% ---------- FIT / MERGE ----------
+        subgraph fit_block["Depth Fitting + Merge"]
+            direction TB
+            fit_node["Fit rule (ROI) <br> $$D_{\\mathrm{fit}}^{c}=\\begin{cases}D_{\\mathrm{L}}^{c} \& M_{\\mathrm{L}}=1\\\\D_{\\mathrm{ZED}}^{c} \& \\text{else}\\end{cases}$$"]:::stage
+            merge_node["Merge ROI back to full image"]:::stage
+            reapply_node["Reapply invalid mask <br> $$M=1 \\Rightarrow D_{\\mathrm{fit}}=\\mathrm{NaN}$$"]:::stage
+            D_fit["Fitted depth map <br> $$D_{\\mathrm{fit}}(v,u)$$"]:::data
+            D_ZED_c --> fit_node
+            D_L_c --> fit_node
+            M_L --> fit_node --> merge_node --> reapply_node --> D_fit
+        end
+
+    end
+%% dmf_node
+
+%% ================== WIRING EXTERNAL → INTERNAL ====================
+    lidar_pc_cum --> msg2pts_node
+    cam_info --> proj_node
+
+%% ================== OUTPUT ====================
+    dmf_depth_out[("/dmf/depth <br> $$D_{\\mathrm{fit}}(v,u)$$")]:::topic
+    D_fit --> dmf_depth_out
+
+%% ================== STYLING ====================
+    classDef stage fill: #3d85c6, stroke: #1c4587, color: #fff, rx: 6, ry: 6;
+    classDef data fill: #f6b26b, stroke: #b45f06, color: #000, rx: 4, ry: 4;
+    classDef topic fill: #ffe599, stroke: #b7b7b7, color: #000, rx: 4, ry: 4;
