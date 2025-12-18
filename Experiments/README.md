@@ -12,7 +12,7 @@ docker build . -t evo_cli
 | PG Iterations \ LU History | 1             | 2           | 5             | 10              | 
 |----------------------------|---------------|-------------|---------------|-----------------|
 | 0                          | 0_1           | [0_2](#0_2) | [0_5](#0_5)   | [0_10](#0_10)   |
-| 10                         | 10_1          | 10_2        | 10_5          | [10_10](#10_10) |
+| 10                         | 10_1          | 10_2        | [10_5](#10_5) | [10_10](#10_10) |
 | 33                         | [33_1](#33_1) | 33_2        | [33_5](#33_5) | [33_10](#33_10) |
 | 100                        | 100_1         | 100_2       | 100_5         | 100_10          |
 
@@ -652,8 +652,12 @@ PARAMETERS
 
 # 33_1
 
-Eve çalıştırıp parametreleri ekle
+Evde çalıştırıp parametreleri ekle
 
 # 33_5
 
-Eve çalıştırıp parametreleri ekle
+Evde çalıştırıp parametreleri ekle
+
+# 10_5
+
+Evde çalıştırıp parametreleri ekle
