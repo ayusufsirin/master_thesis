@@ -170,21 +170,63 @@ def plot_slices(mat: pd.DataFrame, title: str, outpath: Optional[str] = None) ->
     Two slice views in one figure:
       - metric vs iterations (one curve per history)
       - metric vs history (one curve per iterations)
+
+    Fixes:
+      - enforce integer axis labels (prevents 1 vs "1" duplicates)
+      - drop NaNs per-curve so points stay connected
+      - use stable color assignment so same H/I always keeps same color
     """
+    # ---- normalize axes (prevents duplicate-looking labels) ----
+    mat = mat.copy()
+    mat.index = mat.index.astype(int)
+    mat.columns = mat.columns.astype(int)
+    mat = mat.sort_index().sort_index(axis=1)
+
+    # If duplicates somehow exist (e.g., 1 and "1" became both 1), merge them safely
+    mat = mat.groupby(level=0).mean()
+    mat = mat.groupby(axis=1, level=0).mean()
+
     fig = plt.figure(figsize=(10, 4))
 
+    # Stable color cycles (one per unique key)
+    hist_keys = list(mat.columns)
+    iter_keys = list(mat.index)
+
+    cmap_h = plt.get_cmap("tab10")
+    cmap_i = plt.get_cmap("tab10")
+    color_h = {h: cmap_h(k % 10) for k, h in enumerate(hist_keys)}
+    color_i = {i: cmap_i(k % 10) for k, i in enumerate(iter_keys)}
+
+    # ---- Left: sweep iterations (fixed history) ----
     ax1 = fig.add_subplot(1, 2, 1)
     for h in mat.columns:
-        ax1.plot(mat.index.values, mat[h].values, marker="o", label=f"H={int(h)}")
+        s = mat[h].dropna()                 # << keeps points connected
+        if s.empty:
+            continue
+        ax1.plot(
+            s.index.values, s.values,
+            marker="o",
+            label=f"H={h}",
+            color=color_h[h],
+        )
     ax1.set_title("Sweep iterations (fixed history)")
     ax1.set_xlabel("PG iterations")
     ax1.set_ylabel("metric")
     ax1.grid(True)
     ax1.legend()
 
+    # ---- Right: sweep history (fixed iterations) ----
     ax2 = fig.add_subplot(1, 2, 2)
     for i in mat.index:
-        ax2.plot(mat.columns.values, mat.loc[i].values, marker="o", label=f"I={int(i)}")
+        s = mat.loc[i].dropna()             # << keeps points connected
+        if s.empty:
+            continue
+        ax2.plot(
+            s.index.values, s.values,
+            marker="o",
+            label=f"I={i}",
+            color=color_i[i],
+        )
     ax2.set_title("Sweep history (fixed iterations)")
     ax2.set_xlabel("LU history")
     ax2.set_ylabel("metric")
