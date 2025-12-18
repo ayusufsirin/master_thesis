@@ -50,12 +50,12 @@ patterns=(
 
 IMAGE="evo-cli"
 ANALYZE="analyze.py"
-
+JOBS="${JOBS:-$(nproc)}"
 mkdir -p out
 
-# -----------------------------
-# Main loop
-# -----------------------------
+jobs_file="$(mktemp)"
+trap 'rm -f "$jobs_file"' EXIT
+
 for v in "${variants[@]}"; do
   IFS=":" read -r file suffix <<< "$v"
 
@@ -69,19 +69,14 @@ for v in "${variants[@]}"; do
       outdir="out/${file}/${pattern}/${m}"
       mkdir -p "$outdir"
 
-      echo "[RUN] ${file}.csv | ${pattern} | ${m}"
-
-      docker run --rm -i \
-        -v "$PWD:/work" \
-        -w /work \
-        --entrypoint python3 \
-        "$IMAGE" "$ANALYZE" \
-          --files "${inputs[@]}" \
-          --pattern "$pattern" \
-          --metric "$m" \
-          --outdir "$outdir"
+      # One command per line
+      echo "docker run --rm -i \-v \"$PWD:/work\" -w /work --entrypoint python3 \"$IMAGE\" \"$ANALYZE\" --files ${inputs[*]} --pattern \"$pattern\" --metric \"$m\" --outdir \"$outdir\"" \
+        >> "$jobs_file"
     done
   done
 done
 
-echo "[OK] All comparisons finished → ./out/"
+# Parallel execute lines as shell commands
+cat "$jobs_file" | xargs -P "$JOBS" -I{} bash -lc "{}"
+
+echo "[OK] Done (xargs -P). Outputs in ./out/"
