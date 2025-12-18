@@ -1,0 +1,167 @@
+\subsection{Deneysel Analiz için Matematiksel Çerçeve}
+\label{sec:matematiksel_analiz_cercevesi}
+
+Bu çalışmada önerilen Papoulis--Gerchberg (PG) tabanlı LiDAR--stereo füzyon yönteminin performansı, farklı algoritmik yapılandırmalar altında değerlendirilmiştir. Bu değerlendirmenin amacı yalnızca en iyi yapılandırmayı belirlemek değil, aynı zamanda algoritmanın iç parametrelerinin odometrik performansa olan bireysel ve ortak katkılarını matematiksel olarak ayrıştırmaktır.
+
+\subsubsection{Problem Tanımı}
+
+Önerilen yöntemin davranışı iki bağımsız kontrol parametresi ile tanımlanmaktadır:
+
+\begin{itemize}
+    \item $I \in \mathbb{N}$: PG iyileştirme iterasyon sayısı,
+    \item $H \in \mathbb{N}$: zamansal koşullama için kullanılan LU geçmiş (history) boyutu.
+\end{itemize}
+
+Her bir $(I,H)$ yapılandırması için bir performans metriği $M(I,H)$ hesaplanır. $M$; mutlak poz hatası (APE), belirli bir mesafe veya zaman ölçeğinde göreli poz hatası (RPE), yaw (yönelim) hatası ya da varyans ve maksimum sapma gibi istatistiksel ölçütleri temsil edebilir. Daha düşük $M$ değerleri daha iyi performansa karşılık gelmektedir.
+
+Referans (baseline) yapılandırma aşağıdaki şekilde tanımlanır:
+\begin{equation}
+M(0,1),
+\end{equation}
+bu yapılandırma PG iterasyonlarının devre dışı olduğu ve LU geçmişinin minimum seviyede kullanıldığı, dolayısıyla yalnızca stereo tabanlı bir ön işleme durumunu temsil eder.
+
+Deneysel analizin temel amacı, $I$ ve $H$ parametrelerindeki değişimlerin $M$ üzerindeki etkisini incelemek ve her bir parametrenin performans iyileştirmesine olan katkısını bağımsız ve ortak etkiler bağlamında ortaya koymaktır.
+
+\subsubsection{İki Faktörlü Toplamsal Ayrıştırma Modeli}
+
+İki parametrenin etkisini incelemek amacıyla performans yüzeyi $M(I,H)$ aşağıdaki iki faktörlü toplamsal model ile ifade edilmiştir:
+
+\begin{equation}
+\boxed{
+M(I,H) = \mu + \alpha(I) + \beta(H) + \gamma(I,H)
+}
+\label{eq:toplamsal_model}
+\end{equation}
+
+Burada:
+
+\begin{itemize}
+    \item $\mu$, tüm test edilen yapılandırmalar üzerindeki küresel ortalama performansı,
+    \item $\alpha(I)$, PG iterasyon sayısının \emph{ana etkisini},
+    \item $\beta(H)$, LU geçmiş boyutunun \emph{ana etkisini},
+    \item $\gamma(I,H)$, parametreler arasındaki etkileşimi (toplamsal olmayan davranışı)
+\end{itemize}
+temsil etmektedir.
+
+Bu model, iteratif iyileştirme ve zamansal koşullamanın performansa olan katkılarının ayrıştırılmasını ve olası sinerjik veya azalan getirili (diminishing returns) davranışların açıkça gözlemlenmesini mümkün kılar.
+
+\subsubsection{Model Bileşenlerinin Hesaplanması}
+
+$\mathcal{I}$ ve $\mathcal{H}$ sırasıyla test edilen PG iterasyon sayıları ve LU geçmiş boyutları kümesini göstersin.
+
+\paragraph{Küresel Ortalama}
+
+Küresel ortalama performans aşağıdaki şekilde hesaplanır:
+\begin{equation}
+\mu = \frac{1}{|\mathcal{I}||\mathcal{H}|}
+\sum_{i \in \mathcal{I}} \sum_{h \in \mathcal{H}} M(i,h).
+\end{equation}
+
+\paragraph{PG İterasyonlarının Ana Etkisi}
+
+PG iterasyonlarının ana etkisi şu şekilde tanımlanır:
+\begin{equation}
+\alpha(i) = \frac{1}{|\mathcal{H}|}
+\sum_{h \in \mathcal{H}} M(i,h) - \mu,
+\end{equation}
+bu ifade, yalnızca iterasyon sayısındaki değişimin performansa olan ortalama etkisini temsil eder.
+
+\paragraph{LU Geçmiş Boyutunun Ana Etkisi}
+
+Benzer şekilde LU geçmiş boyutunun ana etkisi:
+\begin{equation}
+\beta(h) = \frac{1}{|\mathcal{I}|}
+\sum_{i \in \cal{I}} M(i,h) - \mu
+\end{equation}
+şeklinde tanımlanır ve iterasyon sayısından bağımsız olarak zamansal koşullamanın katkısını ifade eder.
+
+\paragraph{Etkileşim Terimi}
+
+Toplamsal modelin açıklayamadığı etkileşim bileşeni:
+\begin{equation}
+\gamma(i,h) = M(i,h) - \left( \mu + \alpha(i) + \beta(h) \right)
+\end{equation}
+şeklinde hesaplanır. $\gamma(i,h)$ değerinin yüksek olması, parametrelerin birbirine bağımlı şekilde çalıştığını göstermektedir.
+
+\subsubsection{Marjinal Duyarlılık Analizi}
+
+Parametrelerin performansa olan yerel etkilerini incelemek amacıyla marjinal farklar analiz edilmiştir.
+
+\paragraph{İterasyon Duyarlılığı}
+
+LU geçmişi sabit tutularak iterasyon sayısındaki değişimin etkisi:
+\begin{equation}
+\Delta_I M \approx M(I_2,H) - M(I_1,H)
+\end{equation}
+şeklinde hesaplanır. Bu farkın iterasyon sayısı arttıkça azalması, PG algoritmasının yakınsama (saturation) davranışını gösterir.
+
+\paragraph{Geçmiş Boyutu Duyarlılığı}
+
+Benzer şekilde iterasyon sayısı sabitken LU geçmiş boyutunun etkisi:
+\begin{equation}
+\Delta_H M \approx M(I,H_2) - M(I,H_1)
+\end{equation}
+olarak tanımlanır. Bu analiz, LU geçmişinin bir optimizasyon mekanizması mı yoksa bir kararlılık artırıcı unsur mu olduğunu ortaya koyar.
+
+\subsubsection{Normalize Katkı Oranları}
+
+Parametre katkılarının ölçekten bağımsız olarak karşılaştırılabilmesi için normalize edilmiş iyileşme oranları tanımlanmıştır. Toplam iyileşme:
+\begin{equation}
+\Delta M_{\text{toplam}}(I,H) = M(0,1) - M(I,H)
+\end{equation}
+şeklindedir.
+
+PG iterasyonlarının ortalama normalize katkısı:
+\begin{equation}
+C_I(I) = \frac{1}{|\mathcal{H}|}
+\sum_{h \in \mathcal{H}}
+\frac{M(0,1) - M(I,h)}{M(0,1)},
+\end{equation}
+LU geçmiş boyutunun katkısı ise:
+\begin{equation}
+C_H(H) = \frac{1}{|\mathcal{I}|}
+\sum_{i \in \mathcal{I}}
+\frac{M(0,1) - M(i,H)}{M(0,1)}
+\end{equation}
+şeklinde tanımlanır.
+
+\subsubsection{Süperpozisyon ve Etkileşim Analizi}
+
+PG iterasyonları ve LU geçmiş boyutunun etkilerinin toplamsal olup olmadığını test etmek amacıyla süperpozisyon varsayımı değerlendirilmiştir.
+
+Aşağıdaki yapılandırmalar tanımlansın:
+\begin{itemize}
+    \item Referans: $(0,1)$,
+    \item Yalnızca iterasyon etkisi: $(I,1)$,
+    \item Yalnızca geçmiş etkisi: $(0,H)$,
+    \item Birleşik yapılandırma: $(I,H)$.
+\end{itemize}
+
+Toplamsal davranış varsayımı altında beklenen performans:
+\begin{equation}
+M_{\text{beklenen}}(I,H) =
+M(0,1)
++ \left[M(I,1) - M(0,1)\right]
++ \left[M(0,H) - M(0,1)\right]
+\end{equation}
+şeklinde ifade edilir.
+
+Gerçek ve beklenen değer arasındaki fark:
+\begin{equation}
+\boxed{
+\Gamma(I,H) = M(I,H) - M_{\text{beklenen}}(I,H)
+}
+\end{equation}
+olarak tanımlanır.
+
+\begin{itemize}
+    \item $\Gamma \approx 0$: toplamsal davranış,
+    \item $\Gamma < 0$: sinerjik etkileşim,
+    \item $\Gamma > 0$: azalan getiri durumu.
+\end{itemize}
+
+\subsubsection{Metriğe Bağlı Duyarlılık}
+
+Farklı performans metriklerinin $I$ ve $H$ parametrelerine duyarlılığı farklılık göstermektedir. Küresel metrikler (ör. APE), genellikle $\alpha(I)$ terimine daha duyarlıyken; yerel tutarlılık ve varyans temelli metrikler $\beta(H)$ teriminden daha fazla etkilenmektedir. Yaw hataları ise çoğunlukla SLAM arka uç (backend) kısıtları ve ortamın gözlenebilirliği tarafından belirlenmektedir.
+
+Bu matematiksel çerçeve, deneysel sonuçların yorumlanması için sağlam ve sistematik bir temel oluşturmakta olup, elde edilen bulgular bir sonraki bölümde ayrıntılı olarak sunulmaktadır.

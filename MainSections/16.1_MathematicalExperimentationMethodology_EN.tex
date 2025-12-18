@@ -1,0 +1,168 @@
+\subsection{Mathematical Framework for Experimental Analysis}
+\label{sec:math_analysis_framework}
+
+In this study, the performance of the proposed Papoulis--Gerchberg (PG) based LiDAR--stereo fusion pipeline is evaluated under varying algorithmic configurations. The objective of this analysis is not merely to identify an optimal configuration, but to rigorously characterize the relative and joint contributions of the algorithm’s internal parameters to overall odometric performance.
+
+\subsubsection{Problem Definition}
+
+Let the behavior of the proposed method be governed by two independent control parameters:
+
+\begin{itemize}
+    \item $I \in \mathbb{N}$: the number of PG refinement iterations,
+    \item $H \in \mathbb{N}$: the LU history size used for temporal conditioning.
+\end{itemize}
+
+For each configuration $(I, H)$, a performance metric $M(I,H)$ is computed. Depending on the evaluation context, $M$ may represent absolute pose error (APE), relative pose error (RPE) at a specified spatial or temporal scale, yaw error, or higher-order statistics such as variance or maximum deviation. Lower values of $M$ indicate improved performance.
+
+The baseline configuration is defined as:
+\begin{equation}
+M(0,1),
+\end{equation}
+which corresponds to the absence of PG iterations and minimal LU history, effectively representing a stereo-only preprocessing condition.
+
+The primary goal of the experimental analysis is to determine how variations in $I$ and $H$ influence $M$, and to what extent each parameter contributes independently or jointly to performance improvement.
+
+\subsubsection{Two-Factor Additive Decomposition Model}
+
+To analyze the influence of the two parameters, the performance surface $M(I,H)$ is modeled using a two-factor additive decomposition:
+
+\begin{equation}
+\boxed{
+M(I,H) = \mu + \alpha(I) + \beta(H) + \gamma(I,H)
+}
+\label{eq:additive_model}
+\end{equation}
+
+where:
+
+\begin{itemize}
+    \item $\mu$ is the global mean performance over all tested configurations,
+    \item $\alpha(I)$ is the \emph{main effect} of PG iterations,
+    \item $\beta(H)$ is the \emph{main effect} of LU history,
+    \item $\gamma(I,H)$ is the interaction term capturing non-additive behavior.
+\end{itemize}
+
+This formulation allows the separation of independent contributions from iteration depth and temporal conditioning, while explicitly accounting for possible synergistic or diminishing interactions.
+
+\subsubsection{Estimation of Model Components}
+
+Let $\mathcal{I}$ and $\mathcal{H}$ denote the sets of evaluated iteration counts and history sizes, respectively.
+
+\paragraph{Global Mean}
+
+The global mean is computed as:
+\begin{equation}
+\mu = \frac{1}{|\mathcal{I}||\mathcal{H}|}
+\sum_{i \in \mathcal{I}} \sum_{h \in \mathcal{H}} M(i,h).
+\end{equation}
+
+\paragraph{Main Effect of PG Iterations}
+
+The iteration-dependent main effect is defined as:
+\begin{equation}
+\alpha(i) = \frac{1}{|\mathcal{H}|}
+\sum_{h \in \mathcal{H}} M(i,h) - \mu,
+\end{equation}
+which quantifies the average performance deviation attributable solely to the number of PG iterations.
+
+\paragraph{Main Effect of LU History}
+
+Similarly, the LU history main effect is given by:
+\begin{equation}
+\beta(h) = \frac{1}{|\mathcal{I}|}
+\sum_{i \in \mathcal{I}} M(i,h) - \mu,
+\end{equation}
+representing the contribution of temporal conditioning independent of iteration count.
+
+\paragraph{Interaction Term}
+
+The interaction residual is computed as:
+\begin{equation}
+\gamma(i,h) = M(i,h) - \left( \mu + \alpha(i) + \beta(h) \right).
+\end{equation}
+
+Large magnitudes of $\gamma(i,h)$ indicate non-additive behavior, suggesting that the effect of one parameter depends on the value of the other.
+
+\subsubsection{Marginal Sensitivity Analysis}
+
+To examine the local sensitivity of performance to each parameter, marginal differences are analyzed.
+
+\paragraph{Iteration Sensitivity}
+
+For a fixed history size $H$, the effect of increasing PG iterations is approximated by:
+\begin{equation}
+\Delta_I M \approx M(I_2,H) - M(I_1,H).
+\end{equation}
+
+A diminishing $\Delta_I M$ for increasing $I$ indicates convergence saturation of the PG refinement process.
+
+\paragraph{History Sensitivity}
+
+Similarly, for fixed iteration count $I$, the effect of LU history size is:
+\begin{equation}
+\Delta_H M \approx M(I,H_2) - M(I,H_1).
+\end{equation}
+
+This analysis reveals whether LU history acts as a primary optimization mechanism or primarily as a stabilizing component.
+
+\subsubsection{Normalized Contribution Ratios}
+
+To express contributions in a scale-independent manner, normalized improvement ratios are defined relative to the baseline configuration:
+\begin{equation}
+\Delta M_{\text{total}}(I,H) = M(0,1) - M(I,H).
+\end{equation}
+
+The average normalized contribution of PG iterations is:
+\begin{equation}
+C_I(I) = \frac{1}{|\mathcal{H}|}
+\sum_{h \in \mathcal{H}}
+\frac{M(0,1) - M(I,h)}{M(0,1)},
+\end{equation}
+and the corresponding LU history contribution is:
+\begin{equation}
+C_H(H) = \frac{1}{|\mathcal{I}|}
+\sum_{i \in \mathcal{I}}
+\frac{M(0,1) - M(i,H)}{M(0,1)}.
+\end{equation}
+
+These quantities enable direct comparison of the relative importance of iteration depth and temporal memory.
+
+\subsubsection{Superposition and Interaction Analysis}
+
+To test whether the effects of $I$ and $H$ are additive, a superposition hypothesis is evaluated.
+
+Let:
+\begin{itemize}
+    \item baseline: $(0,1)$,
+    \item iteration-only configuration: $(I,1)$,
+    \item history-only configuration: $(0,H)$,
+    \item combined configuration: $(I,H)$.
+\end{itemize}
+
+Under additive behavior, the expected performance is:
+\begin{equation}
+M_{\text{exp}}(I,H) =
+M(0,1)
++ \left[M(I,1) - M(0,1)\right]
++ \left[M(0,H) - M(0,1)\right].
+\end{equation}
+
+The interaction deviation is then defined as:
+\begin{equation}
+\boxed{
+\Gamma(I,H) = M(I,H) - M_{\text{exp}}(I,H)
+}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\Gamma \approx 0$ indicates additive behavior,
+    \item $\Gamma < 0$ indicates synergistic interaction,
+    \item $\Gamma > 0$ indicates diminishing returns.
+\end{itemize}
+
+\subsubsection{Metric-Dependent Sensitivity}
+
+It is important to note that different performance metrics exhibit varying sensitivity to the parameters $I$ and $H$. Global metrics such as APE are expected to be more strongly influenced by $\alpha(I)$, whereas local consistency metrics and variance-based measures are more sensitive to $\beta(H)$. Orientation errors, such as yaw, are often dominated by backend SLAM constraints and environmental observability rather than preprocessing parameters.
+
+This mathematical framework establishes a principled basis for interpreting experimental results, which are analyzed and discussed in the subsequent section.
