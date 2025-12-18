@@ -6,7 +6,7 @@ Dinamik PG yapısı,
 
 In this section, we formalize the mathematical model underlying our ROS--CuPy based ZED--LiDAR fusion node. The implementation operates on synchronized depth images from a stereo camera (ZED) and point clouds from a LiDAR sensor and produces a fused depth image and a corresponding point cloud in real time.
 
-\begin{figure}[!htb]
+\begin{figure}[H]
     \centering
     \begin{adjustbox}{width=\textwidth}
         \includegraphics[width=\textwidth]{mermaid/pg.png}
@@ -344,7 +344,7 @@ Bu kapsamda dama tahtası (satranç tahtası) formunda üretilmiş sentetik dese
     \label{fig:synthetic_validation_triplet}
 \end{figure}
 
-Görsellerde görüldüğü üzere LiDAR verisine karşılık üretilen sentetik veri ^B satranç tahtası üzerinde ölçüm hassasiyeti çok yüksek ancak seyrek noktalardan oluşmaktadır. Benzer mantıkla stereo sentetik verisi ise yüksek çözünürlüklü ancak gürültülüdür.
+Görsellerde görüldüğü üzere LiDAR verisine karşılık üretilen sentetik veri satranç tahtası üzerinde ölçüm hassasiyeti çok yüksek ancak seyrek noktalardan oluşmaktadır. Benzer mantıkla stereo sentetik verisi ise yüksek çözünürlüklü ancak gürültülüdür.
 
 Elde edilen sonuçlar, algoritmanın sentetik veri üzerinde kararlı bir yakınsama sergilediğini ve iki veri kaynağı arasında beklenen yönde bir uyum üretebildiğini göstermektedir. Ayrıca danışman değerlendirmesi kapsamında, elde edilen çıktının görsel olarak tutarlı bulunduğu ve algoritmanın temel çalışma prensibinin doğrulandığı not edilmiştir. Bu bulgu, gerçek veri ile benzer bir görsel çıktının elde edilememesi durumunda problemin doğrudan algoritmanın çekirdek mantığından ziyade, gerçek sensör koşullarına (özellikle ZED ve VLP-16 görüş alanlarının PG sürecinde etkin kullanılan ortak FOV ile tam örtüşmemesi, senkronizasyon/örnekleme farklılıkları ve tarihsel LiDAR birikiminin gölgeleme etkileri) bağlı olabileceğine işaret etmektedir.
 
