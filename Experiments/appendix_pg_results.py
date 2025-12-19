@@ -95,9 +95,9 @@ def main():
     lines.append(r"% \usepackage{float}     % for [H]")
     lines.append(r"% \usepackage{booktabs}  % for tables")
     lines.append("")
-    lines.append(r"\appendix")
-    lines.append(r"\section{Experiment Output Figures}")
-    lines.append(r"\label{sec:appendix-experiment-output-figures}")
+    # lines.append(r"\appendix")
+    lines.append(r"\chapter{Slice Comparison Figures}")
+    lines.append(r"\label{chap:appendix-slice-comparison-figures}")
     lines.append("")
 
     def fig_path(p: Path) -> str:
@@ -110,7 +110,7 @@ def main():
         if not pattern_dirs:
             continue
 
-        lines.append(r"\subsection{" + tex_escape(variant) + r"}")
+        lines.append(r"\section{" + tex_escape(variant) + r"}")
         lines.append(r"\label{sec:appendix-" + tex_label(variant) + r"}")
         lines.append("")
 
@@ -120,7 +120,7 @@ def main():
             if not metric_dirs:
                 continue
 
-            lines.append(r"\subsubsection{" + tex_escape(pattern) + r"}")
+            lines.append(r"\subsection{" + tex_escape(pattern) + r"}")
             lines.append(r"\label{sec:appendix-" + tex_label(variant + '-' + pattern) + r"}")
             lines.append("")
 
