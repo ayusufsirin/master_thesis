@@ -12,6 +12,13 @@ docker build . -t evo_cli
 ./run_analyze.sh
 ```
 
+# Generate Appendixes
+
+```bash
+docker build . -t evo_cli
+./generate_appendixes.sh
+```
+
 # ZED
 
 # PG
