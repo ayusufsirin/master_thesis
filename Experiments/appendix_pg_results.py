@@ -24,7 +24,7 @@ def tex_label(s: str) -> str:
     s = s.lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = re.sub(r"-+", "-", s).strip("-")
-    return s[:80]
+    return s[:90]
 
 def pick_one(folder: Path, glob_pat: str) -> Path | None:
     items = sorted(folder.glob(glob_pat))
@@ -68,16 +68,21 @@ def csv_to_tabular(csv_path: Path, floatfmt: str = "{:.3f}") -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out_root", default="out", help="Root folder (your 'out/')")
+    ap.add_argument("--out_root", default="out", help="Root folder (your out/)")
     ap.add_argument("--tex_out", default="appendix_experiment_outputs.tex", help="Generated LaTeX file")
-    ap.add_argument("--figwidth", default=r"0.95\linewidth", help="Figure width")
-    ap.add_argument("--include_tables", action="store_true", help="Include LaTeX tables from matrix_*.csv")
-    ap.add_argument("--path_prefix", default="", help="Optional prefix to prepend to figure paths (rare)")
+    ap.add_argument("--figprefix", default="./Experiments/", help="Prefix for includegraphics paths, e.g. ./Experiments/")
+    ap.add_argument("--figwidth_top", default=r"\linewidth", help="Width for slices (top row)")
+    ap.add_argument("--figwidth_bottom", default=r"0.49\linewidth", help="Width for bottom row subfigures")
+    ap.add_argument("--float_spec", default="H", help="Figure float spec, e.g. H or htbp")
     args = ap.parse_args()
 
     out_root = Path(args.out_root)
     if not out_root.exists():
         raise SystemExit(f"out_root not found: {out_root}")
+
+    figprefix = args.figprefix
+    if figprefix and not figprefix.endswith("/"):
+        figprefix += "/"
 
     # Expect: out/<variant>/<pattern>/<metric>/
     variants = sorted([p for p in out_root.iterdir() if p.is_dir()])
@@ -86,13 +91,18 @@ def main():
     lines.append(r"% Auto-generated file. Do not edit by hand.")
     lines.append(r"% Preamble requirements:")
     lines.append(r"% \usepackage{graphicx}")
-    lines.append(r"% \usepackage{float}   % for [H]")
-    lines.append(r"% \usepackage{booktabs} % if tables are enabled")
+    lines.append(r"% \usepackage{subcaption}")
+    lines.append(r"% \usepackage{float}     % for [H]")
+    lines.append(r"% \usepackage{booktabs}  % for tables")
     lines.append("")
     lines.append(r"\appendix")
     lines.append(r"\section{Experiment Output Figures}")
     lines.append(r"\label{sec:appendix-experiment-output-figures}")
     lines.append("")
+
+    def fig_path(p: Path) -> str:
+        # includegraphics path uses forward slashes
+        return figprefix + p.as_posix()
 
     for variant_dir in variants:
         variant = variant_dir.name
@@ -117,53 +127,49 @@ def main():
             for metric_dir in metric_dirs:
                 metric = metric_dir.name
 
-                heatmap = pick_one(metric_dir, "heatmap_*.png")
                 slices  = pick_one(metric_dir, "slices_*.png")
+                heatmap = pick_one(metric_dir, "heatmap_*.png")
                 matrix  = pick_one(metric_dir, "matrix_*.csv")
 
-                # If nothing exists, skip
-                if heatmap is None and slices is None and (not args.include_tables or matrix is None):
+                # Require all three for the 2x2 layout (as you requested)
+                if slices is None or heatmap is None or matrix is None:
                     continue
 
-                lines.append(r"\paragraph{" + tex_escape(metric) + r"}")
+                cap_main = f"{variant} | {pattern} | {metric}"
+                lab = tex_label(f"{variant}-{pattern}-{metric}")
+
+                lines.append(r"\begin{figure}[" + args.float_spec + r"]")
+                lines.append(r"\centering")
+
+                # Row 1: slices spanning full width
+                lines.append(r"\begin{subfigure}[t]{" + args.figwidth_top + r"}")
+                lines.append(r"\centering")
+                lines.append(r"\includegraphics[width=\linewidth]{" + fig_path(slices) + r"}")
+                lines.append(r"\caption{Slices}")
+                lines.append(r"\end{subfigure}")
+                lines.append(r"\vspace{0.6em}")
+
+                # Row 2: heatmap (left) + table (right)
+                lines.append(r"\begin{subfigure}[t]{" + args.figwidth_bottom + r"}")
+                lines.append(r"\centering")
+                lines.append(r"\vspace{0pt}")
+                lines.append(r"\includegraphics[width=\linewidth]{" + fig_path(heatmap) + r"}")
+                lines.append(r"\caption{Heatmap}")
+                lines.append(r"\end{subfigure}")
+                lines.append(r"\hfill")
+
+                lines.append(r"\begin{subfigure}[t]{" + args.figwidth_bottom + r"}")
+                lines.append(r"\centering")
+                lines.append(r"\vspace{2.0em}")
+                lines.append(csv_to_tabular(matrix))
+                lines.append(r"\vspace{1.5em}")
+                lines.append(r"\caption{Matrix}")
+                lines.append(r"\end{subfigure}")
+
+                lines.append(r"\caption{" + tex_escape(cap_main) + r"}")
+                lines.append(r"\label{fig:appendix-" + lab + r"}")
+                lines.append(r"\end{figure}")
                 lines.append("")
-
-                def fig_path(p: Path) -> str:
-                    # Use forward slashes; optionally prefix
-                    rel = p.as_posix()
-                    if args.path_prefix:
-                        return (args.path_prefix.rstrip("/") + "/" + rel)
-                    return rel
-
-                if heatmap is not None:
-                    cap = f"{variant} | {pattern} | {metric} (heatmap)"
-                    lines.append(r"\begin{figure}[H]")
-                    lines.append(r"\centering")
-                    lines.append(r"\includegraphics[width=" + args.figwidth + r"]{./Experiments/" + fig_path(heatmap) + r"}")
-                    lines.append(r"\caption{" + tex_escape(cap) + r"}")
-                    lines.append(r"\label{fig:" + tex_label(f"{variant}-{pattern}-{metric}-heatmap") + r"}")
-                    lines.append(r"\end{figure}")
-                    lines.append("")
-
-                if slices is not None:
-                    cap = f"{variant} | {pattern} | {metric} (slices)"
-                    lines.append(r"\begin{figure}[H]")
-                    lines.append(r"\centering")
-                    lines.append(r"\includegraphics[width=" + args.figwidth + r"]{./Experiments/" + fig_path(slices) + r"}")
-                    lines.append(r"\caption{" + tex_escape(cap) + r"}")
-                    lines.append(r"\label{fig:" + tex_label(f"{variant}-{pattern}-{metric}-slices") + r"}")
-                    lines.append(r"\end{figure}")
-                    lines.append("")
-
-                if args.include_tables and matrix is not None:
-                    cap = f"{variant} | {pattern} | {metric} (matrix)"
-                    lines.append(r"\begin{table}[H]")
-                    lines.append(r"\centering")
-                    lines.append(r"\caption{" + tex_escape(cap) + r"}")
-                    lines.append(r"\label{tab:" + tex_label(f"{variant}-{pattern}-{metric}-matrix") + r"}")
-                    lines.append(csv_to_tabular(matrix))
-                    lines.append(r"\end{table}")
-                    lines.append("")
 
             lines.append(r"\clearpage")
             lines.append("")
