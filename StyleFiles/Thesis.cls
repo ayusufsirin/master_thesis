@@ -1,16 +1,16 @@
 \NeedsTeXFormat{LaTeX2e}[1996/12/01]
 \ProvidesClass{Thesis}
-              [2007/22/02 v1.0
-   LaTeX document class]
+[2007/22/02 v1.0
+LaTeX document class]
 \def\baseclass{book}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{\baseclass}}
 \def\@checkoptions#1#2{
-  \edef\@curroptions{\@ptionlist{\@currname.\@currext}}
-  \@tfor\@this:=#2\do{
-    \@expandtwoargs\in@{,\@this,}{,\@curroptions,}
-    \ifin@ \@tempswatrue \@break@tfor \fi}
-  \let\@this\@empty
-  \if@tempswa \else \PassOptionsToClass{#1}{\baseclass}\fi
+    \edef\@curroptions{\@ptionlist{\@currname.\@currext}}
+    \@tfor\@this:=#2\do{
+        \@expandtwoargs\in@{,\@this,}{,\@curroptions,}
+        \ifin@ \@tempswatrue \@break@tfor \fi}
+    \let\@this\@empty
+    \if@tempswa \else \PassOptionsToClass{#1}{\baseclass}\fi
 }
 \@checkoptions{11pt}{{10pt}{11pt}{12pt}}
 \PassOptionsToClass{a4paper}{\baseclass}
@@ -20,40 +20,42 @@
 
 \newcommand\Declaration[1]{
 
-\setstretch{1.5}
-\btypeout{Ethics}
+    \setstretch{1.5}
+    \btypeout{Ethics}
 %\addtotoc{Ethics}
-\thispagestyle{plain}
+    \thispagestyle{plain}
 %\null\vfil
 %\vskip 60\p@
-\begin{center}{\fontsize{14}{16.8} \bfseries ETİK}\end{center}
+    \begin{center}{\fontsize{14}{16.8} \bfseries ETİK}\end{center}
 %\vskip 60\p@
-{\normalsize #1}
-\vfil\vfil\null
+    {\normalsize #1}
+    \vfil\vfil\null
 %\cleardoublepage
 
 }
 
 \newcommand\btypeout[1]{\bhrule\typeout{\space #1}\bhrule}
-\def\today{\ifcase\month\or
-  January\or February\or March\or April\or May\or June\or
-  July\or August\or September\or October\or November\or December\fi
-  \space \number\year}
+\def\today{\ifcase
+               \month\or
+               January\or February\or March\or April\or May\or June\or
+               July\or August\or September\or October\or November\or December
+\fi
+    \space \number\year}
 \usepackage{setspace}
 \onehalfspacing
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{2.0ex plus0.5ex minus0.2ex}
 \usepackage{vmargin}
 
-\RequirePackage[utf8]{inputenc} 
+\RequirePackage[utf8]{inputenc}
 \setmarginsrb  { 3cm}  % left margin
-                        { 2.5cm}  % top margin
-                        { 2.5cm}  % right margin
-                        { 2.5cm}  % bottom margin
-                        {  20pt}  % head height
-                        {0.25in}  % head sep
-                        {   9pt}  % foot height
-                        { 0.3in}  % foot sep
+{ 2.5cm}  % top margin
+{ 2.5cm}  % right margin
+{ 2.5cm}  % bottom margin
+{  20pt}  % head height
+{0.25in}  % head sep
+{   9pt}  % foot height
+{ 0.3in}  % foot sep
 %----------------------------------------------------------------------------------------
 
 \raggedbottom
@@ -69,12 +71,12 @@
 %\chead{}\lfoot{}\rfoot{}\cfoot{}
 \pagestyle{fancy}
 
-  \fancyhf{} % clear all header and footer fields
-  \fancyfoot[C]{\footnotesize\thepage}
-  \renewcommand{\headrulewidth}{0pt}      
-  \renewcommand{\footrulewidth}{0pt}
-  
-  
+\fancyhf{} % clear all header and footer fields
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+
 %\renewcommand{\chaptermark}[1]{\btypeout{\thesection\space #1}\markboth{\@chapapp\ \thesection\ #1}{\@chapapp\ \thesection\ #1}}
 %\renewcommand{\sectionmark}[1]{\btypeout{\thesection\space #1}}
 %\renewcommand{\sectionmark}[1]{\thesection{\arabic{section}.}}
@@ -112,11 +114,13 @@
 \counterwithout{equation}{section}
 %\counterwithin{figure}{section}
 %\counterwithin{table}{section}
-\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
-\hbox{}
-\thispagestyle{empty}
-\newpage
-\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\def\cleardoublepage{\clearpage\if@twoside \ifodd
+                                               \c@page\else
+                                               \hbox{}
+                                               \thispagestyle{empty}
+                                               \newpage
+                                               \if@twocolumn\hbox{}\newpage
+\fi\fi\fi}
 \usepackage{amsmath,amsfonts,amssymb,amscd,amsthm,xspace}
 \theoremstyle{plain}
 \newtheorem{example}{Example}[chapter]
@@ -159,7 +163,7 @@
 \usepackage{epigraph}%%added by urt
 %\setlength{\epigraphwidth}{0.8\textwidth} % Adjust the width of the epigraph
 %\renewcommand{\epigraphsize}{\normalsize} % Set the size of the epigraph text
-\let\originalepigraph\epigraph 
+\let\originalepigraph\epigraph
 \renewcommand\epigraph[2]{\originalepigraph{\textit{#1}}{\textsc{#2}}}
 %\usepackage{amsmath}
 %\usepackage{amssymb}
@@ -169,39 +173,32 @@
 \usepackage{subcaption}
 \usepackage{mathrsfs}
 \usepackage{comment}
+\usepackage{appendix}
 
 \renewcommand{\rmdefault}{phv} % Arial
 \renewcommand{\sfdefault}{phv} % Arial
 
 \lstset{captionpos=b,
-        frame=tb,
-        basicstyle=\scriptsize\ttfamily,
-        showstringspaces=false,
-        keepspaces=true}
+    frame=tb,
+    basicstyle=\scriptsize\ttfamily,
+    showstringspaces=false,
+    keepspaces=true}
 \lstdefinestyle{matlab} {
-        language=Matlab,
-        keywordstyle=\color{blue},
-        commentstyle=\color[rgb]{0.13,0.55,0.13}\em,
-        stringstyle=\color[rgb]{0.7,0,0} }
+    language=Matlab,
+    keywordstyle=\color{blue},
+    commentstyle=\color[rgb]{0.13,0.55,0.13}\em,
+    stringstyle=\color[rgb]{0.7,0,0} }
 \usepackage[pdfpagemode={UseOutlines},bookmarks=true,bookmarksopen=true,
-   bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
-   colorlinks,linkcolor={black},citecolor={black},urlcolor={black},
-   pdfstartview={FitV},unicode,breaklinks=true]{hyperref}
+    bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
+    colorlinks,linkcolor={black},citecolor={black},urlcolor={black},
+    pdfstartview={FitV},unicode,breaklinks=true]{hyperref}
 \pdfstringdefDisableCommands{
-   \let\\\space
-}
-
-
-
-
-
+    \let\\\space
 
 {
-  %\vfil\vfil\vfil\null
-  %\cleardoublepage
+%\vfil\vfil\vfil\null
+%\cleardoublepage
 }
-
-
 
 \usepackage{titletoc}
 
@@ -213,7 +210,7 @@
 \renewcommand{\cftaftertoctitle}{\hfill}
 \renewcommand{\cftbeforetoctitleskip}{-0.5in} % title vertical location
 \renewcommand{\cfttoctitlefont}{\hfill\large\bf}
-\renewcommand{\cftaftertoctitleskip}{1\baselineskip}% 
+\renewcommand{\cftaftertoctitleskip}{1\baselineskip}%
 \renewcommand{\cftchapfont}{\normalfont}
 \renewcommand{\cftchapleader}{\cftdotfill{\cftchapdotsep}}
 %\renewcommand\cftchapafterpnum{\vskip1.5pt}
@@ -223,13 +220,13 @@
 \renewcommand*{\l@subsection}{\@dottedtocline{1}{1.2em}{2em}}
 \renewcommand*{\l@subsubsection}{\@dottedtocline{1}{2.2em}{3em}}
 \renewcommand*{\l@paragraph}{\@dottedtocline{1}{3.7em}{3.5em}}
-%\renewcommand{\cftchapdotsep}{1} 
-\renewcommand{\cftsecdotsep}{1} 
+%\renewcommand{\cftchapdotsep}{1}
+\renewcommand{\cftsecdotsep}{1}
 %\renewcommand{\@pnumwidth}{1em} \renewcommand{\@tocrmarg}{4em}
 \renewcommand{\@dotsep}{1}
 \renewcommand{\cftchapfont}{\normalfont}
 \renewcommand{\cftsecfont}{
-\normalfont
+    \normalfont
 }
 \renewcommand\cftsecfont{\normalfont}
 \renewcommand\cftsecpagefont{\normalfont}
@@ -248,46 +245,34 @@
 \addtocounter{secnumdepth}{2}
 \setcounter{tocdepth}{6}
 \newcounter{dummy}
-\newcommand\addtotoc[1]{
-\refstepcounter{dummy}
-%\addcontentsline{toc}{chapter}{#1}}
+\addtocounter{secnumdepth}{2}
+\setcounter{tocdepth}{6}
 
+\newcounter{dummy}
+\newcommand\addtotoc[1]{%
+  \refstepcounter{dummy}%
+  \addcontentsline{toc}{section}{#1}%
+}
 
-
-
-
-% List of Figures
-
+% List of Figures configuration
 \renewcommand{\listfigurename}{ŞEKİLLER}
 \renewcommand{\figurename}{Şekil}
 \renewcommand{\cftloftitlefont}{\hfill\large\bfseries}
 \renewcommand{\cftafterloftitle}{\hfill}
-\renewcommand{\cftbeforeloftitleskip}{-0.5in} 
+\renewcommand{\cftbeforeloftitleskip}{-0.5in}
 \renewcommand{\cftloftitlefont}{\hfill\large\bf}
 \renewcommand{\cftdotsep}{1}
-
-%\renewcommand{\cftafterloftitleskip}{0.5\baselineskip}
-
 \renewcommand{\@dotsep}{10000}
 
-
-% List of Tables
-
+% List of Tables configuration
 \renewcommand{\listtablename}{TABLOLAR}
 \renewcommand{\tablename}{Tablo}
 \renewcommand{\cftlottitlefont}{\hfill\large\bfseries}
 \renewcommand{\cftafterlottitle}{\hfill}
-\renewcommand{\cftbeforelottitleskip}{-0.25in} 
+\renewcommand{\cftbeforelottitleskip}{-0.25in}
 \renewcommand{\cftlottitlefont}{\hfill\large\bf}
-\renewcommand{\cftafterlottitleskip}{1.0\baselineskip} 
+\renewcommand{\cftafterlottitleskip}{1.0\baselineskip}
 \renewcommand{\@dotsep}{1}
-
-
-
-\addcontentsline{toc}{section}{#1}}
-
-
-\usepackage{tocloft}
 
 \renewcommand{\cftfigpresnum}{\figurename\enspace}
 %\renewcommand{\cftfigaftersnum}{.}
@@ -301,16 +286,10 @@
 \settowidth{\mylen}{\cfttabpresnum\cfttabaftersnum}
 \addtolength{\cfttabnumwidth}{\mylen}
 
-
-
-
-
-
-\renewcommand\listoffigures{
-\btypeout{List of Figures}
-\addtotoc{\textbf{ŞEKİLLER}}
-\begin{spacing}{1}{
-    \setlength{\parskip}{1pt}
+\renewcommand\listoffigures{%
+  \btypeout{List of Figures}%
+  \begin{spacing}{1}{%
+    \setlength{\parskip}{1pt}%
     \if@twocolumn
       \@restonecoltrue\onecolumn
     \else
@@ -318,62 +297,51 @@
     \fi
     \section*{\large\listfigurename
       \@mkboth{\MakeUppercase\listfigurename}
-              {\MakeUppercase\listfigurename}}
-    \@starttoc{lof}
+              {\MakeUppercase\listfigurename}}%
+    \@starttoc{lof}%
     \if@restonecol\twocolumn\fi
     \cleardoublepage
-}\end{spacing}
+  }\end{spacing}%
 }
 
-
-\renewcommand\listoftables{
-\btypeout{Tablo Listesi}
-\addtotoc{\textbf{TABLOLAR}}
-\begin{spacing}{1}{
-    \setlength{\parskip}{1pt}
+\renewcommand\listoftables{%
+  \btypeout{List of Tables}%
+  \begin{spacing}{1}{%
+    \setlength{\parskip}{1pt}%
     \if@twocolumn
       \@restonecoltrue\onecolumn
     \else
       \@restonecolfalse
     \fi
     \section*{\large\listtablename
-      \@mkboth{
-          \MakeUppercase\listtablename}{\MakeUppercase\listtablename}}
-    \@starttoc{lot}
+      \@mkboth{\MakeUppercase\listtablename}
+              {\MakeUppercase\listtablename}}%
+    \@starttoc{lot}%
     \if@restonecol\twocolumn\fi
     \cleardoublepage
-}\end{spacing}
+  }\end{spacing}%
 }
-
-
 
 \newcommand\listsymbolname{\large{\centerline{KISALTMALAR}}}
 \usepackage{longtable}
 \newcommand\listofsymbols[2]{
-\btypeout{\listsymbolname}
-\addtotoc{KISALTMALAR}
+    \btypeout{\listsymbolname}
+    \addtotoc{KISALTMALAR}
 
     \section*{\listsymbolname
-      \@mkboth{
-          \MakeUppercase\listsymbolname}{\MakeUppercase\listsymbolname}}
-\begin{longtable}[c]{#1}#2\end{longtable}\par
+    \@mkboth{
+        \MakeUppercase\listsymbolname}{\MakeUppercase\listsymbolname}}
+    \begin{longtable}[c]{#1}#2\end{longtable}\par
     \cleardoublepage
 }
 
-
-
-
-
-
 \newcommand\acknowledgements[1]{
-\btypeout{TEŞEKKÜR}
-\addtotoc{TEŞEKKÜR}
-\thispagestyle{plain}
-\fancyfoot[C]{\footnotesize \thepage} 
-\begin{center}{\fontsize{14}{16.8}\bf{TEŞEKKÜR} \par}\end{center}
-{\normalsize #1}
-\vfil\vfil\null
-\clearpage
+    \btypeout{TEŞEKKÜR}
+    \addtotoc{TEŞEKKÜR}
+    \thispagestyle{plain}
+    \fancyfoot[C]{\footnotesize \thepage}
+    \begin{center}{\fontsize{14}{16.8}\bf{TEŞEKKÜR} \par}\end{center}
+    {\normalsize #1}
+    \vfil\vfil\null
+    \clearpage
 }
-
-
