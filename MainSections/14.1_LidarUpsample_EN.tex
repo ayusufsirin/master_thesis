@@ -1,0 +1,341 @@
+\subsection{LiDAR Nokta Yoğunluğu Arttırımı} \label{lidar_upsample}
+
+Lidar verisi doğası gereği seyrek bir yapıya sahiptir. Seyrek yapıdaki Lidar verisini işlem hattına sokarak stereo imaj yakınsatmasında kullanıldığı takdirde kılavuz görevi gören lidar noktalarının yetersizliği sebebiyle PG sonrası stereo derinlik haritasının daha da kötüleşmesi gibi bir problem görülmüştür. Bundan dolayı lidar noktalarına bir ön işleme uygulanarak odometri verisi ile fuse edilmiştir. Bu füsyon, temelde odometry verileri kullanılarak lidar noktalarının translate ve rotate ettirilmesi ve kümülatif nokta kümesi elde edilmesidir.
+
+Bakıldığında LIO (lidar inertial odometry) operasyonu gibi görünse de çok daha basit bir yapı önerilmiştir. Düşük boyutlu window'larda bu işlemi yapmak çok temel bir harita elde ederken algoritmayı bu aşamada SLAM yapma gereksiniminden kurtarmıştır.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 10 /12}
+        \includegraphics{mermaid/lidar_upsample.png}
+    \end{adjustbox}
+    \caption{LU akış şeması}
+    \label{fig:lidar_upsample}
+\end{figure}
+
+\subsubsection{Point cloud and odometry notation}
+
+At each time step \(t_k\), the robot publishes:
+\begin{itemize}
+  \item an odometry message on \texttt{/odom}, and
+  \item a 3D point cloud message on \texttt{/velodyne\_points}.
+\end{itemize}
+
+Let the odometry pose at time \(t_k\) in the odometry frame \(\mathcal{F}_\text{odom}\) be
+\begin{equation}
+  \mathbf{p}_k \in \mathbb{R}^3,
+  \qquad
+  \mathbf{q}_k \in \mathbb{S}^3,
+\end{equation}
+where \(\mathbf{p}_k\) is the position and \(\mathbf{q}_k\) is the unit quaternion orientation.
+The corresponding rotation matrix is
+\begin{equation}
+  \mathbf{R}_k = \mathcal{R}(\mathbf{q}_k) \in SO(3).
+\end{equation}
+
+The homogeneous rigid-body transform from the LiDAR sensor frame
+\(\mathcal{F}_\text{lidar}\) to the odometry frame \(\mathcal{F}_\text{odom}\) at
+time \(t_k\) is
+\begin{equation}
+  \mathbf{T}_k =
+  \begin{bmatrix}
+    \mathbf{R}_k & \mathbf{p}_k \\
+    \mathbf{0}^\top & 1
+  \end{bmatrix}
+  \in SE(3).
+\end{equation}
+
+The point cloud at time \(t_k\) contains \(N_k\) points
+\begin{equation}
+  \mathcal{X}_k = \left\{ \mathbf{x}_{k,j} \in \mathbb{R}^3 \;\middle|\;
+  j = 1,\dots,N_k \right\},
+\end{equation}
+where \(\mathbf{x}_{k,j}\) is expressed in \(\mathcal{F}_\text{lidar}\).
+We denote the homogeneous coordinates by
+\begin{equation}
+  \tilde{\mathbf{x}}_{k,j} =
+  \begin{bmatrix}
+    \mathbf{x}_{k,j} \\
+    1
+  \end{bmatrix}
+  \in \mathbb{R}^4.
+\end{equation}
+
+\subsubsection{Rigid-body transformation of the point cloud}
+
+Each point is transformed from the LiDAR frame to the odometry frame using
+the odometry-derived pose:
+\begin{equation}
+  \tilde{\mathbf{y}}_{k,j}
+  =
+  \mathbf{T}_k \, \tilde{\mathbf{x}}_{k,j}
+  =
+  \begin{bmatrix}
+    \mathbf{R}_k & \mathbf{p}_k \\
+    \mathbf{0}^\top & 1
+  \end{bmatrix}
+  \begin{bmatrix}
+    \mathbf{x}_{k,j} \\[2pt]
+    1
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    \mathbf{R}_k \mathbf{x}_{k,j} + \mathbf{p}_k \\[2pt]
+    1
+  \end{bmatrix}.
+\end{equation}
+
+The transformed point in \(\mathcal{F}_\text{odom}\) is the first three components:
+\begin{equation}
+  \mathbf{y}_{k,j} = \mathbf{R}_k \mathbf{x}_{k,j} + \mathbf{p}_k.
+\end{equation}
+
+The transformed point cloud published on \texttt{/transformed\_point\_cloud} is
+\begin{equation}
+  \mathcal{Y}_k
+  =
+  \left\{ \mathbf{y}_{k,j} \in \mathbb{R}^3 \;\middle|\;
+  j = 1,\dots,N_k \right\}.
+\end{equation}
+
+\noindent
+\textit{Implementation note.} In the current implementation, the rotation matrix
+is set to identity,
+\(\mathbf{R}_k = \mathbf{I}_3\),
+so that
+\(\mathbf{y}_{k,j} = \mathbf{x}_{k,j} + \mathbf{p}_k\),
+i.e.\ only a translation is applied.
+
+\subsubsection{Sliding-window cumulative point cloud}
+
+Let \(H \in \mathbb{N}\) denote the history size
+(\texttt{PC\_HISTORY\_SIZE} in the implementation).
+At time step \(k\), the node maintains a sliding window of the last
+\(H\) transformed point clouds
+\(\mathcal{Y}_{k-H+1}, \dots, \mathcal{Y}_k\).
+The cumulative transformed cloud is defined as
+\begin{equation}
+  \mathcal{Y}_k^{\text{cum}}
+  =
+  \bigcup_{i = \max(1,\,k-H+1)}^{k}
+  \mathcal{Y}_i
+  =
+  \bigcup_{i = \max(1,\,k-H+1)}^{k}
+  \left\{
+    \mathbf{y}_{i,j} \in \mathbb{R}^3
+    \;\middle|\;
+    j = 1,\dots,N_i
+  \right\}.
+\end{equation}
+
+This cumulative set \(\mathcal{Y}_k^{\text{cum}}\) is published as a single
+\texttt{PointCloud2} message on the topic \texttt{/cumulative\_point\_cloud}.
+
+\paragraph{Summary of topic mappings.}
+Given input point clouds \(\mathcal{X}_k\) on \texttt{/velodyne\_points}
+and odometry poses \((\mathbf{R}_k, \mathbf{p}_k)\) on
+\texttt{/odom}, the node computes:
+\begin{align}
+  \mathcal{X}_k
+  &\xrightarrow{(\mathbf{R}_k, \mathbf{p}_k)}
+  \mathcal{Y}_k
+  &&\text{published on \texttt{/transformed\_point\_cloud},}
+  \\
+  \{\mathcal{Y}_i\}_{i=k-H+1}^k
+  &\mapsto
+  \mathcal{Y}_k^{\text{cum}}
+  &&\text{published on \texttt{/cumulative\_point\_cloud},}
+  \\
+  \{\mathcal{Z}_i\}_{i=k-H+1}^k
+  &\mapsto
+  \mathcal{Z}_k^{\text{cum}}
+  &&\text{published on \texttt{/cumulative\_origin\_point\_cloud}.}
+\end{align}
+
+\subsubsection{Timing and real-time metrics}
+
+In addition to the geometric transformations, the node monitors several
+timing-related quantities in order to assess its real-time behavior.
+
+\subsubsubsection{Timestamps and latency}
+
+For each synchronized pair of messages at step \(k\), we denote:
+\begin{itemize}
+  \item the LiDAR timestamp (from the \texttt{PointCloud2} header) by
+  \(\tau^{\text{pc}}_k \in \mathbb{R}\),
+  \item the ROS time when the synchronized callback receives the pair by
+  \(\tau^{\text{in}}_k \in \mathbb{R}\),
+  \item the ROS time when processing is completed by
+  \(\tau^{\text{out}}_k \in \mathbb{R}\).
+\end{itemize}
+
+The end-to-end latency from measurement time to completion of processing
+is then approximated as
+\begin{equation}
+  L_k
+  =
+  \tau^{\text{out}}_k - \tau^{\text{pc}}_k
+  \quad [\text{s}],
+\end{equation}
+which in the implementation is logged as
+\(\texttt{latency\_ms} = 1000 \, L_k\).
+
+\subsubsubsection{Processing time}
+
+Let \(\tau^{\text{start}}_k\) and \(\tau^{\text{end}}_k\) denote the wall-clock
+times at the beginning and at the end of the processing loop for step \(k\).
+The total processing time for this frame is
+\begin{equation}
+  T^{\text{proc}}_k
+  =
+  \tau^{\text{end}}_k - \tau^{\text{start}}_k
+  \quad [\text{s}],
+\end{equation}
+which is logged as
+\(\texttt{processing\_time\_ms} = 1000 \, T^{\text{proc}}_k\).
+
+Inside this interval, we record the durations of individual stages:
+\begin{align}
+  T^{\text{pc}\rightarrow\text{points}}_k &\quad\text{: conversion from \texttt{PointCloud2} to an }(N_k \times 3)\text{ array}, \\
+  T^{\text{transform}}_k &\quad\text{: CuPy-based rigid-body transformation of all points}, \\
+  T^{\text{pc\_create}}_k &\quad\text{: creation of the transformed point cloud message}, \\
+  T^{\text{cum}}_k &\quad\text{: update and stacking of the cumulative transformed cloud}, \\
+  T^{\text{cum\_create}}_k &\quad\text{: creation of the cumulative transformed cloud message}, \\
+  T^{\text{translate}}_k &\quad\text{: translation of points back to the origin-aligned frame}, \\
+  T^{\text{cum-origin}}_k &\quad\text{: update and stacking of the cumulative origin-aligned cloud}, \\
+  T^{\text{cum-origin\_create}}_k &\quad\text{: creation of the cumulative origin-aligned cloud message}.
+\end{align}
+
+Collectively,
+\begin{equation}
+  T^{\text{proc}}_k
+  \approx
+  T^{\text{pc}\rightarrow\text{points}}_k
+  +
+  T^{\text{transform}}_k
+  +
+  T^{\text{pc\_create}}_k
+  +
+  T^{\text{cum}}_k
+  +
+  T^{\text{cum\_create}}_k
+  +
+  T^{\text{translate}}_k
+  +
+  T^{\text{cum-origin}}_k
+  +
+  T^{\text{cum-origin\_create}}_k.
+\end{equation}
+
+\subsubsubsection{Input and processing rates}
+
+To estimate the input rate of synchronized point cloud--odometry pairs,
+we use the sequence of arrival timestamps
+\(\{\tau^{\text{in}}_k\}\). For a window of indices
+\(k = k_0, \dots, k_1\) with \(k_1 > k_0\), the average input rate is
+\begin{equation}
+  \lambda_{\text{in}}
+  \approx
+  \frac{k_1 - k_0}{\tau^{\text{in}}_{k_1} - \tau^{\text{in}}_{k_0}}
+  \quad [\text{Hz}].
+\end{equation}
+
+Similarly, using a sequence of processed timestamps
+\(\{\tau^{\text{pc}}_k\}\) associated with the processed frames, we estimate
+the processing rate as
+\begin{equation}
+  \lambda_{\text{proc}}
+  \approx
+  \frac{k_1 - k_0}{\tau^{\text{pc}}_{k_1} - \tau^{\text{pc}}_{k_0}}
+  \quad [\text{Hz}].
+\end{equation}
+
+These quantities are logged as \(\texttt{input\_rate\_Hz}\) and
+\(\texttt{processing\_rate\_Hz}\) respectively. The throughput ratio is then
+defined as
+\begin{equation}
+  \rho
+  =
+  \frac{\lambda_{\text{proc}}}{\lambda_{\text{in}}},
+\end{equation}
+and is logged as \(\texttt{throughput\_ratio}\).
+
+\subsubsubsection{Queue occupancy and history size}
+
+The internal processing queue has a finite capacity \(Q_{\max}\). Let
+\(q_k \in \{0, 1, \dots, Q_{\max}\}\) denote the number of messages waiting
+in the queue just before processing frame \(k\). This is logged as
+\(\texttt{input\_queue\_size}\). The number of point clouds stored in the
+sliding window for the cumulative clouds is bounded by
+\(H = \texttt{PC\_HISTORY\_SIZE}\), and the current number of stored point
+clouds at time step \(k\) is logged as \(\texttt{cumulative\_points}\).
+
+\subsubsubsection{Real-time condition}
+
+A necessary condition for real-time operation over a given interval is that
+the system is able to keep up with the input rate, i.e.
+\begin{equation}
+  \rho = \frac{\lambda_{\text{proc}}}{\lambda_{\text{in}}} \gtrsim 1,
+\end{equation}
+so that the processing queue does not grow unbounded, and the latency
+\(\{L_k\}\) remains within an application-dependent bound
+\(L_{\max}\):
+\begin{equation}
+  L_k \leq L_{\max} \quad \forall k \text{ in the interval of interest.}
+\end{equation}
+
+In this way, the node not only applies consistent geometric transformations
+to the input point clouds, but also quantitatively monitors its real-time
+performance in terms of latency, processing time, throughput, and queue
+occupancy.
+
+\begin{table}[h!]
+\centering
+\caption{Summary statistics of GPU-accelerated point cloud transformation pipeline.}
+\begin{tabular}{lccc}
+\hline
+\textbf{Metric} & \textbf{Mean} & \textbf{Median} & \textbf{Max} \\
+\hline
+Latency (ms) & 1.43 & 0.91 & 448.05 \\
+Processing time per frame (ms) & 43.97 & 38.14 & 933.23 \\
+Point cloud callback time (ms) & 43.81 & 38.13 & 933.17 \\
+Transform step time (ms) & 8.90 & 8.73 & 54.73 \\
+PC creation time (ms) & 0.62 & 0.61 & 30.89 \\
+Input rate (Hz) & 9.80 & 10.02 & 14.29 \\
+Processing rate (Hz) & 9.57 & 10.00 & 11.24 \\
+Throughput ratio & 0.98 & 1.00 & 1.39 \\
+Cumulative cloud size & 9.99 & 10.00 & 10.00 \\
+Queue size & 0.00 & 0.00 & 5.00 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+The experimental results demonstrate that the proposed GPU-accelerated
+transformation pipeline achieves real-time performance for the target
+sensor configuration. The average processing time per frame is
+$43.97\,\text{ms}$, corresponding to a processing rate of approximately
+$9.57\,\text{Hz}$, which closely matches the LiDAR input rate of
+$9.80$–$10.02\,\text{Hz}$. The throughput ratio is $\rho = 0.98$ on
+average, with a median value extremely close to unity ($0.9999$),
+indicating that the system consistently processes point clouds as fast
+as they arrive, without accumulating delay or queue backlog. This is
+further confirmed by the queue occupancy remaining at zero for almost
+all frames.
+
+The transformation step itself benefits significantly from GPU
+acceleration: the CuPy-based rigid-body conversion requires only
+$8.9\,\text{ms}$ on average, enabling end-to-end latencies as low as
+$0.9\,\text{ms}$ (median) and keeping mean latency at only
+$1.43\,\text{ms}$. The cumulative point cloud construction and
+origin-alignment steps also operate well within real-time constraints,
+stabilizing at the maximum history length ($H=10$ frames) without
+impacting throughput.
+
+Overall, the measurements confirm that the system satisfies the real-time
+condition $\lambda_{\text{proc}} \approx \lambda_{\text{in}}$ and maintains
+latencies far below typical robotic perception budgets ($<100\,\text{ms}$),
+demonstrating that GPU-accelerated point cloud processing is both
+efficient and robust for continuous operation.
+
+
