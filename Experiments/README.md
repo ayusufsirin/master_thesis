@@ -1,21 +1,21 @@
 # Running Evo
 
 ```bash
-docker build . -t evo_cli
+docker build . -t evo-cli
 ./run_evo.sh
 ```
 
 # Running Analyze
 
 ```bash
-docker build . -t evo_cli
+docker build . -t evo-cli
 ./run_analyze.sh
 ```
 
 # Generate Appendixes
 
 ```bash
-docker build . -t evo_cli
+docker build . -t evo-cli
 ./generate_appendixes.sh
 ```
 
