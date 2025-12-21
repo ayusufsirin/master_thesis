@@ -1,0 +1,58 @@
+\section{Experimental Results and Metric-Based Interpretation}
+\label{sec:experimental_results_interpretation}
+
+In this section, the experimental outcomes reported in the Appendix are interpreted through the lens of the mathematical experimentation framework introduced in Section~\ref{sec:mathematical_experimentation_methodology}. Rather than presenting the results as isolated numerical improvements, the goal is to analyze how each evaluation metric reflects specific theoretical properties of the proposed Papoulis--Gerchberg (PG) based fusion method, including convergence behavior, temporal stability, and systematic bias correction.
+
+\subsection{Absolute Pose Error (APE) Metrics}
+
+The Absolute Pose Error (APE) is used as the primary quantitative indicator of global odometric consistency. Let $\mathbf{T}_i^{\text{est}} \in SE(3)$ and $\mathbf{T}_i^{\text{gt}} \in SE(3)$ denote the estimated and ground-truth poses at time index $i$. After alignment, the translational APE is defined as
+\begin{equation}
+\text{APE}_i = \left\| \text{trans}\!\left( (\mathbf{T}_i^{\text{gt}})^{-1} \mathbf{T}_i^{\text{est}} \right) \right\|_2.
+\end{equation}
+
+This formulation isolates accumulated drift effects and therefore directly reflects the long-term geometric consistency of the reconstructed trajectory.
+
+\paragraph{RMSE.}
+The root mean square error aggregates squared deviations and is particularly sensitive to large errors:
+\begin{equation}
+\text{APE}_{\text{RMSE}} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} \text{APE}_i^2}.
+\end{equation}
+In the reported experiments, configurations employing moderate PG iteration counts and sufficient temporal history consistently exhibit lower RMSE values compared to raw stereo-based baselines. This behavior aligns with the theoretical expectation that PG iterations act as successive projections onto constraint-consistent subspaces, progressively suppressing incoherent depth estimates that would otherwise lead to large pose deviations.
+
+\paragraph{Mean and Median.}
+While the mean APE reflects overall accuracy, the median APE provides robustness against outliers. The observation that both metrics decrease simultaneously for PG-enhanced configurations indicates that improvements are not limited to isolated segments but are distributed across the trajectory. This supports the claim that the method improves global consistency rather than merely correcting sporadic failures.
+
+\paragraph{Standard Deviation.}
+The standard deviation of APE captures temporal stability:
+\begin{equation}
+\sigma_{\text{APE}} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (\text{APE}_i - \mu)^2}.
+\end{equation}
+Lower variance observed in PG-based runs suggests that temporal accumulation and frequency-domain regularization reduce frame-to-frame depth fluctuations. This empirical finding is consistent with the mathematical role of history length as a stabilizing prior, as discussed in Section~\ref{sec:mathematical_experimentation_methodology}.
+
+\subsection{Minimum, Maximum, and SSE Metrics}
+
+The minimum APE values remain comparable across methods, indicating that all pipelines are capable of locally accurate pose estimation under favorable conditions. In contrast, the maximum APE and sum of squared errors (SSE) exhibit pronounced reductions for PG-enhanced configurations. Since SSE disproportionately penalizes large deviations,
+\begin{equation}
+\text{SSE} = \sum_{i=1}^{N} \text{APE}_i^2,
+\end{equation}
+its reduction confirms that the proposed method primarily mitigates catastrophic drift events rather than marginal refinements. This behavior is consistent with the theoretical expectation that frequency-domain constraints suppress structurally inconsistent depth artifacts that otherwise propagate into odometric divergence.
+
+\subsection{Slice-Based and Heatmap Analysis}
+
+Slice-based visualizations and iteration--history heatmaps presented in the Appendix provide a two-dimensional view of the error surface over the parameter space. The presence of a well-defined minimum region, rather than a flat or irregular landscape, indicates predictable convergence behavior. Specifically, increasing iteration count initially leads to rapid error reduction, followed by saturation. This empirically supports the interpretation of PG iterations as a convergent projection process rather than an unbounded refinement.
+
+Similarly, excessively large history sizes exhibit diminishing returns or slight degradation, which aligns with the theoretical trade-off between temporal smoothing and responsiveness. These observations validate the experimental design choice of jointly analyzing iteration count and history length.
+
+\subsection{Trajectory-Level Consistency and Bias Correction}
+
+Trajectory plots included in the Appendix reveal that the proposed method does not merely reduce random noise but also corrects systematic rotational bias present in the wheel odometry, particularly in datasets exhibiting consistent counter-clockwise drift. The gradual realignment of estimated trajectories toward the ground truth, without abrupt corrections, indicates that the bias compensation emerges naturally from depth consistency constraints rather than explicit bias modeling.
+
+This result is significant, as systematic bias correction is not directly enforced by the PG formulation. Instead, it arises implicitly through improved geometric reconstruction, supporting the hypothesis that accurate depth completion can indirectly stabilize odometric estimation.
+
+\subsection{Computational Feasibility}
+
+Finally, recorded processing times confirm that the proposed method remains compatible with near real-time operation when GPU acceleration is employed. The observed trade-off between iteration count and latency mirrors the theoretical complexity analysis, reinforcing the practical relevance of the method for real-world robotic systems.
+
+\subsection{Summary}
+
+Overall, the experimental results presented in the Appendix are consistent with the mathematical experimentation framework. Each evaluation metric captures a distinct aspect of the system behavior, and their collective trends provide strong empirical evidence that the proposed PG-based fusion method improves accuracy, stability, and robustness without sacrificing computational feasibility.
