@@ -3,7 +3,7 @@ import argparse
 import os
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 
 def find_pngs(dir_path: Path, pattern: str) -> List[Path]:
@@ -84,6 +84,9 @@ def make_figure_block(graphics_prefix: str,
                       img_rel_path: str,
                       caption: str,
                       label: str) -> str:
+    """
+    Simple single-image figure.
+    """
     return (
         "\\begin{figure}[H]\n"
         "\\centering\n"
@@ -92,6 +95,118 @@ def make_figure_block(graphics_prefix: str,
         f"\\label{{{label}}}\n"
         "\\end{figure}\n\n"
     )
+
+
+def make_by_iter_group_block(
+    graphics_prefix: str,
+    group_key: Tuple[int, str, str],
+    views: List[Tuple[str, str, str]],
+) -> str:
+    """
+    Create one figure with multiple subfigures for a given (iter, mode, align) group.
+
+    group_key: (iter_val, mode, align)
+    views: list of (view_name, img_rel, label_suffix)
+           where label_suffix is used after fig:pg_iter_... for subfigure labels.
+    """
+    iter_val, mode, align = group_key
+
+    lines: List[str] = []
+    lines.append("\\begin{figure}[H]")
+    lines.append("    \\centering")
+
+    # Subfigures
+    for view_name, img_rel, sub_label in views:
+        view_str = f", view: {view_name}" if view_name else ""
+        sub_caption = (
+            f"PG trajectories for iteration {iter_val} over all histories "
+            f"(mode: {mode}, alignment: {align}{view_str})."
+        )
+
+        label = f"fig:pg_iter_{iter_val}_{mode}_{align}"
+        if view_name:
+            label += f"_{view_name}"
+
+        lines.extend(
+            [
+                "    \\begin{subfigure}[t]{0.49\\linewidth}",
+                "        \\centering",
+                f"        \\includegraphics[width=\\textwidth]{{{graphics_prefix}{img_rel}}}",
+                f"        \\caption{{{tex_escape(sub_caption)}}}",
+                f"        \\label{{{label}}}",
+                "    \\end{subfigure}",
+            ]
+        )
+
+    lines.append("")
+
+    overall_caption = (
+        f"PG iteration {iter_val} trajectory comparison over all histories "
+        f"(mode: {mode}, alignment: {align})."
+    )
+    overall_label = f"fig:appendix-pg_iter_{iter_val}_{mode}_{align}"
+
+    lines.append(f"    \\caption{{{tex_escape(overall_caption)}}}")
+    lines.append(f"    \\label{{{overall_label}}}")
+    lines.append("\\end{figure}")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def make_by_hist_group_block(
+    graphics_prefix: str,
+    group_key: Tuple[int, str, str],
+    views: List[Tuple[str, str, str]],
+) -> str:
+    """
+    Create one figure with multiple subfigures for a given (hist, mode, align) group.
+
+    group_key: (hist_val, mode, align)
+    views: list of (view_name, img_rel, label_suffix)
+    """
+    hist_val, mode, align = group_key
+
+    lines: List[str] = []
+    lines.append("\\begin{figure}[H]")
+    lines.append("    \\centering")
+
+    for view_name, img_rel, sub_label in views:
+        view_str = f", view: {view_name}" if view_name else ""
+        sub_caption = (
+            f"PG trajectories for history {hist_val} across different iterations "
+            f"(mode: {mode}, alignment: {align}{view_str})."
+        )
+
+        label = f"fig:pg_hist_{hist_val}_{mode}_{align}"
+        if view_name:
+            label += f"_{view_name}"
+
+        lines.extend(
+            [
+                "    \\begin{subfigure}[t]{0.49\\linewidth}",
+                "        \\centering",
+                f"        \\includegraphics[width=\\textwidth]{{{graphics_prefix}{img_rel}}}",
+                f"        \\caption{{{tex_escape(sub_caption)}}}",
+                f"        \\label{{{label}}}",
+                "    \\end{subfigure}",
+            ]
+        )
+
+    lines.append("")
+
+    overall_caption = (
+        f"PG iteration comparison for history {hist_val} "
+        f"(mode: {mode}, alignment: {align})."
+    )
+    overall_label = f"fig:appendix-pg_hist_{hist_val}_{mode}_{align}"
+
+    lines.append(f"    \\caption{{{tex_escape(overall_caption)}}}")
+    lines.append(f"    \\label{{{overall_label}}}")
+    lines.append("\\end{figure}")
+    lines.append("")
+
+    return "\n".join(lines)
 
 
 def main():
@@ -133,7 +248,7 @@ def main():
 
     graphics_prefix = args.graphics_prefix
 
-    # ---- NEW rel_to_tex using os.path.relpath ----
+    # ---- rel_to_tex using os.path.relpath ----
     def rel_to_tex(p: Path) -> str:
         # path from folder containing tex file to the image
         rel = os.path.relpath(p, tex_path.parent)
@@ -148,55 +263,90 @@ def main():
     lines.append("\\label{chap:appendix-traj}")
     lines.append("")
 
-    # ---------- by_iter ----------
+    # Common view order for grouping (speeds will be filtered out anyway)
+    view_order_priority = {
+        "rpy": 0,
+        "xyz": 1,
+        "trajectories": 2,
+        "speeds": 99,  # kept here but filtered earlier
+    }
+
+    def sort_key(item: Tuple[str, Path]) -> Any:
+        view_name, _ = item
+        return (view_order_priority.get(view_name, 100), view_name)
+
+    # ---------- by_iter (grouped into subfigures, speeds removed) ----------
     by_iter_pngs = find_pngs(by_iter_dir, "iter_*.png")
     if by_iter_pngs:
         lines.append("\\section{PG Iteration Histories (grouped by iteration)}")
         lines.append("")
+
+        # Group by (iter, mode, align)
+        groups: Dict[Tuple[int, str, str], List[Tuple[str, Path]]] = {}
+
         for img in by_iter_pngs:
             parsed = parse_by_iter_name(img.name)
             if parsed is None:
                 continue
             iter_val, mode, align, view = parsed
 
-            # human-friendly view
-            view_str = f", view: {view}" if view else ""
-            caption = (
-                f"PG trajectories for iteration {iter_val} over all histories "
-                f"(mode: {mode}, alignment: {align}{view_str})."
-            )
+            # REMOVE SPEED GRAPHS
+            if view == "speeds":
+                continue
 
-            # make label include view if present
-            view_label = f"_{view}" if view else ""
-            label = f"fig:pg_iter_{iter_val}_{mode}_{align}{view_label}"
+            view_name = view if view is not None else ""
+            key = (iter_val, mode, align)
+            groups.setdefault(key, []).append((view_name, img))
 
-            img_rel = rel_to_tex(img)
-            lines.append(make_figure_block(graphics_prefix, img_rel, caption, label))
+        # Emit one figure per group
+        for key in sorted(groups.keys()):
+            items = sorted(groups[key], key=sort_key)
 
-    # ---------- by_hist ----------
+            views_for_block: List[Tuple[str, str, str]] = []
+            for view_name, img_path in items:
+                img_rel = rel_to_tex(img_path)
+                sub_label_suffix = view_name if view_name else "noview"
+                views_for_block.append((view_name, img_rel, sub_label_suffix))
+
+            block = make_by_iter_group_block(graphics_prefix, key, views_for_block)
+            lines.append(block)
+
+    # ---------- by_hist (grouped into subfigures, speeds removed) ----------
     by_hist_pngs = find_pngs(by_hist_dir, "hist_*.png")
     if by_hist_pngs:
         lines.append("\\section{PG Iteration Comparison (grouped by history)}")
         lines.append("")
+
+        # Group by (hist, mode, align)
+        groups_hist: Dict[Tuple[int, str, str], List[Tuple[str, Path]]] = {}
+
         for img in by_hist_pngs:
             parsed = parse_by_hist_name(img.name)
             if parsed is None:
                 continue
             hist_val, mode, align, view = parsed
 
-            view_str = f", view: {view}" if view else ""
-            caption = (
-                f"PG trajectories for history {hist_val} across different iterations "
-                f"(mode: {mode}, alignment: {align}{view_str})."
-            )
+            # REMOVE SPEED GRAPHS
+            if view == "speeds":
+                continue
 
-            view_label = f"_{view}" if view else ""
-            label = f"fig:pg_hist_{hist_val}_{mode}_{align}{view_label}"
+            view_name = view if view is not None else ""
+            key = (hist_val, mode, align)
+            groups_hist.setdefault(key, []).append((view_name, img))
 
-            img_rel = rel_to_tex(img)
-            lines.append(make_figure_block(graphics_prefix, img_rel, caption, label))
+        for key in sorted(groups_hist.keys()):
+            items = sorted(groups_hist[key], key=sort_key)
 
-    # ---------- per_run (optional) ----------
+            views_for_block: List[Tuple[str, str, str]] = []
+            for view_name, img_path in items:
+                img_rel = rel_to_tex(img_path)
+                sub_label_suffix = view_name if view_name else "noview"
+                views_for_block.append((view_name, img_rel, sub_label_suffix))
+
+            block = make_by_hist_group_block(graphics_prefix, key, views_for_block)
+            lines.append(block)
+
+    # ---------- per_run (optional, unchanged single-image figures) ----------
     if args.include_per_run:
         per_run_pngs = find_pngs(per_run_dir, "*_zed_pg_vs_gt_*.png")
         if per_run_pngs:
