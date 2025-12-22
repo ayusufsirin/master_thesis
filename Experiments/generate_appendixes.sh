@@ -16,5 +16,4 @@ docker run --rm -it \
       --root . \
       --out traj_plots \
       --tex-path appendix_traj_plots.tex \
-      --graphics-prefix ./Experiments/ \
-      --include-per-run
+      --graphics-prefix ./Experiments/
