@@ -1,4 +1,4 @@
-\section{Depth Map Fitting} \label{sec:depth_map_fitting}
+\section{Derinlik Haritası Uyumlama} \label{sec:depth_map_fitting}
 
 Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kamera düzlemine projekte ederek bir LiDAR derinlik imgesi üretmek ve stereo (ZED) derinlik haritası ile aynı piksel uzayında \textit{örtüşen (overlap)} bölgede tutarlı bir derinlik haritası elde etmektir. Bu işlem, PG yinelemelerinden bağımsız olarak, iki sensörün aynı geometri üzerinde hizalanmış tek bir derinlik alanı üretmesini sağlar.
 
@@ -211,12 +211,12 @@ ZED ve LiDAR arasındaki tutarsız ölçümler şu koşula göre elenir:
     \end{cases}
 \end{equation}
 
-Bu çalışmada, kırpma bölgesi içerisindeki PG derinliği doğrudan filtrelenmiş LiDAR derinliği olarak alınmaktadır:
+Bu çalışmada, kırpma bölgesi içerisindeki DMF derinliği doğrudan filtrelenmiş LiDAR derinliği olarak alınmaktadır:
 \begin{equation}
-    D_{\text{PG}}^{c}(v,u) = D_{\text{L}}^{c}(v,u).
+    D_{\text{fit}}^{c}(v,u) = D_{\text{L}}^{c}(v,u).
 \end{equation}
 
-Bu çıktı, bir sonraki füzyon adımına (PG veya doğrudan geri-izdüşüm) giriş olarak kullanılır.
+Bu çıktı, bir sonraki füzyon adımına (örneğin Bölüm~\ref{sec:dynamic_pg} altında tanımlanan yayınlama/sonlandırma kuralı veya iteratif bir iyileştirme yöntemi) giriş olarak kullanılır.
 
 \begin{figure}[H]
     \centering
