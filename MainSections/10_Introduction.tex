@@ -1,4 +1,4 @@
-\chapter{GİRİŞ} \label{Introduction}
+\chapter{GİRİŞ} \label{chap:introduction}
 {
 Otonom sistemlerin çevreyi doğru algılayabilmesi, güvenilir navigasyon kararları verebilmesi ve dinamik ortamlarda kararlı bir şekilde hareket edebilmesi için derinlik bilgisinin doğru ve yüksek çözünürlüklü bir biçimde elde edilmesi kritik bir gerekliliktir. Bu doğruluk genellikle birden fazla sensörden gelen verinin birleştirilmesiyle, yani sensör füzyonu ile sağlanmaktadır. Stereo kameralar yoğun fakat düşük hassasiyetli derinlik bilgisi sunarken, LiDAR sensörleri seyrek fakat yüksek doğrulukta ölçümler sağlar. Bu iki sensörün tamamlayıcı yapıları, derinlik tahmininin geliştirilmesinde güçlü bir fırsat sunmakla birlikte, farklı çözünürlükte ve farklı dağılımlardaki verilerin bir araya getirilmesi teknik olarak zorlu bir problemdir.
 
@@ -64,15 +64,14 @@ Bu tez, stereo kamera ve LiDAR sensörlerinin füzyonuna yönelik literatüre he
 Tezin organizasyonu aşağıdaki gibidir:
 
 \begin{itemize}
-    \item Kısım (1)'de konuya giriş yapılmıştır. Ayrıca tez konusundaki amacımız ve motivasyonumuz yine burada belirtilmiştir.
-    \item Kısım (2)'de tezde kullanılan matematik ve algoritmalar ile ilgili genel bir arka plan bilgisi verilmiştir.
-    \item Kısım (3)'te literatürde bu konu ile ilgili daha önce yapılan çalışmalar anlatılmış, bu çalışmaların varsa tez ile ilgili kısımları detaylandırılmıştır.
-    \item Kısım (4)'te tez sürecinde donanım üzerinde yapılan çalışmalar ve bununla elde edilen veri seti anlatılmıştır.
-    \item Kısım (5)'te varyans kestirimi yaparken kurduğumuz mantık ve bunun için kullandığımız metotlar açıklanmıştır.
-    \item Kısım (6)'da topladığımız veriseti üzerinde uyguladığımız sensör füzyonu metotları anlatılmış ve elde edilen sonuçlar gösterilmiştir.
-    \item Kısım (7)'de CitrusFarm veriseti üzerinde PG ön işlemeli ve ön işlemesiz SLAM sonuçları karşılaştırılmış ve elde edilen sonuçlar gösterilmiştir.
-    \item Kısım (8)'de denenen bağlaşık metotlar açıklanmış ve sonuçları paylaşılmıştır. Ayrıca ileride bu konuda yapılabilinecek çalışmalar bu bölümde tartışılmıştır.
-    \item Kısım (9)'da çalışma soncunda elde edilen sonuçlar değerlendirilmiştir.
+    \item \autoref{chap:introduction}'de konuya giriş yapılmıştır. Ayrıca tez konusundaki amacımız ve motivasyonumuz yine burada belirtilmiştir.
+    \item \autoref{chap:background}'de tezde kullanılan matematik ve algoritmalar ile ilgili genel bir arka plan bilgisi verilmiştir.
+    \item \autoref{chap:related-work}'te literatürde bu konu ile ilgili daha önce yapılan çalışmalar anlatılmış, bu çalışmaların varsa tez ile ilgili kısımları detaylandırılmıştır.
+    \item \autoref{chap:hardware}'te tez sürecinde donanım üzerinde yapılan çalışmalar ve bununla elde edilen veri seti anlatılmıştır.
+    \item \autoref{chap:metodology}'te metodolojji tüm detaylarıyla anlatılmış ve algoritmanın matematiksel denklemleri verilmiştir.
+    \item \autoref{chap:experimentation}'de SensorSuiteV2 ve CitrusFarm Veriseti üzerinde PG ön işlemeli ve ön işlemesiz SLAM sonuçları karşılaştırılmış ve elde edilen sonuçlar gösterilmiştir.
+    \item \autoref{chap:coupled}'de denenen bağlaşık metotlar açıklanmış ve sonuçları paylaşılmıştır. Ayrıca ileride bu konuda yapılabilinecek çalışmalar bu bölümde tartışılmıştır.
+    \item \autoref{chap:conclusion}'da çalışma soncunda elde edilen sonuçlar değerlendirilmiştir.
 \end{itemize}
 
 \pagebreak

@@ -12,17 +12,17 @@ The Absolute Pose Error (APE) is used as the primary quantitative indicator of g
 
 This formulation isolates accumulated drift effects and therefore directly reflects the long-term geometric consistency of the reconstructed trajectory.
 
-\paragraph{RMSE.}
+\paragraph*{RMSE.}
 The root mean square error aggregates squared deviations and is particularly sensitive to large errors:
 \begin{equation}
 \text{APE}_{\text{RMSE}} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} \text{APE}_i^2}.
 \end{equation}
 In the reported experiments, configurations employing moderate PG iteration counts and sufficient temporal history consistently exhibit lower RMSE values compared to raw stereo-based baselines. This behavior aligns with the theoretical expectation that PG iterations act as successive projections onto constraint-consistent subspaces, progressively suppressing incoherent depth estimates that would otherwise lead to large pose deviations.
 
-\paragraph{Mean and Median.}
+\paragraph*{Mean and Median.}
 While the mean APE reflects overall accuracy, the median APE provides robustness against outliers. The observation that both metrics decrease simultaneously for PG-enhanced configurations indicates that improvements are not limited to isolated segments but are distributed across the trajectory. This supports the claim that the method improves global consistency rather than merely correcting sporadic failures.
 
-\paragraph{Standard Deviation.}
+\paragraph*{Standard Deviation.}
 The standard deviation of APE captures temporal stability:
 \begin{equation}
 \sigma_{\text{APE}} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (\text{APE}_i - \mu)^2}.

@@ -684,20 +684,28 @@ eprint = {
   note    = {Tam dergi/konferans künyesi kullanıcı tarafından doldurulmalıdır.}
 }
 
-@inproceedings{parks2018fastfusion,
-  author    = {Parks, David and Others},
-  title     = {FastFusion: Deep Stereo-LiDAR Fusion for Real-Time High-Resolution Depth Sensing},
-  booktitle = {Proceedings of a Computer Vision Conference},
-  year      = {2018},
-  note      = {Bu giriş, FastFusion temalı bir stereo-LiDAR füzyon makalesi için şablondur; gerçek yazarlar, konferans adı ve sayfa numaraları kullanıcı tarafından güncellenmelidir.}
+@article{fastfusion,
+author = {Meng, Haitao and Li, Changcai and Zhong, Chonghao and Gu, Jianfeng and Chen, Gang and Knoll, Alois},
+title = {FastFusion: Deep stereo-LiDAR fusion for real-time high-precision dense depth sensing},
+journal = {Journal of Field Robotics},
+volume = {40},
+number = {7},
+pages = {1804-1816},
+keywords = {artificial intelligence, depth estimation},
+doi = {https://doi.org/10.1002/rob.22216},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/rob.22216},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/rob.22216},
+abstract = {Abstract Light detection and ranging (LiDAR) and stereo cameras are two generally used solutions for perceiving 3D information. The complementary properties of these two sensor modalities motivate a fusion to derive practicable depth sensing toward real-world applications. Promoted by deep neural network (DNN) techniques, recent works achieve superior performance on accuracy. However, the complex architecture and the sheer number of DNN parameters often lead to poor generalization capacity and non-real-time computing. In this paper, we present FastFusion, a three-stage stereo-LiDAR deep fusion scheme, which integrates the LiDAR priors into each step of classical stereo-matching taxonomy, gaining high-precision dense depth sensing in a real-time manner. We integrate stereo-LiDAR information by taking advantage of a compact binary neural network and utilize the proposed cross-based LiDAR trust aggregation to further fuse the sparse LiDAR measurements in the back-end of stereo matching. To align the photometrical of the input image and the depth of the estimation, we introduce a refinement network to guarantee consistency. More importantly, we present a graphic processing unit-based acceleration framework for providing a low-latency implementation of FastFusion, gaining both accuracy improvement and real-time responsiveness. In the experiments, we demonstrate the effectiveness and practicability of FastFusion, which obtains a significant speedup over state-of-the-art baselines while achieving comparable accuracy on depth sensing. The video demo for real-time depth estimation of FastFusion on the real-world driving scenario is available at https://youtu.be/nP7cls2BA8s.},
+year = {2023}
 }
 
 @inproceedings{park2019stereolidar,
-  author    = {Park, Minsoo and Kim, J. and Sohn, K.},
-  title     = {High-Precision Depth Estimation Using Uncalibrated LiDAR and Stereo Fusion},
-  booktitle = {Proceedings of an IEEE/RSJ Conference},
+  title     = {StereoLiDAR: Stereo Vision Combined with LiDAR for Depth Estimation},
+  author    = {Park, Jaesik and Kim, Kihong and Sohn, Kwanghoon},
+  booktitle = {Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
   year      = {2019},
-  note      = {Gerçek konferans adı ve sayfalar kullanıcı tarafından netleştirilmelidir.}
+  pages     = {1--8},
+  publisher = {IEEE}
 }
 
 @inproceedings{choe2021fusion,
@@ -807,4 +815,25 @@ eprint = {
   year         = {2023},
   url          = {https://ucr-robotics.github.io/Citrus-Farm-Dataset/},
   note         = {Accessed: 2025-12-04}
+}
+
+
+@article{pg-image-inpaint-2009,
+author = {Chatterjee, Priyam and Mukherjee, Sujata and Chaudhuri, Subhasis and Seetharaman, Guna},
+year = {2009},
+month = {01},
+pages = {80-89},
+title = {Application Of Papoulis-Gerchberg Method In Image Super-Resolution and Inpainting},
+volume = {52},
+journal = {Comput. J.},
+doi = {10.1093/comjnl/bxm050}
+}
+
+@inproceedings{parks2018fusion,
+  title     = {Leveraging LiDAR Data for Improved Stereo Depth Estimation},
+  author    = {Parks, Nathan A. and Krishnan, Suresh and Hu, Huosheng},
+  booktitle = {Proceedings of the IEEE International Conference on Robotics and Automation (ICRA)},
+  year      = {2018},
+  pages     = {1--8},
+  publisher = {IEEE}
 }

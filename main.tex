@@ -6,7 +6,8 @@
 
 \begin{document}
     \sloppy
-    \clearpage
+    \frontmatter
+
     \input{./FormalSections/000_Epigraph}
 
     \input{./FormalSections/02_Title}
@@ -28,8 +29,7 @@
     \listoffigures
     \clearpage
 
-    \input{./FormalSections/09_Abbreviations}
-
+    % Start main sections
     \mainmatter
     \pagestyle{fancy}
     \fancyhf{}
@@ -42,22 +42,23 @@
     \input{./MainSections/12_RelatedWork}
     \input{./MainSections/13_Hardware}
     \input{./MainSections/14_Methodology}
-    \input{./MainSections/16_Experimentation}
-    \input{./MainSections/17_Coupled}
-    \input{./MainSections/18_Conclusion}
+%    \input{./MainSections/16_Experimentation}
+%    \input{./MainSections/17_Coupled}
+%    \input{./MainSections/18_Conclusion}
 
-    \renewcommand\bibsection{\centering\section*{\large KAYNAKÇA}}
-    \makeatletter
-    \renewcommand*{\@biblabel}[1]{[#1]\hspace{1cm}}
-    \makeatother
+    % =============================
+    %     KAYNAKÇA (Bibliography)
+    % =============================
+    \cleardoublepage
+    \addcontentsline{toc}{chapter}{KAYNAKÇA}
     \bibliographystyle{hufenbilimleri}
     \bibliography{bib}
 
-    \clearpage
-
-    \addtotoc{EKLER}
+    % =============================
+    %         APPENDICES
+    % =============================
     \appendix
 
     \input{./MainSections/19_Appendix}
-%    \input{./FormalSections/CV}
+
 \end{document}

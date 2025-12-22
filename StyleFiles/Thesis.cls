@@ -204,6 +204,7 @@
 
 \usepackage{tocloft}
 
+\renewcommand{\chapterautorefname}{Kısım}
 \renewcommand{\chaptername}{Kısım}
 \renewcommand{\appendixname}{Ek}
 \renewcommand{\bibname}{KAYNAKÇA}

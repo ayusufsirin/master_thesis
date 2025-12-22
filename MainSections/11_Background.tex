@@ -1,6 +1,6 @@
-\chapter{ARKAPLAN ÖZETİ} \label{Background}
+\chapter{ARKAPLAN ÖZETİ} \label{chap:background}
 
-Bu bölümde, çalışmada kullanılan sensörler kısaca tanıtılmakta, derinlik algısının temel prensipleri özetlenmekte ve Papoulis–Gerchberg algoritmasının sensör füzyonu bağlamındaki yeri açıklanmaktadır. Böylece, ilerleyen bölümlerde ayrıntılı olarak sunulan yöntem için kavramsal bir altyapı oluşturulması amaçlanmaktadır.
+Bu bölümde, çalışmada kullanılan sensörler kısaca tanıtılmakta, derinlik algısının temel prensipleri özetlenmekte ve Papoulis–Gerchberg algoritmasının temelelleri açıklanmaktadır. Böylece, ilerleyen bölümlerde ayrıntılı olarak sunulan yöntem için kavramsal bir altyapı oluşturulması amaçlanmaktadır.
 
 \section{Sensörler}
 
@@ -14,7 +14,7 @@ Stereo kamera sistemi, birbirine paralel ve aralarında sabit bir taban mesafesi
 \end{equation}
 ilişkisi ile hesaplanabilir.
 
-Pratikte stereo eşleştirme algoritmalarının; doku eksikliği, tekrarlayan desenler, perspektif bozulmalar ve görüntü gürültüsü gibi nedenlerle özellikle kenar bölgelerinde ve uzak mesafelerde hataya açık olduğu bilinmektedir. Bu durum, stereo kameradan elde edilen derinlik haritalarının \emph{yoğun} olmasına rağmen \emph{yüksek doğrulukta olmamasına} yol açar. Öte yandan, tutarlı bir görüntü geometrisi sunduğu için Papoulis–Gerchberg algoritmasının ``yoğun arka plan'' bileşeni için uygun bir temel teşkil eder.
+Pratikte stereo eşleştirme algoritmalarının; doku eksikliği, tekrarlayan desenler, perspektif bozulmalar ve görüntü gürültüsü gibi nedenlerle özellikle kenar bölgelerinde ve uzak mesafelerde hataya açık olduğu bilinmektedir. Bu durum, stereo kameradan elde edilen derinlik haritalarının \emph{yoğun} olmasına rağmen \emph{yüksek doğrulukta olmamasına} yol açar. Öte yandan, tutarlı bir görüntü geometrisi sunduğu için nesne algısı oluşturmada etkilidir.
 
 \subsection{LiDAR}
 
@@ -38,9 +38,11 @@ LiDAR sensörleri, stereo kameraya kıyasla çok daha seyrek bir derinlik örnek
 
 Deneysel çalışmalarda, stereo–LiDAR füzyonunun sonuçlarını değerlendirmek ve SLAM altyapısı üzerinde test etmek amacıyla IMU ve GNSS/RTK verilerinden de yararlanılmıştır.
 
-\paragraph{IMU} (Atalet Ölçüm Birimi), ivmeölçer ve jiroskop bileşenleri ile aracın doğrusal ivmelenmesi ve açısal hızını ölçer. Bu bilgiler, kısa zaman aralıklarında konum ve yönelim değişimlerinin kestirilmesi için kullanılır.
+\paragraph*{IMU} (Atalet Ölçüm Birimi), ivmeölçer ve jiroskop bileşenleri ile aracın doğrusal ivmelenmesi ve açısal hızını ölçer. Bu bilgiler, kısa zaman aralıklarında konum ve yönelim değişimlerinin kestirilmesi için kullanılır.
 
-\paragraph{GNSS} tabanlı konumlandırma sistemleri (GPS, GLONASS, Galileo, BeiDou vb.) geniş alanlarda mutlak konum bilgisi sağlar; \paragraph{RTK} ise sabit bir referans istasyonundan alınan diferansiyel düzeltmelerle bu konum bilgisinin santimetre mertebesine kadar hassaslaştırılmasını mümkün kılar. Bu çalışma kapsamındaki mobil sensör düzeneği, hem ulusal TUSAGA-Aktif ağı hem de bölüm bünyesinde kurulan çoklu takımyıldız (GPS, GLONASS, Galileo, BeiDou) destekli RTK istasyonu ile test edilmiştir.
+\paragraph*{GNSS} tabanlı konumlandırma sistemleri (GPS, GLONASS, Galileo, BeiDou vb.) geniş alanlarda mutlak konum bilgisi sağlar;
+
+\paragraph*{RTK} ise sabit bir referans istasyonundan alınan diferansiyel düzeltmelerle bu konum bilgisinin santimetre mertebesine kadar hassaslaştırılmasını mümkün kılar. Bu çalışma kapsamındaki mobil sensör düzeneği, hem ulusal TUSAGA-Aktif ağı hem de bölüm bünyesinde kurulan çoklu takımyıldız (GPS, GLONASS, Galileo, BeiDou) destekli RTK istasyonu ile test edilmiştir.
 
 Bu sensörler, doğrudan füzyon algoritmasının girdisi olmaktan ziyade, elde edilen derinlik haritalarının ve SLAM sonuçlarının doğrulanması için referans niteliğinde kullanılmıştır.
 
@@ -74,6 +76,8 @@ Bu iki adım, $k$ indeksli yinelemeler boyunca yinelenir ve sinyal $\mathbf{x}^{
 burada $\mathcal{P}_{\text{uzay}}$ uzay alanındaki bilinen örnekleri zorlayan işlemciyi, $\mathcal{P}_{\text{frekans}}$ ise frekans bandı kısıtını temsil eden operatörü, $\mathcal{F}$ ve $\mathcal{F}^{-1}$ ise ileri ve ters Fourier dönüşümlerini göstermektedir. 
 % TODO: Bu denklemi kendi notasyonuna göre yeniden yazıp gerekirse alt bileşenlerini aç.
 
-Görüntü tamamlama (image inpainting), süper çözünürlük ve kayıp veri doldurma gibi uygulamalarda PG algoritmasının farklı varyantları kullanılmaktadır. Bu tezde, algoritma ilk kez \emph{stereo–LiDAR derinlik füzyonu} problemi için uyarlanarak, stereo derinlik haritasının LiDAR ankraj noktaları yardımıyla yinelemeli olarak iyileştirilmesinde kullanılmaktadır.
+Görüntü tamamlama (image inpainting), süper çözünürlük ve kayıp veri doldurma gibi uygulamalarda PG algoritmasının farklı varyantları kullanılmaktadır.
+
+Bu tezde, algoritma ilk kez \emph{stereo–LiDAR derinlik füzyonu} problemi için uyarlanarak, stereo derinlik haritasının LiDAR ankraj noktaları yardımıyla yinelemeli olarak iyileştirilmesinde kullanılmaktadır.
 
 \pagebreak

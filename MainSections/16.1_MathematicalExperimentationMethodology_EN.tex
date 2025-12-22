@@ -48,7 +48,7 @@ This formulation allows the separation of independent contributions from iterati
 
 Let $\mathcal{I}$ and $\mathcal{H}$ denote the sets of evaluated iteration counts and history sizes, respectively.
 
-\paragraph{Global Mean}
+\paragraph*{Global Mean}
 
 The global mean is computed as:
 \begin{equation}
@@ -56,7 +56,7 @@ The global mean is computed as:
 \sum_{i \in \mathcal{I}} \sum_{h \in \mathcal{H}} M(i,h).
 \end{equation}
 
-\paragraph{Main Effect of PG Iterations}
+\paragraph*{Main Effect of PG Iterations}
 
 The iteration-dependent main effect is defined as:
 \begin{equation}
@@ -65,7 +65,7 @@ The iteration-dependent main effect is defined as:
 \end{equation}
 which quantifies the average performance deviation attributable solely to the number of PG iterations.
 
-\paragraph{Main Effect of LU History}
+\paragraph*{Main Effect of LU History}
 
 Similarly, the LU history main effect is given by:
 \begin{equation}
@@ -74,7 +74,7 @@ Similarly, the LU history main effect is given by:
 \end{equation}
 representing the contribution of temporal conditioning independent of iteration count.
 
-\paragraph{Interaction Term}
+\paragraph*{Interaction Term}
 
 The interaction residual is computed as:
 \begin{equation}
@@ -87,7 +87,7 @@ Large magnitudes of $\gamma(i,h)$ indicate non-additive behavior, suggesting tha
 
 To examine the local sensitivity of performance to each parameter, marginal differences are analyzed.
 
-\paragraph{Iteration Sensitivity}
+\paragraph*{Iteration Sensitivity}
 
 For a fixed history size $H$, the effect of increasing PG iterations is approximated by:
 \begin{equation}
@@ -96,7 +96,7 @@ For a fixed history size $H$, the effect of increasing PG iterations is approxim
 
 A diminishing $\Delta_I M$ for increasing $I$ indicates convergence saturation of the PG refinement process.
 
-\paragraph{History Sensitivity}
+\paragraph*{History Sensitivity}
 
 Similarly, for fixed iteration count $I$, the effect of LU history size is:
 \begin{equation}

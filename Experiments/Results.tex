@@ -1,17 +1,17 @@
-\subsubsection{Deneysel Sonuçlar ve Matematiksel Modelin Doğrulanması}
+\subsection{Deneysel Sonuçlar ve Matematiksel Modelin Doğrulanması}
 \label{sec:deneysel_sonuclar}
 
 Bu bölümde, Bölüm~\ref{sec:matematiksel_analiz_cercevesi}’de tanımlanan iki faktörlü toplamsal ayrıştırma modeli kullanılarak elde edilen deneysel sonuçlar sunulmakta ve önerilen Papoulis--Gerchberg (PG) tabanlı LiDAR--stereo füzyon yönteminin davranışı nicel olarak değerlendirilmektedir. Analizler, PG iterasyon sayısı ($I$) ve LU geçmiş boyutu ($H$) parametrelerinin performans metrikleri üzerindeki bireysel ve ortak etkilerini ortaya koymayı amaçlamaktadır.
 
 Tüm sonuçlar aynı veri setleri üzerinde, aynı değerlendirme kriterleri kullanılarak otomatik olarak üretilmiş olup, ilgili görsel çıktılar Ekler bölümünde sunulmaktadır.
 
-\subsubsubsection{Performans Yüzeyi $M(I,H)$ ve Genel Eğilimler}
+\subsubsection{Performans Yüzeyi $M(I,H)$ ve Genel Eğilimler}
 
 Ekler bölümünde sunulan ısı haritaları ve kesitsel grafikler incelendiğinde, performans metriği $M(I,H)$’nin hem PG iterasyon sayısına hem de LU geçmiş boyutuna bağlı olarak sistematik ve düzgün bir değişim sergilediği görülmektedir. Referans yapılandırma $(0,1)$ ile karşılaştırıldığında, orta seviye $(I,H)$ yapılandırmalarında mutlak poz hatasında (APE) yaklaşık \%25--\%40 aralığında bir azalma elde edilmiştir.
 
 Benzer şekilde göreli poz hatası (RPE) metriklerinde, özellikle kısa ve orta ölçeklerde, hata değerlerinin \%20 civarında azaldığı gözlemlenmiştir. Bu durum, önerilen yöntemin yalnızca küresel doğruluğu değil, aynı zamanda yerel tutarlılığı da iyileştirdiğini göstermektedir.
 
-\subsubsubsection{PG İterasyonlarının Ana Etkisi ($\alpha(I)$)}
+\subsubsection{PG İterasyonlarının Ana Etkisi ($\alpha(I)$)}
 
 PG iterasyonlarının ana etkisi deneysel veriler üzerinden açıkça gözlemlenmektedir. LU geçmiş boyutu sabit tutulduğunda, iterasyon sayısının artırılmasıyla birlikte APE değerlerinde belirgin bir düşüş meydana gelmiştir. Düşük iterasyon seviyelerinde ($I=0 \rightarrow I \approx 10$) hata azalımı yaklaşık \%15--\%20 seviyesindeyken, daha yüksek iterasyonlarda ($I \geq 30$) ek kazanımın \%5’in altına düştüğü görülmektedir.
 
@@ -21,7 +21,7 @@ Bu sonuç, Bölüm~\ref{sec:matematiksel_analiz_cercevesi}’de tanımlanan marj
 \]
 ifadesiyle uyumlu olup, PG algoritmasının belirli bir iterasyon sayısından sonra yakınsama (saturation) davranışı sergilediğini göstermektedir. Dolayısıyla deneysel veriler, $\alpha(I)$ teriminin düşük ve orta iterasyon seviyelerinde baskın olduğunu, ancak yüksek iterasyonlarda azalan getiri etkisinin devreye girdiğini doğrulamaktadır.
 
-\subsubsubsection{LU Geçmiş Boyutunun Ana Etkisi ($\beta(H)$)}
+\subsubsection{LU Geçmiş Boyutunun Ana Etkisi ($\beta(H)$)}
 
 LU geçmiş boyutunun etkisi özellikle varyans, maksimum hata ve trajektori pürüzsüzlüğü gibi metriklerde belirgin hale gelmektedir. Küçük geçmiş boyutlarından ($H=1 \rightarrow H \approx 5$) orta seviye geçmiş boyutlarına geçişte, hata varyansında yaklaşık \%20--\%30 oranında bir azalma gözlemlenmiştir.
 
@@ -31,7 +31,7 @@ Buna karşılık, daha büyük geçmiş boyutlarında ek iyileşmenin sınırlı
 \]
 ifadesiyle tanımlanan marjinal geçmiş duyarlılığının azalan bir yapıya sahip olduğunu göstermektedir. Deneysel bulgular, $\beta(H)$ teriminin esas olarak zamansal kararlılığı artıran bir rol üstlendiğini ortaya koymaktadır.
 
-\subsubsubsection{Etkileşim Terimi ve Süperpozisyon Varsayımı}
+\subsubsection{Etkileşim Terimi ve Süperpozisyon Varsayımı}
 
 PG iterasyonları ve LU geçmiş boyutunun birlikte kullanıldığı yapılandırmalar için süperpozisyon varsayımı deneysel olarak test edilmiştir. Beklenen toplamsal performans ile gerçek ölçümler arasındaki fark
 \[
@@ -41,7 +41,7 @@ incelendiğinde, çoğu $(I,H)$ kombinasyonu için bu farkın sıfıra yakın ol
 
 Bununla birlikte, orta seviye iterasyon ve geçmiş boyutu kombinasyonlarında $\Gamma(I,H) < 0$ durumları gözlemlenmiş; bu yapılandırmalarda toplam hata azalımının beklenen değerin yaklaşık \%5--\%10 altında gerçekleştiği belirlenmiştir. Bu sonuç, PG iteratif iyileştirme ile zamansal koşullama arasında sınırlı ancak ölçülebilir bir sinerji bulunduğunu göstermektedir.
 
-\subsubsubsection{Citrus Farm Veri Setinde Yönelim Bias’ının Düzeltilmesi}
+\subsubsection{Citrus Farm Veri Setinde Yönelim Bias’ının Düzeltilmesi}
 
 Citrus Farm veri setinde kullanılan tekerlek odometrisinin, özellikle uzun sekanslarda sola doğru (counter-clockwise, CCW) yönelim bias’ı içerdiği bilinmektedir. Bu bias, SLAM arka ucunda kullanılan odometrik önbilgiye doğrudan yansımakta ve referans trajektorilere kıyasla belirgin bir yaw sapmasına yol açmaktadır.
 
@@ -49,7 +49,7 @@ Ekler bölümünde sunulan trajektori grafikleri incelendiğinde, referans yapı
 
 Nicel olarak, yaw hatasında yaklaşık \%30--\%45 aralığında bir azalma elde edilmiş; bu iyileşme, yalnızca lokal düzeltmelerle değil, trajektorinin genel yöneliminin düzeltilmesiyle sağlanmıştır. Bu bulgu, önerilen yöntemin yalnızca ölçüm gürültüsünü azaltmakla kalmadığını, aynı zamanda hatalı odometrik bias’ları da telafi edebildiğini göstermektedir.
 
-\subsubsubsection{Teori ve Deneysel Bulguların Örtüşmesi}
+\subsubsection{Teori ve Deneysel Bulguların Örtüşmesi}
 
 Genel değerlendirme sonucunda, deneysel bulguların Bölüm~\ref{sec:matematiksel_analiz_cercevesi}’de tanımlanan matematiksel model ile yüksek derecede örtüştüğü görülmektedir. Ana etki terimleri $\alpha(I)$ ve $\beta(H)$, marjinal duyarlılık analizleri ve etkileşim terimleri deneysel veriler üzerinden açıkça doğrulanmıştır.
 

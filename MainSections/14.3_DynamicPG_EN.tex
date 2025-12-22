@@ -2,32 +2,31 @@
 
 Dinamik PG yapısı,
 
-\subsection{Derinlik Füzyon Hattının Matematiksel Formülasyonu}
+\subsection{Mathematical Formulation of the Depth Fusion Pipeline}
 
-Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yatan matematiksel model formel olarak sunulmaktadır. Uygulama, stereo kameradan (ZED) elde edilen senkronize derinlik görüntüleri ile LiDAR sensöründen alınan nokta bulutlarını girdi olarak almakta ve gerçek zamanlı olarak füzyonlanmış bir derinlik görüntüsü ile buna karşılık gelen bir nokta bulutu üretmektedir.
+In this section, we formalize the mathematical model underlying our ROS--CuPy based ZED--LiDAR fusion node. The implementation operates on synchronized depth images from a stereo camera (ZED) and point clouds from a LiDAR sensor and produces a fused depth image and a corresponding point cloud in real time.
 
 \begin{figure}[H]
     \centering
     \begin{adjustbox}{width=\textwidth}
         \includegraphics[width=\textwidth]{mermaid/pg.png}
     \end{adjustbox}
-    \caption{Füzyon algoritması akış diyagramı}
+    \caption{Füzyon algoritması akış diyagramı 0}
     \label{methodology_2}
 \end{figure}
 
-\subsubsection{Gösterim ve Girdiler}
+\subsubsection{Notation and Inputs}
 
-ZED stereo kameradan elde edilen derinlik görüntüsü aşağıdaki gibi tanımlanmaktadır:
+Let the ZED depth image be
 \begin{equation}
     D_{\text{ZED}}^{\text{orig}}(v,u) \in \mathbb{R} \cup \{\text{NaN}\},
 \end{equation}
-burada piksel koordinatları
+with pixel coordinates
 \begin{equation}
-    u \in \{0,\dots,W-1\}, \quad v \in \{0,\dots,H-1\}
+    u \in \{0,\dots,W-1\}, \quad v \in \{0,\dots,H-1\}.
 \end{equation}
-şeklindedir.
 
-LiDAR sensörü tarafından döndürülen üç boyutlu nokta bulutu
+The LiDAR returns a 3D point cloud
 \begin{equation}
     \mathcal{P}_{\text{L}}
     =
@@ -38,63 +37,55 @@ LiDAR sensörü tarafından döndürülen üç boyutlu nokta bulutu
             x_k \\ y_k \\ z_k
         \end{bmatrix}
         \in \mathbb{R}^3
-    \right\}_{k=1}^{N}
+    \right\}_{k=1}^{N}.
 \end{equation}
-olarak tanımlanmaktadır.
 
-Kamera içsel parametreleri (ROS \texttt{CameraInfo} mesajından elde edilmektedir) şu şekildedir:
+Camera intrinsics (from the ROS \texttt{CameraInfo} message) are given by
 \begin{equation}
-    f_x, f_y \quad \text{(odak uzaklıkları)}, \qquad
-    c_x, c_y \quad \text{(ana nokta koordinatları)}.
+    f_x, f_y \quad \text{(focal lengths)}, \qquad
+    c_x, c_y \quad \text{(principal point)}.
 \end{equation}
 
-Derinlik işlemlerinde kullanılan kırpma bölgesi
+We define a crop region
 \begin{equation}
     \Omega_c = \left\{ (v,u) \;\middle|\;
                    t \le v < H - b,\
                    \ell \le u < W - r
-    \right\}
+    \right\},
 \end{equation}
-olarak tanımlanır. Burada
+where
 \begin{equation}
-\begin{aligned}
-    t &= \texttt{MORTAL\_ROWS\_TOP} \\
-    b &= \texttt{MORTAL\_ROWS\_BOTTOM} \\
-    \ell &= \texttt{MORTAL\_COLUMNS\_LEFT} \\
-    r &= \texttt{MORTAL\_COLUMNS\_RIGHT}
-\end{aligned}
+    t = \texttt{MORTAL\_ROWS\_TOP}, \quad
+    b = \texttt{MORTAL\_ROWS\_BOTTOM}, \quad
+    \ell = \texttt{MORTAL\_COLUMNS\_LEFT}, \quad
+    r = \texttt{MORTAL\_COLUMNS\_RIGHT}.
 \end{equation}
-parametreleri görüntüden çıkarılacak bölgeleri ifade etmektedir.
-
-ZED ve LiDAR derinlikleri arasındaki tutarlılık eşiği ise
+The consistency threshold between ZED and LiDAR depth is denoted by
 \begin{equation}
-    \tau = \texttt{ZED\_VLP\_DIFF\_MAX}
+    \tau = \texttt{ZED\_VLP\_DIFF\_MAX}.
 \end{equation}
-olarak tanımlanmaktadır.
 
-\subsubsection{LiDAR Kartezyen Gösteriminden Küresel Gösterime Dönüşüm}
+\subsubsection{LiDAR Cartesian to Spherical Representation}
 
-Her bir LiDAR noktası $\mathbf{p}_k = (x_k, y_k, z_k)^\top$ için küresel koordinatlar aşağıdaki şekilde tanımlanmaktadır:
+For each LiDAR point $\mathbf{p}_k = (x_k, y_k, z_k)^\top$, we define a spherical representation
 \begin{align}
     r_k     &= \sqrt{x_k^2 + y_k^2 + z_k^2}, \\
     \theta_k &= \arctan\!\left( \frac{z_k}{\sqrt{x_k^2 + y_k^2}} \right), \\
     \phi_k   &= \arctan\!\left( \frac{y_k}{x_k} \right),
 \end{align}
-ve bu gösterim
+so that
 \begin{equation}
     \mathbf{s}_k =
     \begin{bmatrix}
         r_k \\ \theta_k \\ \phi_k
-    \end{bmatrix}
+    \end{bmatrix}.
 \end{equation}
-şeklinde ifade edilir.
+This representation is used for angular filtering and diagnostics in the implementation.
 
-Bu küresel gösterim, uygulama kapsamında açısal filtreleme ve tanılama (diagnostics) amaçlı olarak kullanılmaktadır.
+\subsubsection{LiDAR to Camera Projection and Depth Image}
 
-\subsubsection{LiDAR Noktalarının Kamera Düzlemine Yansıtılması}
-
-\paragraph{Eksen Yeniden Eşlemesi.}
-LiDAR noktaları öncelikle kamera benzeri bir koordinat sistemine dönüştürülmektedir:
+\paragraph{Axis Remapping.}
+The LiDAR points are first remapped into a camera-like coordinate system via
 \begin{equation}
     \begin{bmatrix}
         X_k \\ Y_k \\ Z_k
@@ -110,77 +101,72 @@ LiDAR noktaları öncelikle kamera benzeri bir koordinat sistemine dönüştür�
         0 & -1 & 0 \\
         0 &  0 & -1 \\
         1 &  0 & 0
-    \end{bmatrix}.
+    \end{bmatrix},
 \end{equation}
-Bu dönüşüm sonucunda $Z_k$ ekseni kameraya doğru olan ileri yönü, $X_k$ yatay ekseni ve $Y_k$ ise dikey ekseni temsil etmektedir.
+so that $Z_k$ is forward, $X_k$ is horizontal and $Y_k$ is vertical in the camera frame.
 
-\paragraph{İğne Deliği (Pinhole) Kamera Modeli.}
-Kamera izdüşümü aşağıdaki denklemlerle elde edilmektedir:
+\paragraph{Pinhole Projection.}
+Using the pinhole camera model, the projected image coordinates are
 \begin{align}
     \tilde{u}_k &= \frac{X_k f_x}{Z_k} + c_x, \\
     \tilde{v}_k &= \frac{Y_k f_y}{Z_k} + c_y.
 \end{align}
-Bu değerler, piksel indislerine yuvarlanarak dönüştürülür:
+Discretization to pixel indices is performed by rounding:
 \begin{equation}
     u_k = \operatorname{round}(\tilde{u}_k), \qquad
     v_k = \operatorname{round}(\tilde{v}_k).
 \end{equation}
 
-Yalnızca kamera görüş alanında kalan ve kameranın önünde bulunan noktalar korunur:
+We only keep points that project to a valid pixel and lie in front of the camera:
 \begin{equation}
     \mathcal{K}
     =
     \left\{ k \;\middle|\;
         0 \le u_k < W,\
-        0 \le v_k < H,\
-        Z_k > 0,\
-        Z_k \text{ sonlu}
-    \right\}.
+    0 \le v_k < H,\
+    Z_k > 0,\
+    Z_k \text{ finite} \right\}.
 \end{equation}
 
-\paragraph{LiDAR Derinlik Görüntüsünün Oluşturulması.}
-LiDAR derinlik görüntüsü, aynı piksele düşen noktalar arasından en yakın yüzeyin seçilmesiyle elde edilir:
+\paragraph{LiDAR Depth Image Construction.}
+The LiDAR depth image $D_{\text{L}}(v,u)$ is defined as the minimum range $Z_k$ over all points that project to the corresponding pixel:
 \begin{equation}
     D_{\text{L}}(v,u) =
     \begin{cases}
         \displaystyle
         \min\limits_{k \in \mathcal{K} : (v_k,u_k) = (v,u)} Z_k,
-        & \text{eğer böyle bir } k \text{ varsa}, \\[1.2ex]
-        \text{NaN}, & \text{aksi halde}.
+        & \text{if such } k \text{ exists}, \\[1.2ex]
+        \text{NaN}, & \text{otherwise}.
     \end{cases}
 \end{equation}
+This corresponds to a nearest-surface depth image derived from the LiDAR point cloud.
 
-Bu işlem, LiDAR nokta bulutundan elde edilen en yakın yüzeye karşılık gelen bir derinlik görüntüsü üretmektedir.
+\subsubsection{ZED Depth Inpainting}
 
-\subsubsection{ZED Derinlik Haritasının Doldurulması (Inpainting)}
-
-Ham ZED derinlik haritası $D_{\text{ZED}}^{\text{orig}}(v,u)$ geçersiz değerler (NaN veya $\pm\infty$) içerebilmektedir. Bu nedenle bir geçersizlik maskesi şu şekilde tanımlanır:
+The raw ZED depth map $D_{\text{ZED}}^{\text{orig}}(v,u)$ may contain invalid values (NaN or $\pm\infty$). We define the invalidity mask
 \begin{equation}
     M(v,u) =
     \begin{cases}
-        1, & \text{eğer } D_{\text{ZED}}^{\text{orig}}(v,u) \text{ NaN veya } \pm\infty \text{ ise}, \\
-        0, & \text{aksi halde}.
+        1, & \text{if } D_{\text{ZED}}^{\text{orig}}(v,u) \text{ is NaN or } \pm\infty, \\
+        0, & \text{otherwise}.
     \end{cases}
 \end{equation}
 
-Başlangıç derinlik haritası
+We initialize an inpainted depth map by
 \begin{equation}
     D^{(0)}(v,u) =
     \begin{cases}
         D_{\text{ZED}}^{\text{orig}}(v,u), & M(v,u) = 0, \\
-        0, & M(v,u) = 1
+        0, & M(v,u) = 1.
     \end{cases}
 \end{equation}
-şeklinde tanımlanır.
 
-Geçersiz pikseller için, dört bağlantılı komşuluk
+Then we iteratively propagate valid neighbouring depths into invalid regions using a 4-connected neighbourhood
 \begin{equation}
     \mathcal{N}(v,u) =
-    \{(v-1,u), (v+1,u), (v,u-1), (v,u+1)\}
+    \{(v-1,u), (v+1,u), (v,u-1), (v,u+1)\}.
 \end{equation}
-kullanılarak yinelemeli bir doldurma işlemi uygulanır.
-
-$t+1$ iterasyonunda güncelleme
+At iteration $t+1$, for each pixel with $M(v,u) = 1$, we update
 \begin{equation}
     D^{(t+1)}(v,u)
     =
@@ -194,78 +180,132 @@ $t+1$ iterasyonunda güncelleme
         \sum\limits_{(p,q) \in \mathcal{N}(v,u)}
         \mathbf{1}_{\{M(p,q) = 0\}}
         + \varepsilon
-    }
+    },
 \end{equation}
-şeklindedir. Burada $\varepsilon \ll 1$ sıfıra bölmeyi önlemek amacıyla eklenmiştir.
+where $\mathbf{1}_{\{\cdot\}}$ is the indicator function and $\varepsilon \ll 1$ is a small constant to prevent division by zero. Valid pixels ($M(v,u)=0$) remain unchanged in this iteration.
 
-$T$ iterasyon sonunda doldurulmuş ZED derinlik haritası
+After a fixed number $T$ of iterations, we obtain the inpainted ZED depth map
 \begin{equation}
-    D_{\text{ZED}}(v,u) = D^{(T)}(v,u)
+    D_{\text{ZED}}(v,u) = D^{(T)}(v,u).
 \end{equation}
-olarak elde edilir.
+The original invalid pixels are retained by reapplying the mask at the end.
 
-\subsubsection{Kırpma ve ZED--LiDAR Tutarlılık Filtresi}
+\subsubsection{Cropping and ZED--LiDAR Consistency Filtering}
 
-Derinlik haritaları kırpma bölgesi ile sınırlandırılır:
+We restrict the inpainted ZED depth and LiDAR depth to the crop region $\Omega_c$:
 \begin{align}
-    D_{\text{ZED}}^{c}(v,u) &= D_{\text{ZED}}(v,u), \\
+    D_{\text{ZED}}^{c}(v,u) &= D_{\text{ZED}}(v,u),
+    & (v,u) &\in \Omega_c, \\
     D_{\text{L}}^{c}(v,u)   &= D_{\text{L}}(v,u),
+    & (v,u) &\in \Omega_c.
 \end{align}
-\quad $(v,u) \in \Omega_c$.
 
-ZED ve LiDAR arasındaki tutarsız ölçümler şu koşula göre elenir:
+To reject inconsistent LiDAR measurements, we apply a consistency filter based on the ZED depth:
 \begin{equation}
     D_{\text{L}}^{c}(v,u) \leftarrow
     \begin{cases}
         D_{\text{L}}^{c}(v,u),
-        & \left| D_{\text{ZED}}^{c}(v,u) - D_{\text{L}}^{c}(v,u) \right| \le \tau, \\
+        & \text{if } \left| D_{\text{ZED}}^{c}(v,u) - D_{\text{L}}^{c}(v,u) \right| \le \tau, \\[0.8ex]
         \text{NaN},
-        & \text{aksi halde}.
+        & \text{otherwise},
     \end{cases}
+    \qquad (v,u) \in \Omega_c.
 \end{equation}
 
-Bu çalışmada, kırpma bölgesi içerisindeki PG derinliği doğrudan filtrelenmiş LiDAR derinliği olarak alınmaktadır:
+In the current implementation, the PG depth in the crop region is taken directly from the filtered LiDAR depth:
 \begin{equation}
-    D_{\text{PG}}^{c}(v,u) = D_{\text{L}}^{c}(v,u).
+    D_{\text{PG}}^{c}(v,u) = D_{\text{L}}^{c}(v,u),
+    \qquad (v,u) \in \Omega_c.
 \end{equation}
 
-\subsubsection{Nihai Füzyonlanmış Derinlik Haritası}
+\subsubsection{Final Fused Depth Map}
 
-Yayınlanan nihai derinlik haritası $D_{\text{PG}}(v,u)$ aşağıdaki adımlar ile oluşturulmaktadır:
+The final fused depth map $D_{\text{PG}}(v,u)$, which is published as \texttt{PG\_DEPTH\_TOPIC}, is constructed as follows:
 
 \begin{enumerate}
-    \item Başlangıçta ham ZED derinliği atanır.
-    \item Kırpma bölgesinde geçerli LiDAR derinliği mevcutsa ZED değeri üzerine yazılır.
-    \item Orijinal ZED geçersizlik maskesi tekrar uygulanır.
+    \item Initialize with the original ZED depth:
+    \begin{equation}
+        D_{\text{PG}}(v,u) \leftarrow D_{\text{ZED}}^{\text{orig}}(v,u).
+    \end{equation}
+
+    \item In the crop region, overwrite with LiDAR depth wherever it is valid:
+    \begin{equation}
+        D_{\text{PG}}(v,u) =
+        \begin{cases}
+            D_{\text{L}}^{c}(v,u),
+            & (v,u) \in \Omega_c,\ D_{\text{L}}^{c}(v,u) \text{ finite}, \\[0.8ex]
+            D_{\text{ZED}}^{\text{orig}}(v,u),
+            & \text{otherwise}.
+        \end{cases}
+    \end{equation}
+
+    \item Enforce the original ZED invalidity mask:
+    \begin{equation}
+        D_{\text{PG}}(v,u) \leftarrow \text{NaN}
+        \quad \text{for all } (v,u) \text{ such that } M(v,u) = 1.
+    \end{equation}
 \end{enumerate}
 
-Bu adımlar birleştirildiğinde:
+Combining these steps, we can concisely express the fused depth as
 \begin{equation}
     D_{\text{PG}}(v,u) =
     \begin{cases}
         \text{NaN},
-        & M(v,u) = 1, \\
+        & M(v,u) = 1, \\[0.8ex]
         D_{\text{L}}^{c}(v,u),
-        & (v,u) \in \Omega_c,\ D_{\text{L}}^{c}(v,u) \text{ sonlu}, \\
+        & (v,u) \in \Omega_c,\ D_{\text{L}}^{c}(v,u) \text{ finite}, \\[0.8ex]
         D_{\text{ZED}}^{\text{orig}}(v,u),
-        & \text{aksi halde}
+        & \text{otherwise}.
     \end{cases}
 \end{equation}
-elde edilir.
 
-\subsubsection{3B Geri Yansıtım ve Çıkış Nokta Bulutu}
+\subsubsection{Back-Projection to 3D and Output Point Cloud}
 
-Son olarak, füzyonlanmış derinlik haritası kamera içsel parametreleri kullanılarak üç boyutlu nokta bulutuna dönüştürülür. Her bir geçerli piksel için:
+The fused depth map $D_{\text{PG}}(v,u)$ is converted back to 3D using the camera intrinsics. For each pixel $(v,u)$ with a finite depth
+\begin{equation}
+    d = D_{\text{PG}}(v,u),
+\end{equation}
+the point in the camera frame is
+\begin{align}
+    X_{\text{cam}}(v,u) &= \frac{(u - c_x)\, d}{f_x}, \\
+    Y_{\text{cam}}(v,u) &= \frac{(v - c_y)\, d}{f_y}, \\
+    Z_{\text{cam}}(v,u) &= d.
+\end{align}
+
+The implementation applies an axis remapping so that the output frame uses
+\begin{align}
+    x'(v,u) &= Z_{\text{cam}}(v,u) = d, \\
+    y'(v,u) &= -X_{\text{cam}}(v,u) = -\frac{(u - c_x)\, d}{f_x}, \\
+    z'(v,u) &= -Y_{\text{cam}}(v,u) = -\frac{(v - c_y)\, d}{f_y}.
+\end{align}
+Thus, the resulting 3D point corresponding to pixel $(v,u)$ is
+\begin{equation}
+    \mathbf{p}'(v,u)
+    =
+    \begin{bmatrix}
+        x'(v,u) \\
+        y'(v,u) \\
+        z'(v,u)
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        d \\[0.4ex]
+        -\dfrac{(u - c_x)\, d}{f_x} \\[1.0ex]
+        -\dfrac{(v - c_y)\, d}{f_y}
+    \end{bmatrix}.
+\end{equation}
+
+Collecting all valid pixels yields the fused point cloud
 \begin{equation}
     \mathcal{P}_{\text{PG}}
     =
     \left\{
         \mathbf{p}'(v,u)
         \;\middle|\;
-        D_{\text{PG}}(v,u) \text{ sonlu}
-    \right\}
+        D_{\text{PG}}(v,u) \text{ is finite}
+    \right\},
 \end{equation}
-elde edilir ve bu nokta kümesi \texttt{sensor\_msgs/PointCloud2} mesajı olarak yayınlanır.
+which is serialized as a \texttt{sensor\_msgs/PointCloud2} message and published on the fused point cloud topic.
 
 \subsection{Sentetik Veri ile Algoritmanın Doğrulanması}
 Gerçek sensör verisiyle yapılan iyileştirme denemelerinde gözlemlenen artefaktların (özellikle ``spike'' benzeri geometrilerin ve yakınsama kararsızlıklarının) kaynağını daha net ayırt edebilmek amacıyla, algoritmanın doğrulama aşamasında kontrollü bir sentetik veri seti kullanılmıştır. Bu doğrulama yaklaşımının temel motivasyonu; sensör gürültüsü, görüş alanı (FOV) uyuşmazlığı, eşzamanlılık sapmaları, hareket kaynaklı bozulmalar ve eksik örneklem gibi gerçek dünya etkilerini geçici olarak devre dışı bırakarak, Papoulis--Gerchberg (PG) tabanlı iyileştirme sürecinin ``beklenen'' davranışını gözlemleyebilmektir.
@@ -310,7 +350,7 @@ Elde edilen sonuçlar, algoritmanın sentetik veri üzerinde kararlı bir yakın
 
 Dolayısıyla bu doğrulama adımı, çalışmanın devamında gerçekleştirilen filtre tipi seçimi ve parametre ayarlama sürecine metodolojik bir temel sağlamaktadır. Sentetik veri deneyinde algoritmanın ``ideal'' koşullarda çalıştığının gösterilmesi sayesinde, bir sonraki aşamada ele alınan filtre seçimi (Brick-wall, Gaussian, Butterworth) ve cutoff/iterasyon gibi parametrelerin belirlenmesi, gerçek veride ortaya çıkan artefaktları azaltmaya ve yakınsamayı daha kararlı hâle getirmeye yönelik sistematik bir optimizasyon problemi olarak ele alınabilmiştir. Bu nedenle, sentetik doğrulama sonrasında Bölüm~\ref{sec:pg_filter_selection} ve Bölüm~\ref{sec:pg_parameter_tuning} altında sunulan filtre/parametre analizlerine geçilmiştir.
 
-\subsection{3B İçin Filtre Seçimi} \label{sec:pg_filter_selection}
+\subsection{3B İçin Filtre Seçimi}
 
 Bu çalışmada, LiDAR (VLP-16) ve stereo kamera (ZED) verilerinin birlikte kullanıldığı üç boyutlu veri füzyonu sürecinde, Papoulis--Gerchberg (PG) tabanlı iyileştirme algoritmasının filtreleme parametrelerine olan duyarlılığı incelenmiştir. PG algoritması, eksik veya örtüşmeyen frekans bileşenlerinin iteratif olarak yeniden yapılandırılmasına dayandığından, özellikle frekans alanında uygulanan filtreleme işlemleri, sonuç geometrisi üzerinde belirleyici bir etkiye sahiptir.
 
@@ -437,7 +477,7 @@ Bununla birlikte, Gaussian ve Butterworth filtrelerin kullanımı sonucunda, zem
     \label{fig:pg_filter_comparison}
 \end{figure}
 
-\subsubsection{Filtrelerin Çapraz Karşılaştırılması} \label{sec:pg_parameter_tuning}
+\subsubsection{Filtrelerin Çapraz Karşılaştırılması}
 
 Filtre tiplerinin karşılaştırmalı analizi hem sentetik hem de gerçek veri üzerinde gerçekleştirilmiştir. Sentetik veride, ideal koşullar altında filtrelerin benzer yakınsama davranışı sergilediği görülürken, gerçek veri üzerinde belirgin farklar ortaya çıkmıştır. Brick-wall filtre, frekans alanında keskin bir kesim uyguladığı için PG çıktısında artefaktlara ve yer yer kararsız yakınsamaya neden olmuştur. Bu çalışmada tercih edilen Gaussian filtre ise yumuşak geçiş karakteristiği sayesinde sensörler arası uyumsuzlukları daha iyi tolere etmiş ve görsel olarak daha kararlı, daha tutarlı bir iyileştirme sağlamıştır. Butterworth filtre belirli senaryolarda dengeli bir alternatif sunsa da, yapılan deneylerde en tutarlı sonuçlar Gaussian filtre ile elde edilmiştir (Bakınız Şekil~\ref{fig:pg_gaussian_vs_brickwall_citrus}).
 
