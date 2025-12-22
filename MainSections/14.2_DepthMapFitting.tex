@@ -1,16 +1,20 @@
 \section{Derinlik Haritası Uyumlama} \label{sec:depth_map_fitting}
 
-Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kamera düzlemine projekte ederek bir LiDAR derinlik imgesi üretmek ve stereo (ZED) derinlik haritası ile aynı piksel uzayında \textit{örtüşen (overlap)} bölgede tutarlı bir derinlik haritası elde etmektir. Bu işlem, PG yinelemelerinden bağımsız olarak, iki sensörün aynı geometri üzerinde hizalanmış tek bir derinlik alanı üretmesini sağlar.
+Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kamera düzlemine projekte ederek bir LiDAR derinlik imgesi üretmek ve stereo (ZED) derinlik haritası ile aynı piksel uzayında \textit{örtüşen (overlap)} bölgede tutarlı bir derinlik haritası elde etmektir. Bu işlem, Papoulis--Gerchberg (PG) yinelemelerinden bağımsız olarak, iki sensörün aynı geometri üzerinde hizalanmış tek bir derinlik alanı üretmesini sağlar.
+
+Bu bölümde tanımlanan tüm işlemler deterministik olup, PG tabanlı iteratif iyileştirme yöntemleri için bir başlangıç derinlik alanı üretmektedir.
 
 \subsubsection{Gösterim ve Girdiler}
 
 ZED stereo kameradan elde edilen derinlik görüntüsü aşağıdaki gibi tanımlanmaktadır:
 \begin{equation}
     D_{\text{ZED}}^{\text{orig}}(v,u) \in \mathbb{R} \cup \{\text{NaN}\},
+    \label{eq:dmf_zed_orig}
 \end{equation}
 burada piksel koordinatları
 \begin{equation}
     u \in \{0,\dots,W-1\}, \quad v \in \{0,\dots,H-1\}
+    \label{eq:dmf_pixel_coords}
 \end{equation}
 şeklindedir.
 
@@ -26,6 +30,7 @@ LiDAR sensörü tarafından döndürülen üç boyutlu nokta bulutu
         \end{bmatrix}
         \in \mathbb{R}^3
     \right\}_{k=1}^{N}
+    \label{eq:dmf_lidar_cloud}
 \end{equation}
 olarak tanımlanmaktadır.
 
@@ -33,16 +38,21 @@ Kamera içsel parametreleri (ROS \texttt{CameraInfo} mesajından elde edilmekted
 \begin{equation}
     f_x, f_y \quad \text{(odak uzaklıkları)}, \qquad
     c_x, c_y \quad \text{(ana nokta koordinatları)}.
+    \label{eq:dmf_intrinsics}
 \end{equation}
 
 Derinlik işlemlerinde kullanılan kırpma bölgesi
 \begin{equation}
-    \Omega_c = \left\{ (v,u) \;\middle|\;
-                   t \le v < H - b,\
-                   \ell \le u < W - r
+    \Omega_c =
+    \left\{ (v,u) \;\middle|\;
+        t \le v < H - b,\
+        \ell \le u < W - r
     \right\}
+    \label{eq:dmf_roi}
 \end{equation}
-olarak tanımlanır. Burada
+olarak tanımlanır.
+
+Kırpma parametreleri:
 \begin{equation}
 \begin{aligned}
     t &= \texttt{MORTAL\_ROWS\_TOP} \\
@@ -50,12 +60,14 @@ olarak tanımlanır. Burada
     \ell &= \texttt{MORTAL\_COLUMNS\_LEFT} \\
     r &= \texttt{MORTAL\_COLUMNS\_RIGHT}
 \end{aligned}
+\label{eq:dmf_crop_params}
 \end{equation}
 parametreleri görüntüden çıkarılacak bölgeleri ifade etmektedir.
 
 ZED ve LiDAR derinlikleri arasındaki tutarlılık eşiği ise
 \begin{equation}
-    \tau = \texttt{ZED\_VLP\_DIFF\_MAX}
+    \tau = \texttt{ZED\_VLP\_DIFF\_MAX}.
+    \label{eq:dmf_tau}
 \end{equation}
 olarak tanımlanmaktadır.
 
@@ -73,6 +85,7 @@ ve bu gösterim
     \begin{bmatrix}
         r_k \\ \theta_k \\ \phi_k
     \end{bmatrix}
+    \label{eq:dmf_spherical}
 \end{equation}
 şeklinde ifade edilir.
 
@@ -98,6 +111,7 @@ LiDAR noktaları öncelikle kamera benzeri bir koordinat sistemine dönüştür�
         0 &  0 & -1 \\
         1 &  0 & 0
     \end{bmatrix}.
+    \label{eq:dmf_axis_remap}
 \end{equation}
 Bu dönüşüm sonucunda $Z_k$ ekseni kameraya doğru olan ileri yönü, $X_k$ yatay ekseni ve $Y_k$ ise dikey ekseni temsil etmektedir.
 
@@ -105,12 +119,13 @@ Bu dönüşüm sonucunda $Z_k$ ekseni kameraya doğru olan ileri yönü, $X_k$ y
 Kamera izdüşümü aşağıdaki denklemlerle elde edilmektedir:
 \begin{align}
     \tilde{u}_k &= \frac{X_k f_x}{Z_k} + c_x, \\
-    \tilde{v}_k &= \frac{Y_k f_y}{Z_k} + c_y.
+    \tilde{v}_k &= \frac{Y_k f_y}{Z_k} + c_y,
 \end{align}
 Bu değerler, piksel indislerine yuvarlanarak dönüştürülür:
 \begin{equation}
     u_k = \operatorname{round}(\tilde{u}_k), \qquad
     v_k = \operatorname{round}(\tilde{v}_k).
+    \label{eq:dmf_projection}
 \end{equation}
 
 Yalnızca kamera görüş alanında kalan ve kameranın önünde bulunan noktalar korunur:
@@ -123,6 +138,7 @@ Yalnızca kamera görüş alanında kalan ve kameranın önünde bulunan noktala
         Z_k > 0,\
         Z_k \text{ sonlu}
     \right\}.
+    \label{eq:dmf_valid_proj}
 \end{equation}
 
 \paragraph{LiDAR Derinlik Görüntüsünün Oluşturulması.}
@@ -135,6 +151,7 @@ LiDAR derinlik görüntüsü, aynı piksele düşen noktalar arasından en yakı
         & \text{eğer böyle bir } k \text{ varsa}, \\[1.2ex]
         \text{NaN}, & \text{aksi halde}.
     \end{cases}
+    \label{eq:dmf_lidar_depth}
 \end{equation}
 
 Bu işlem, LiDAR nokta bulutundan elde edilen en yakın yüzeye karşılık gelen bir derinlik görüntüsü üretmektedir.
@@ -145,29 +162,14 @@ Ham ZED derinlik haritası $D_{\text{ZED}}^{\text{orig}}(v,u)$ geçersiz değerl
 \begin{equation}
     M(v,u) =
     \begin{cases}
-        1, & \text{eğer } D_{\text{ZED}}^{\text{orig}}(v,u) \text{ NaN veya } \pm\infty \text{ ise}, \\
+        1, & D_{\text{ZED}}^{\text{orig}}(v,u) \text{ NaN veya } \pm\infty, \\
         0, & \text{aksi halde}.
     \end{cases}
-\end{equation}
-
-Başlangıç derinlik haritası
-\begin{equation}
-    D^{(0)}(v,u) =
-    \begin{cases}
-        D_{\text{ZED}}^{\text{orig}}(v,u), & M(v,u) = 0, \\
-        0, & M(v,u) = 1
-    \end{cases}
-\end{equation}
-şeklinde tanımlanır.
-
-Geçersiz pikseller için, dört bağlantılı komşuluk
-\begin{equation}
-    \mathcal{N}(v,u) =
-    \{(v-1,u), (v+1,u), (v,u-1), (v,u+1)\}
+    \label{eq:dmf_invalid_mask}
 \end{equation}
 kullanılarak yinelemeli bir doldurma işlemi uygulanır.
 
-$t+1$ iterasyonunda güncelleme
+Yinelemeli doldurma ile:
 \begin{equation}
     D^{(t+1)}(v,u)
     =
@@ -182,6 +184,7 @@ $t+1$ iterasyonunda güncelleme
         \mathbf{1}_{\{M(p,q) = 0\}}
         + \varepsilon
     }
+    \label{eq:dmf_inpainted_zed}
 \end{equation}
 şeklindedir. Burada $\varepsilon \ll 1$ sıfıra bölmeyi önlemek amacıyla eklenmiştir.
 
@@ -199,6 +202,7 @@ Derinlik haritaları kırpma bölgesi ile sınırlandırılır:
     D_{\text{L}}^{c}(v,u)   &= D_{\text{L}}(v,u),
 \end{align}
 \quad $(v,u) \in \Omega_c$.
+\label{eq:dmf_cropped_maps}
 
 ZED ve LiDAR arasındaki tutarsız ölçümler şu koşula göre elenir:
 \begin{equation}
@@ -206,23 +210,24 @@ ZED ve LiDAR arasındaki tutarsız ölçümler şu koşula göre elenir:
     \begin{cases}
         D_{\text{L}}^{c}(v,u),
         & \left| D_{\text{ZED}}^{c}(v,u) - D_{\text{L}}^{c}(v,u) \right| \le \tau, \\
-        \text{NaN},
-        & \text{aksi halde}.
+        \text{NaN}, & \text{aksi halde}.
     \end{cases}
+    \label{eq:dmf_consistency}
 \end{equation}
 
-Bu çalışmada, kırpma bölgesi içerisindeki DMF derinliği doğrudan filtrelenmiş LiDAR derinliği olarak alınmaktadır:
+Kırpma bölgesindeki DMF çıktısı:
 \begin{equation}
     D_{\text{fit}}^{c}(v,u) = D_{\text{L}}^{c}(v,u).
+    \label{eq:dmf_output}
 \end{equation}
 
-Bu çıktı, bir sonraki füzyon adımına (örneğin Bölüm~\ref{sec:dynamic_pg} altında tanımlanan yayınlama/sonlandırma kuralı veya iteratif bir iyileştirme yöntemi) giriş olarak kullanılır.
+Bu çıktı, Bölüm~\ref{sec:dynamic_pg} altında tanımlanan yayınlama ve/veya iteratif iyileştirme adımlarına doğrudan girdi olarak kullanılmaktadır.
 
 \begin{figure}[H]
     \centering
     \begin{adjustbox}{width=\textwidth * 10 /12}
         \includegraphics{mermaid/depth_map_fitting.png}
     \end{adjustbox}
-    \caption{DMF akış şeması}
+    \caption{Derinlik Haritası Uyumlama (DMF) akış şeması}
     \label{fig:depth_map_fitting_flow}
 \end{figure}

@@ -5,7 +5,7 @@ Bu alt bölüm, PG'nin iteratif çekirdek güncelleme denklemlerinden ziyade, ç
 
 \subsection{Derinlik Füzyon Hattının Matematiksel Formülasyonu}
 
-Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yatan matematiksel model formel olarak sunulmaktadır. Uygulama, stereo kameradan (ZED) elde edilen senkronize derinlik görüntüleri ile LiDAR sensöründen alınan nokta bulutlarını girdi olarak almakta ve gerçek zamanlı olarak füzyonlanmış bir derinlik görüntüsü ile buna karşılık gelen bir nokta bulutu üretmektedir.
+Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yatan matematiksel model formel olarak sunulmaktadır. Uygulama, stereo kameradan (ZED) elde edilen senkronize derinlik görüntüleri ile LiDAR sensöründen alınan nokta bulutlarını DMF[~\ref{sec:depth_map_fitting}] önişlemesinden sonra girdi olarak almakta ve gerçek zamanlı olarak füzyonlanmış bir derinlik görüntüsü ile buna karşılık gelen bir nokta bulutu üretmektedir.
 
 \begin{figure}[H]
     \centering
@@ -15,6 +15,16 @@ Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yata
     \caption{Füzyon algoritması akış diyagramı}
     \label{methodology_2}
 \end{figure}
+
+Bu bölümde kullanılan kırpma bölgesi $\Omega_c$,
+ZED geçersizlik maskesi $M(v,u)$,
+ve ZED--LiDAR tutarlılık/eşikleme mekanizması
+Depth Map Fitting (DMF) aşamasında tanımlandığı şekliyle
+doğrudan kullanılmaktadır (bkz. Denklem~\eqref{eq:dmf_roi}--\eqref{eq:dmf_anchor_mask}).
+Dolayısıyla bu bölümde amaç, DMF ile ortak piksel uzayına taşınmış
+$D_{\text{ZED}}^{\text{orig}}$ ve $D_{\text{L}}^{c}$ derinliklerinin,
+nihai yayınlanan derinlik alanı $D_{\text{PG}}(v,u)$ üzerinde nasıl birleştirildiğini
+ve maske koşulları altında nasıl sonlandırıldığını formel olarak ifade etmektir.
 
 \subsubsection{Nihai Füzyonlanmış Derinlik Haritası}
 
