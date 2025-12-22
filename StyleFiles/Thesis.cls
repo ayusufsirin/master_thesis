@@ -1,7 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}[1996/12/01]
-\ProvidesClass{Thesis}
-[2007/22/02 v1.0
-LaTeX document class]
+\ProvidesClass{Thesis}[2007/02/22 v1.0 LaTeX document class]
+
 \def\baseclass{book}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{\baseclass}}
 \def\@checkoptions#1#2{
@@ -18,19 +17,19 @@ LaTeX document class]
 \LoadClass{\baseclass}
 \newcommand\bhrule{\typeout{------------------------------------------------------------------------------}}
 
-\newcommand\Declaration[1]{
+\newcommand\Declaration[1]{%
 
     \setstretch{1.5}
     \btypeout{Ethics}
-%\addtotoc{Ethics}
+    %\addtotoc{Ethics}
     \thispagestyle{plain}
-%\null\vfil
-%\vskip 60\p@
+    %\null\vfil
+    %\vskip 60\p@
     \begin{center}{\fontsize{14}{16.8} \bfseries ETİK}\end{center}
-%\vskip 60\p@
+    %\vskip 60\p@
     {\normalsize #1}
     \vfil\vfil\null
-%\cleardoublepage
+    %\cleardoublepage
 
 }
 
@@ -192,8 +191,9 @@ LaTeX document class]
     bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
     colorlinks,linkcolor={black},citecolor={black},urlcolor={black},
     pdfstartview={FitV},unicode,breaklinks=true]{hyperref}
-\pdfstringdefDisableCommands{
+\pdfstringdefDisableCommands{%
     \let\\\space
+}
 
 {
 %\vfil\vfil\vfil\null
@@ -204,6 +204,9 @@ LaTeX document class]
 
 \usepackage{tocloft}
 
+\renewcommand{\chaptername}{Kısım}
+\renewcommand{\appendixname}{Ek}
+\renewcommand{\bibname}{KAYNAKÇA}
 \renewcommand{\cftbeforechapskip}{0\baselineskip}        % allow spacing after each chapter/section entry
 \renewcommand{\contentsname}{İÇİNDEKİLER}
 \renewcommand{\cfttoctitlefont}{\hfill\large\bfseries}
@@ -211,7 +214,8 @@ LaTeX document class]
 \renewcommand{\cftbeforetoctitleskip}{-0.5in} % title vertical location
 \renewcommand{\cfttoctitlefont}{\hfill\large\bf}
 \renewcommand{\cftaftertoctitleskip}{1\baselineskip}%
-\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\normalfont}
 \renewcommand{\cftchapleader}{\cftdotfill{\cftchapdotsep}}
 %\renewcommand\cftchapafterpnum{\vskip1.5pt}
 %\renewcommand\cftsecafterpnum{\vskip1.5pt}
@@ -224,16 +228,12 @@ LaTeX document class]
 \renewcommand{\cftsecdotsep}{1}
 %\renewcommand{\@pnumwidth}{1em} \renewcommand{\@tocrmarg}{4em}
 \renewcommand{\@dotsep}{1}
-\renewcommand{\cftchapfont}{\normalfont}
-\renewcommand{\cftsecfont}{
-    \normalfont
-}
+\renewcommand{\cftsecfont}{\normalfont}
 \renewcommand\cftsecfont{\normalfont}
 \renewcommand\cftsecpagefont{\normalfont}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftsecdotsep}}
 \renewcommand\cftsecdotsep{\cftdot}
 \renewcommand\cftsubsecdotsep{\cftdot}
-\renewcommand{\cftchapfont}{\normalfont}
 \renewcommand{\cftchappagefont}{\normalfont}
 
 \cftsetindents{section}{0in}{0.5in}
@@ -242,15 +242,14 @@ LaTeX document class]
 \addtocontents{lof}{~\hfill\underline{\textbf{Sayfa}}\par}
 \addtocontents{lot}{~\hfill\underline{\textbf{Sayfa}}\par}
 
-\addtocounter{secnumdepth}{2}
-\setcounter{tocdepth}{6}
-\newcounter{dummy}
+% depth for numbering and TOC
 \addtocounter{secnumdepth}{2}
 \setcounter{tocdepth}{6}
 
-\newcounter{dummy}
+% use a unique counter name to avoid clashes with tocloft
+\newcounter{titledummy}
 \newcommand\addtotoc[1]{%
-  \refstepcounter{dummy}%
+  \refstepcounter{titledummy}%
   \addcontentsline{toc}{section}{#1}%
 }
 
@@ -262,16 +261,16 @@ LaTeX document class]
 \renewcommand{\cftbeforeloftitleskip}{-0.5in}
 \renewcommand{\cftloftitlefont}{\hfill\large\bf}
 \renewcommand{\cftdotsep}{1}
-\renewcommand{\@dotsep}{10000}
+\renewcommand{\@dotsep}{1}
 
 % List of Tables configuration
 \renewcommand{\listtablename}{TABLOLAR}
 \renewcommand{\tablename}{Tablo}
 \renewcommand{\cftlottitlefont}{\hfill\large\bfseries}
+\renewcommand{\cftafterlottitleskip}{1.0\baselineskip}
 \renewcommand{\cftafterlottitle}{\hfill}
 \renewcommand{\cftbeforelottitleskip}{-0.25in}
 \renewcommand{\cftlottitlefont}{\hfill\large\bf}
-\renewcommand{\cftafterlottitleskip}{1.0\baselineskip}
 \renewcommand{\@dotsep}{1}
 
 \renewcommand{\cftfigpresnum}{\figurename\enspace}
@@ -340,7 +339,7 @@ LaTeX document class]
     \addtotoc{TEŞEKKÜR}
     \thispagestyle{plain}
     \fancyfoot[C]{\footnotesize \thepage}
-    \begin{center}{\fontsize{14}{16.8}\bf{TEŞEKKÜR} \par}\end{center}
+    \begin{center}{\fontsize(14){16.8}\bf{TEŞEKKÜR} \par}\end{center}
     {\normalsize #1}
     \vfil\vfil\null
     \clearpage
