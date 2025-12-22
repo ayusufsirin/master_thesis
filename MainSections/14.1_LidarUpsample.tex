@@ -1,4 +1,4 @@
-\subsection{LiDAR Nokta Yoğunluğu Artırımı}
+\section{LiDAR Nokta Yoğunluğu Artırımı}
 \label{lidar_upsample}
 
 LiDAR verisi doğası gereği seyrek bir yapıya sahiptir. Seyrek yapıdaki LiDAR verisinin doğrudan işlem hattına alınarak stereo görüntü yakınsatmasında kullanılması durumunda, kılavuz görevi gören LiDAR noktalarının yetersizliği nedeniyle Papoulis--Gerchberg (PG) sonrası elde edilen stereo derinlik haritasının daha da bozulduğu gözlemlenmiştir. Bu problemi gidermek amacıyla, LiDAR noktalarına bir ön işleme uygulanmış ve odometri verisi ile füzyon gerçekleştirilmiştir. Bu füzyon işlemi, temelde odometri verileri kullanılarak LiDAR noktalarının öteleme ve dönme işlemlerine tabi tutulması ve böylece kümülatif bir nokta kümesi elde edilmesi esasına dayanmaktadır.
@@ -14,7 +14,7 @@ Yapı ilk bakışta bir LiDAR--Ataletsel Odometri (LIO) işlemini andırsa da, b
     \label{fig:lidar_upsample}
 \end{figure}
 
-\subsubsection{Nokta bulutu ve odometri gösterimi}
+\subsection{Nokta bulutu ve odometri gösterimi}
 
 Her zaman adımı \(t_k\) için robot aşağıdaki mesajları yayınlamaktadır:
 \begin{itemize}
@@ -66,7 +66,7 @@ Homojen koordinatlar
 \end{equation}
 olarak tanımlanır.
 
-\subsubsection{Nokta bulutunun rijit cisim dönüşümü}
+\subsection{Nokta bulutunun rijit cisim dönüşümü}
 
 Her bir nokta, odometriden elde edilen poz kullanılarak LiDAR referans çerçevesinden
 odometri referans çerçevesine dönüştürülür:
@@ -113,7 +113,7 @@ olarak alınmıştır. Bu durumda dönüşüm
 \(\mathbf{y}_{k,j} = \mathbf{x}_{k,j} + \mathbf{p}_k\)
 şeklinde yalnızca öteleme içermektedir.
 
-\subsubsection{Kayan pencere tabanlı kümülatif nokta bulutu}
+\subsection{Kayan pencere tabanlı kümülatif nokta bulutu}
 
 \(H \in \mathbb{N}\) değeri geçmiş uzunluğunu
 (uygulamada \texttt{PC\_HISTORY\_SIZE}) temsil etsin.
@@ -148,12 +148,12 @@ Kümülatif dönüştürülmüş nokta bulutu
     &&\text{\texttt{/cumulative\_origin\_point\_cloud} üzerinde yayınlanır.}
 \end{align}
 
-\subsubsection{Zamanlama ve gerçek zamanlılık metrikleri}
+\subsection{Zamanlama ve gerçek zamanlılık metrikleri}
 
 Geometrik dönüşümlere ek olarak, düğüm gerçek zamanlı davranışı değerlendirmek amacıyla
 çeşitli zamanlama metriklerini de izlemektedir.
 
-\subsubsubsection{Zaman damgaları ve gecikme}
+\subsubsection{Zaman damgaları ve gecikme}
 
 Her senkronize mesaj çifti için:
 \begin{itemize}
@@ -169,7 +169,7 @@ Uçtan uca gecikme
 \end{equation}
 şeklinde hesaplanır ve milisaniye cinsinden kaydedilir.
 
-\subsubsubsection{İşlem süresi}
+\subsubsection{İşlem süresi}
 
 Zaman adımı \(k\) için toplam işlem süresi
 \begin{equation}
@@ -179,7 +179,7 @@ Zaman adımı \(k\) için toplam işlem süresi
 \end{equation}
 olarak tanımlanır ve alt aşamalara ayrılarak kaydedilir.
 
-\subsubsubsection{Giriş ve işlem oranları}
+\subsubsection{Giriş ve işlem oranları}
 
 Senkronize veri çiftlerinin giriş hızı
 \(\lambda_{\text{in}}\),
@@ -192,7 +192,7 @@ Bu iki büyüklüğün oranı
 \end{equation}
 olarak tanımlanır.
 
-\subsubsubsection{Gerçek zamanlılık koşulu}
+\subsubsection{Gerçek zamanlılık koşulu}
 
 Bir zaman aralığında gerçek zamanlı çalışmanın gerekli koşulu
 \begin{equation}

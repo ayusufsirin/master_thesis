@@ -18,7 +18,7 @@ SSv1 ile kapalı alan verisetini topamakla birlikte TUSAGA-Aktif sitemini kullan
     \caption{SSv1 (sol) ve SSv2 (sağ)}\label{fig:ssv12}
 \end{figure}
 
-\subsection{Donanım Elemanları}
+\section{Donanım Elemanları}
 SSv1 ve SSv2, benzer görevleri yapan birimlere sahipken, versiyonlar arasında model değişiklikleri de yapılmıştır. Bunlar Tablo (\ref{tab:ssv1_vs_ssv2})'de görülebilir. Şekil (\ref{fig:ssv2_diagram})'de ise SSv2'nin blok diyagramı görülebilir.
 
 \begin{table}[H]
@@ -48,7 +48,7 @@ SSv1 ve SSv2, benzer görevleri yapan birimlere sahipken, versiyonlar arasında 
     \label{fig:ssv2_diagram}
 \end{figure}
 
-\subsubsection{Tek Kart Bilgisayar}
+\subsection{Tek Kart Bilgisayar}
 Sensör sisteminde, sensörlerin kontrolü ve sensörlerden gelen verileri kaydetmek için tek kart bilgisayar kullanılmıştır. Versiyon 1'de kapalı ortam veri seti toplanırken bu işlem Jetson Nano ile yapılmıştır. Ancak, daha sonra Jetson Xavier NX'e geçilmiştir. Bunun nedenleri arasında;
 \begin{itemize}
     \item Düşük bellek miktarı nedeniyle derleme sürecinde yaşanan sıkıntılar,
@@ -91,7 +91,7 @@ Geliştirmeler genel olarak Jetson Xavier NX üzerinde yapılmış olsa da, hem 
     \label{tab:jetson_comparison}
 \end{table}
 
-\subsubsection{LiDAR}
+\subsection{LiDAR}
 Sensör siteminin tüm versiyonlarında LiDAR olarak Velodyne VLP-16 kullanılmıştır. Piyasadaki birçok 3 boyutlu LiDAR'dan daha az açıda ölçüm almasına rağmen, görece daha ucuz fiyatı nedeni ile çok farklı alanlara yönelik veri setlerinde yaygın olarak bulunan bir sensördür. Örneğin;
 \begin{itemize}
     \item Complex Urban Dataset\cite{dataset_ComplexUrban} otonom araçlar için,
@@ -128,7 +128,7 @@ VLP-16 LiDAR sensörünü kullanan veri setleridir. Sensörün özellikleri Tabl
     \label{tab:vlp16_features}
 \end{table}
 
-\subsubsection{Stereo Kamera}
+\subsection{Stereo Kamera}
 
 Stereo kameralar, iki farklı perspektiften görüntü alarak derinlik bilgisi çıkaran optik sistemlerdir. İki lens ve sensör yardımıyla, aynı anda elde edilen görüntüler arasında görsel farklılık (disparity) hesaplanır ve bir derinlik haritası oluşturulur. Bu sistemler, robotik, otonom araç navigasyonu ve 3D haritalama gibi alanlarda yaygın olarak kullanılır. Performansı, aydınlatma koşulları ve yüzey dokuları gibi faktörlere bağlıdır; düşük ışık ve tekrarlayan desenler gibi durumlarda sınırlı performans gösterebilir.
 
@@ -162,7 +162,7 @@ ZED ve ZED 2, yüksek çözünürlükte stereo görüntüler sunarak 3D haritala
     \label{tab:zed_comparison}
 \end{table}
 
-\subsubsection{INS Sensörleri}
+\subsection{INS Sensörleri}
 
 Ataletsel Navigasyon Sistemleri (Inertial Navigation Systems - INS) hareketli bir cismin pozisyon, yön ve hız gibi durumlarını belirlemek için kullanılan sistemlerdir. Bunun için içlerinde bulunan İvme ölçer, Jiroskop, Manyetometre ve GNSS alıcıları gibi sensörleri kullanırlar. Genellikle havacılık, uzay, denizcilik, otomativ ve robotik gibi uygulama alanlarına sahiptir. İvme ölçer, Jiroskop ve Manyetometre sensörleri, başlangıç konumuna göre pozisyonu parakete hesabı ile bulur. Sensör gürültüsü ve yanlılığından (bias) hesaplamada doğal olarak oluşan sapmalar, modern INS sistemlerinde GNSS sinyalleri de füzyon algoritmalarına dahil edilerek giderilir.
 
@@ -188,20 +188,20 @@ SSv2'de bulunan INS sensörleri ve özellikleri Tablo (\ref{tab:ins_comparison})
 \end{table}
 
 
-%\subsection{Sensör sistemi}
-%\subsubsection{Sensör Sistemi Blok Diyagramı}
+%\section{Sensör sistemi}
+%\subsection{Sensör Sistemi Blok Diyagramı}
 
 
-%\subsubsection{Elektronik Altyapı}%
+%\subsection{Elektronik Altyapı}%
 %
-%\subsubsection{Mekanik Altyapı}
+%\subsection{Mekanik Altyapı}
 %
-%\subsubsection{Yazılımsal Altyapı}
+%\subsection{Yazılımsal Altyapı}
 %\paragraph{ROS}
 
-\subsection{Veri Toplama}
+\section{Veri Toplama}
 
-\subsubsection{Açık Alan Veri Seti}
+\subsection{Açık Alan Veri Seti}
 
 Açık alan veri seti; RTK tabanlı ArNav INS, ZED2i stereo kamera, VLP16 LiDAR ve XSens INS sistemlerinin ROS2 ortamında eşzamanlı kaydedilmesi ile elde edilmiştir. Bu kurulumda RTK santimetre hassasiyetinde mutlak doğru güzergah bilgisini kaydetmeyi sağlarken diğer sensörler tezin test edilmesi için gerekli görüntü ve odometri verilerini kaydetmeyi sağlamıştır. Toplanan bu veri seti CitrusFarm Veriseti \cite{cıtrus_farm_dataset}'ndekiyle benzer formatta veriler içermektedir.
 

@@ -1,9 +1,9 @@
-\subsection{Deneysel Analiz için Matematiksel Çerçeve}
+\section{Deneysel Analiz için Matematiksel Çerçeve}
 \label{sec:matematiksel_analiz_cercevesi}
 
 Bu çalışmada önerilen Papoulis--Gerchberg (PG) tabanlı LiDAR--stereo füzyon yönteminin performansı, farklı algoritmik yapılandırmalar altında değerlendirilmiştir. Bu değerlendirmenin amacı yalnızca en iyi yapılandırmayı belirlemek değil, aynı zamanda algoritmanın iç parametrelerinin odometrik performansa olan bireysel ve ortak katkılarını matematiksel olarak ayrıştırmaktır.
 
-\subsubsection{Problem Tanımı}
+\subsection{Problem Tanımı}
 
 Önerilen yöntemin davranışı iki bağımsız kontrol parametresi ile tanımlanmaktadır:
 
@@ -22,7 +22,7 @@ bu yapılandırma PG iterasyonlarının devre dışı olduğu ve LU geçmişinin
 
 Deneysel analizin temel amacı, $I$ ve $H$ parametrelerindeki değişimlerin $M$ üzerindeki etkisini incelemek ve her bir parametrenin performans iyileştirmesine olan katkısını bağımsız ve ortak etkiler bağlamında ortaya koymaktır.
 
-\subsubsection{İki Faktörlü Toplamsal Ayrıştırma Modeli}
+\subsection{İki Faktörlü Toplamsal Ayrıştırma Modeli}
 
 İki parametrenin etkisini incelemek amacıyla performans yüzeyi $M(I,H)$ aşağıdaki iki faktörlü toplamsal model ile ifade edilmiştir:
 
@@ -45,7 +45,7 @@ temsil etmektedir.
 
 Bu model, iteratif iyileştirme ve zamansal koşullamanın performansa olan katkılarının ayrıştırılmasını ve olası sinerjik veya azalan getirili (diminishing returns) davranışların açıkça gözlemlenmesini mümkün kılar.
 
-\subsubsection{Model Bileşenlerinin Hesaplanması}
+\subsection{Model Bileşenlerinin Hesaplanması}
 
 $\mathcal{I}$ ve $\mathcal{H}$ sırasıyla test edilen PG iterasyon sayıları ve LU geçmiş boyutları kümesini göstersin.
 
@@ -83,7 +83,7 @@ Toplamsal modelin açıklayamadığı etkileşim bileşeni:
 \end{equation}
 şeklinde hesaplanır. $\gamma(i,h)$ değerinin yüksek olması, parametrelerin birbirine bağımlı şekilde çalıştığını göstermektedir.
 
-\subsubsection{Marjinal Duyarlılık Analizi}
+\subsection{Marjinal Duyarlılık Analizi}
 
 Parametrelerin performansa olan yerel etkilerini incelemek amacıyla marjinal farklar analiz edilmiştir.
 
@@ -103,7 +103,7 @@ Benzer şekilde iterasyon sayısı sabitken LU geçmiş boyutunun etkisi:
 \end{equation}
 olarak tanımlanır. Bu analiz, LU geçmişinin bir optimizasyon mekanizması mı yoksa bir kararlılık artırıcı unsur mu olduğunu ortaya koyar.
 
-\subsubsection{Normalize Katkı Oranları}
+\subsection{Normalize Katkı Oranları}
 
 Parametre katkılarının ölçekten bağımsız olarak karşılaştırılabilmesi için normalize edilmiş iyileşme oranları tanımlanmıştır. Toplam iyileşme:
 \begin{equation}
@@ -125,7 +125,7 @@ C_H(H) = \frac{1}{|\mathcal{I}|}
 \end{equation}
 şeklinde tanımlanır.
 
-\subsubsection{Süperpozisyon ve Etkileşim Analizi}
+\subsection{Süperpozisyon ve Etkileşim Analizi}
 
 PG iterasyonları ve LU geçmiş boyutunun etkilerinin toplamsal olup olmadığını test etmek amacıyla süperpozisyon varsayımı değerlendirilmiştir.
 
@@ -160,7 +160,7 @@ olarak tanımlanır.
     \item $\Gamma > 0$: azalan getiri durumu.
 \end{itemize}
 
-\subsubsection{Metriğe Bağlı Duyarlılık}
+\subsection{Metriğe Bağlı Duyarlılık}
 
 Farklı performans metriklerinin $I$ ve $H$ parametrelerine duyarlılığı farklılık göstermektedir. Küresel metrikler (ör. APE), genellikle $\alpha(I)$ terimine daha duyarlıyken; yerel tutarlılık ve varyans temelli metrikler $\beta(H)$ teriminden daha fazla etkilenmektedir. Yaw hataları ise çoğunlukla SLAM arka uç (backend) kısıtları ve ortamın gözlenebilirliği tarafından belirlenmektedir.
 

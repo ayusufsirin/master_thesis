@@ -1,6 +1,6 @@
-\section{DENEY} \label{experimentation}
+\chapter{DENEY} \label{experimentation}
 
-\subsection{Yöntem}
+\section{Yöntem}
 
 Dinamik Papoulish-Gerchberg algoritmasının SLAM'e katkısını ölçülebilir kılmak için bu tez kapsamında oluşturulan SensorSuiteV2 ve benzer veri tiplerini içeren açık kaynak CitrusFarm versiseti kullanılmıştır. Bu verisetlerindeki veriler RTABMap aracı kullanılarak doğrudan veya algoritmayla ön işlemeden geçirilerek işlenmiştir.
 
@@ -22,17 +22,17 @@ SLAM çıktısının bir diğeri üç boyutlu harita olduğu için aynı zamanda
 
 Deneyde yalnızca Lidar ve IMU tabanlı SLAM algoritmaları ile karşılaştırmaya girilmemiştir. Bunun temel sebebi Lidarın seyrek veri yapısının renksiz ve düşük çözünürlüklü SLAM çıktısının stereo depth ile elde edilen SLAM çıktısıyla karşılaştırılmasının çok fazla metrik değişiminden dolayı sağlıksız olmasıdır.
 
-\subsubsection{Bütünleşik algoritma parametreleri ve akışı}
+\subsection{Bütünleşik algoritma parametreleri ve akışı}
 
 Algoritma baştan uca tüm parametrelerin en iyi sonucu vereceği tahmin edilen dahiliyle deneye sokulmuştur.
 
 Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
 
-\subsubsection{Değişken PG iterasyon sayısı}
+\subsection{Değişken PG iterasyon sayısı}
 
 Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
 
-\subsubsection{Değişken Lidar upsample Lidar History sayısı}
+\subsection{Değişken Lidar upsample Lidar History sayısı}
 
 Bu başlık altında test edilen şeyin ne tür bir füsyon olduğu görsellerle anlatılmalıdır.
 
@@ -43,7 +43,7 @@ XYZ güzergah karşılaştırmaları eklenmelidir.
 
 \input{./MainSections/16.1_MathematicalExperimentationMethodology}
 
-\subsection{CitrusFarm Veriseti}
+\section{CitrusFarm Veriseti}
 
 Bu başlık altında Deney senaryolarında bahsi geçen deneyler CitrusFarm veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
 
@@ -51,11 +51,11 @@ Deney sonuçlarındaki bir yöne doğru yünelimin esas sebebi tekerlek odometri
 
 \input{./Experiments/Results}
 
-\subsection{SensorSuiteV2 Veriseti}
+\section{SensorSuiteV2 Veriseti}
 
 Bu başlık altında Deney senaryolarında bahsi geçen deneyler SensorSuite veriseti ile gerçeklenmiştir. Deney sonuçları yine deneyler başlığında bahsedildiği şeklinde sergilenmiştir.
 
-\subsection{Paralel İşleme Performansı}
+\section{Paralel İşleme Performansı}
 
 GPU ile sinyal işlemeye dayalı yöntemler geliştirildiği için çeşitli GPU modelleri ile deneyler tekrarlandı. PG algoritması başarımının iterasyon sayısı ile doğru orantılı olduğu ve işlem gücü dar boğazının asıl PG iterasyon sayılarından meydana geldiği göz önünde bulundurularak bağımsız değişkenin GPU çeşiti ve bağımlı değişkenin 100 mili saniyedeki maksimum PG iterasyon sayısı oldu bir deney yapıldı. Deney sonucunda NVidia GPU'lardaki Cuda çekirdek sayıları ile maksimum PG iterasyonu sayısı arasında Şekil~\ref{fig:cuda_core_vs_pg_iter}'de verilen sayısal sonuçlara ulaşıldı.
 

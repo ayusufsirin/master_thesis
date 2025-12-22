@@ -1,4 +1,4 @@
-\section{GİRİŞ} \label{Introduction}
+\chapter{GİRİŞ} \label{Introduction}
 {
 Otonom sistemlerin çevreyi doğru algılayabilmesi, güvenilir navigasyon kararları verebilmesi ve dinamik ortamlarda kararlı bir şekilde hareket edebilmesi için derinlik bilgisinin doğru ve yüksek çözünürlüklü bir biçimde elde edilmesi kritik bir gerekliliktir. Bu doğruluk genellikle birden fazla sensörden gelen verinin birleştirilmesiyle, yani sensör füzyonu ile sağlanmaktadır. Stereo kameralar yoğun fakat düşük hassasiyetli derinlik bilgisi sunarken, LiDAR sensörleri seyrek fakat yüksek doğrulukta ölçümler sağlar. Bu iki sensörün tamamlayıcı yapıları, derinlik tahmininin geliştirilmesinde güçlü bir fırsat sunmakla birlikte, farklı çözünürlükte ve farklı dağılımlardaki verilerin bir araya getirilmesi teknik olarak zorlu bir problemdir.
 
@@ -11,35 +11,35 @@ Tezde sunulan yöntem, derin öğrenme tabanlı modellere kıyasla daha düşük
 Bu çalışma, yalnızca teorik bir sensör füzyonu tekniği sunmakla kalmamakta; aynı zamanda KITTI gibi yaygın benchmark veri setleri üzerinde test edilerek mevcut yöntemler (örneğin FastFusion) ile karşılaştırılmakta ve performans kazanımları detaylı bir şekilde ortaya konmaktadır. Buna ek olarak, saha testleri için oluşturulan ZED Stereo Kamera, Velodyne VLP16 LiDAR ve NVIDIA Jetson Nano bileşenlerinden oluşan taşınabilir bir sensör platformu ile gerçek veri toplanmış; böylece önerilen yöntemin gerçek dünyadaki çalışma koşullarındaki etkisi de analiz edilmiştir.
 }
 
-\subsection{Tezin Kapsamı}
+\section{Tezin Kapsamı}
 
 Bu tez, stereo kamera ve LiDAR sensörlerinden elde edilen verilerin Papoulis-Gerchberg algoritması aracılığıyla füzyonunu ele almakta ve derinlik tahmin performansının artırılmasını amaçlamaktadır. Çalışmanın kapsamı aşağıdaki başlıklar çerçevesinde tanımlanmıştır:
 
-\subsubsection{Stereo ve LiDAR Verilerinin Matematiksel Modellemesi}
+\subsection{Stereo ve LiDAR Verilerinin Matematiksel Modellemesi}
 
 Stereo kameradan elde edilen yoğun fakat gürültülü derinlik haritaları ile LiDAR sensörünün seyrek fakat yüksek doğruluklu ölçümleri ortak bir geometri üzerinde modellenmiştir. Veri setlerinin uzaysal uyumluluğu sağlanmış, derinlik görüntülerinin işlenebilir hâle gelmesi için ön işlem adımları uygulanmıştır.
 
-\subsubsection{Papoulis-Gerchberg Algoritmasının Füzyona Uyarlanması}
+\subsection{Papoulis-Gerchberg Algoritmasının Füzyona Uyarlanması}
 
 Algoritmanın görüntü tamamlama problemindeki geleneksel kullanımından farklı olarak, stereo-LiDAR füzyonuna uygun hâle getirilmesi için özel maskeleme stratejileri, frekans-domain filtreleme adımları ve yinelemeli iyileştirme mekanizmaları tasarlanmıştır.
 
-\subsubsection{Yinelemeli Derinlik İyileştirme Yapısı}
+\subsection{Yinelemeli Derinlik İyileştirme Yapısı}
 
 LiDAR verileri ankraj noktaları olarak kullanılmış, stereo derinlik haritaları bu bilgiler ışığında tekrar tekrar güncellenmiştir. Amaç, hem çözünürlüğün hem de derinlik doğruluğunun artırılmasıdır.
 
-\subsubsection{Benchmark Veri Setleri ile Deneysel Analiz}
+\subsection{Benchmark Veri Setleri ile Deneysel Analiz}
 
 Önerilen yöntem KITTI veri seti üzerinde değerlendirilmiş; özellikle kenar netliği, nesne sınırı tanımları ve derinlik doğruluğu bakımından literatürdeki yöntemlerle karşılaştırılmıştır.
 
-\subsubsection{Gerçek Dünya Deneyleri için Sensör Platformu Kullanımı}
+\subsection{Gerçek Dünya Deneyleri için Sensör Platformu Kullanımı}
 
 ZED stereo kamera ve Velodyne VLP16 LiDAR sensörlerini içeren mobil bir platformdan elde edilen gerçek veriler ile yöntemin performansı test edilmiştir. Titreşim ve saha koşullarının etkisini görmek için platform bir bacaklı robot üzerine yerleştirilmiştir.
 
-\subsubsection{Yöntemin Uygulanabilirliğinin Değerlendirilmesi}
+\subsection{Yöntemin Uygulanabilirliğinin Değerlendirilmesi}
 
 Önerilen tekniğin gerçek zamanlı otonom navigasyon sistemlerinde çalışabilirliği, hesaplama maliyeti, ölçeklenebilirliği ve sensör çeşitliliğine uyarlanabilirliği tartışılmıştır.
 
-\subsection{Katkılar}
+\section{Katkılar}
 
 Bu tez, stereo kamera ve LiDAR sensörlerinin füzyonuna yönelik literatüre hem teorik hem de uygulamalı düzeyde çeşitli özgün katkılar sunmaktadır. Çalışmanın başlıca katkıları aşağıdaki şekilde özetlenebilir:
 
@@ -59,7 +59,7 @@ Bu tez, stereo kamera ve LiDAR sensörlerinin füzyonuna yönelik literatüre he
     \item \textbf{Gerçek veri ile çevrim dışı değerlendirmeler sonucunda uygulama başarımının ortaya konması:} Kurulan sensör sistemiyle toplanan gerçek veriler üzerinde yapılan denemelerde, önerilen füzyon yönteminin çeşitli sensör kaynaklarından gelen ayrık derinlik bilgilerini daha stabil ve düşük hatalı bir şekilde birleştirebildiği deneysel olarak doğrulanmıştır.
 \end{itemize}
 
-\subsection{Organizasyon}
+\section{Organizasyon}
 
 Tezin organizasyonu aşağıdaki gibidir:
 

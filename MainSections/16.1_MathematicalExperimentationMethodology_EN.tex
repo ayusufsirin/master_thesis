@@ -1,9 +1,9 @@
-\subsection{Mathematical Framework for Experimental Analysis}
+\section{Mathematical Framework for Experimental Analysis}
 \label{sec:math_analysis_framework}
 
 In this study, the performance of the proposed Papoulis--Gerchberg (PG) based LiDAR--stereo fusion pipeline is evaluated under varying algorithmic configurations. The objective of this analysis is not merely to identify an optimal configuration, but to rigorously characterize the relative and joint contributions of the algorithm’s internal parameters to overall odometric performance.
 
-\subsubsection{Problem Definition}
+\subsection{Problem Definition}
 
 Let the behavior of the proposed method be governed by two independent control parameters:
 
@@ -22,7 +22,7 @@ which corresponds to the absence of PG iterations and minimal LU history, effect
 
 The primary goal of the experimental analysis is to determine how variations in $I$ and $H$ influence $M$, and to what extent each parameter contributes independently or jointly to performance improvement.
 
-\subsubsection{Two-Factor Additive Decomposition Model}
+\subsection{Two-Factor Additive Decomposition Model}
 
 To analyze the influence of the two parameters, the performance surface $M(I,H)$ is modeled using a two-factor additive decomposition:
 
@@ -44,7 +44,7 @@ where:
 
 This formulation allows the separation of independent contributions from iteration depth and temporal conditioning, while explicitly accounting for possible synergistic or diminishing interactions.
 
-\subsubsection{Estimation of Model Components}
+\subsection{Estimation of Model Components}
 
 Let $\mathcal{I}$ and $\mathcal{H}$ denote the sets of evaluated iteration counts and history sizes, respectively.
 
@@ -83,7 +83,7 @@ The interaction residual is computed as:
 
 Large magnitudes of $\gamma(i,h)$ indicate non-additive behavior, suggesting that the effect of one parameter depends on the value of the other.
 
-\subsubsection{Marginal Sensitivity Analysis}
+\subsection{Marginal Sensitivity Analysis}
 
 To examine the local sensitivity of performance to each parameter, marginal differences are analyzed.
 
@@ -105,7 +105,7 @@ Similarly, for fixed iteration count $I$, the effect of LU history size is:
 
 This analysis reveals whether LU history acts as a primary optimization mechanism or primarily as a stabilizing component.
 
-\subsubsection{Normalized Contribution Ratios}
+\subsection{Normalized Contribution Ratios}
 
 To express contributions in a scale-independent manner, normalized improvement ratios are defined relative to the baseline configuration:
 \begin{equation}
@@ -127,7 +127,7 @@ C_H(H) = \frac{1}{|\mathcal{I}|}
 
 These quantities enable direct comparison of the relative importance of iteration depth and temporal memory.
 
-\subsubsection{Superposition and Interaction Analysis}
+\subsection{Superposition and Interaction Analysis}
 
 To test whether the effects of $I$ and $H$ are additive, a superposition hypothesis is evaluated.
 
@@ -161,7 +161,7 @@ where:
     \item $\Gamma > 0$ indicates diminishing returns.
 \end{itemize}
 
-\subsubsection{Metric-Dependent Sensitivity}
+\subsection{Metric-Dependent Sensitivity}
 
 It is important to note that different performance metrics exhibit varying sensitivity to the parameters $I$ and $H$. Global metrics such as APE are expected to be more strongly influenced by $\alpha(I)$, whereas local consistency metrics and variance-based measures are more sensitive to $\beta(H)$. Orientation errors, such as yaw, are often dominated by backend SLAM constraints and environmental observability rather than preprocessing parameters.
 

@@ -1,8 +1,8 @@
-\subsection{Depth Map Fitting} \label{sec:depth_map_fitting}
+\section{Depth Map Fitting} \label{sec:depth_map_fitting}
 
 Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kamera düzlemine projekte ederek bir LiDAR derinlik imgesi üretmek ve stereo (ZED) derinlik haritası ile aynı piksel uzayında \textit{örtüşen (overlap)} bölgede tutarlı bir derinlik haritası elde etmektir. Bu işlem, PG yinelemelerinden bağımsız olarak, iki sensörün aynı geometri üzerinde hizalanmış tek bir derinlik alanı üretmesini sağlar.
 
-\subsubsection{Girdiler ve gösterim}
+\subsection{Girdiler ve gösterim}
 
 Zaman adımı $t_k$ için:
 \begin{itemize}
@@ -14,7 +14,7 @@ Zaman adımı $t_k$ için:
 
 Burada $(u,v)$ piksel koordinatlarını, $(X,Y,Z)$ ise kamera koordinat sistemini temsil eder ve $Z>0$ kamera ekseni boyunca ileri yön derinliktir.
 
-\subsubsection{LiDAR nokta bulutundan derinlik imgesine projeksiyon}
+\subsection{LiDAR nokta bulutundan derinlik imgesine projeksiyon}
 
 Her bir $\mathbf{p}_i$ noktası pinhole model ile görüntü düzlemine projekte edilir:
 \begin{equation}
@@ -43,7 +43,7 @@ D_{\text{L}}(v,u) =
 \text{aksi halde } D_{\text{L}}(v,u)=\mathrm{NaN}.
 \end{equation}
 
-\subsubsection{ZED derinlik ön-işleme ve geçersiz maske}
+\subsection{ZED derinlik ön-işleme ve geçersiz maske}
 
 ZED derinlik haritasındaki geçersiz ölçümler için maske:
 \begin{equation}
@@ -52,7 +52,7 @@ M(v,u) \triangleq \mathbb{I}\big(D_{\text{ZED}}^{\text{orig}}(v,u)\ \text{sonlu 
 tanımlanır. İlerleyen adımlarda işlem kararlılığı için $D_{\text{ZED}}^{\text{orig}}$ üzerinde NaN-farkındalıklı bir doldurma (inpainting) uygulanarak
 $D_{\text{ZED}}(v,u)$ elde edilir. Bu aşama yalnızca ara hesaplama içindir; nihai sonuçta $M$ maskesi tekrar uygulanır.
 
-\subsubsection{Örtüşme bölgesi (cropping) ve tutarlılık filtresi}
+\subsection{Örtüşme bölgesi (cropping) ve tutarlılık filtresi}
 
 İşlem yalnızca iki sensörün aynı görüş hacminde güvenilir olduğu bir ROI üzerinde yapılır. Bu kırpılmış bölge:
 \begin{equation}
@@ -80,7 +80,7 @@ M_{\text{L}}(v,u) \triangleq
 \end{equation}
 olarak tanımlanır. Burada $\tau$ sensörler arası maksimum izin verilen derinlik farkıdır.
 
-\subsubsection{Derinlik haritası oturtma (fitting) ve yeniden birleştirme}
+\subsection{Derinlik haritası oturtma (fitting) ve yeniden birleştirme}
 
 Kırpılmış bölgede \textit{fitted} derinlik haritası, geçerli LiDAR ankrajları varsa LiDAR değerini, yoksa ZED değerini seçen birleştirme kuralı ile tanımlanır:
 \begin{equation}

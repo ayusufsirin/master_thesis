@@ -1,12 +1,12 @@
-\section{ARKAPLAN ÖZETİ} \label{Background}
+\chapter{ARKAPLAN ÖZETİ} \label{Background}
 
 Bu bölümde, çalışmada kullanılan sensörler kısaca tanıtılmakta, derinlik algısının temel prensipleri özetlenmekte ve Papoulis–Gerchberg algoritmasının sensör füzyonu bağlamındaki yeri açıklanmaktadır. Böylece, ilerleyen bölümlerde ayrıntılı olarak sunulan yöntem için kavramsal bir altyapı oluşturulması amaçlanmaktadır.
 
-\subsection{Sensörler}
+\section{Sensörler}
 
 Bu çalışmanın temelini, yoğun fakat gürültülü derinlik bilgisi sağlayan \textbf{stereo kamera} ile seyrek fakat yüksek hassasiyetli ölçümler sunan \textbf{LiDAR} sensörünün birlikte kullanımı oluşturmaktadır. Deneysel doğrulama aşamasında ise \textbf{IMU} ve \textbf{GNSS/RTK} verileri de yardımcı sensörler olarak kullanılmıştır.
 
-\subsubsection{Stereo Kamera}
+\subsection{Stereo Kamera}
 
 Stereo kamera sistemi, birbirine paralel ve aralarında sabit bir taban mesafesi (\emph{baseline}) bulunan iki kameradan oluşur. Her iki kameradan elde edilen görüntüler arasındaki yatay piksel kayması, yani \emph{parallaks} ya da \emph{disparite}, derinlik bilgisinin temel kaynağıdır. Kamera kalibrasyonu sonrasında odak uzaklığı $f$ ve taban mesafesi $B$ bilindiğinde, bir pikselin disparitesi $d$ kullanılarak sahnedeki karşılık gelen noktanın derinliği $Z$ yaklaşık olarak
 \begin{equation}
@@ -16,7 +16,7 @@ ilişkisi ile hesaplanabilir.
 
 Pratikte stereo eşleştirme algoritmalarının; doku eksikliği, tekrarlayan desenler, perspektif bozulmalar ve görüntü gürültüsü gibi nedenlerle özellikle kenar bölgelerinde ve uzak mesafelerde hataya açık olduğu bilinmektedir. Bu durum, stereo kameradan elde edilen derinlik haritalarının \emph{yoğun} olmasına rağmen \emph{yüksek doğrulukta olmamasına} yol açar. Öte yandan, tutarlı bir görüntü geometrisi sunduğu için Papoulis–Gerchberg algoritmasının ``yoğun arka plan'' bileşeni için uygun bir temel teşkil eder.
 
-\subsubsection{LiDAR}
+\subsection{LiDAR}
 
 LiDAR (Light Detection and Ranging), ortama gönderdiği lazer ışınlarının gidiş–dönüş süresini ölçerek mesafe tahmini yapan bir zaman–uçuş (Time-of-Flight) sensörüdür. Lazer kaynağından çıkan ışının sensörden hedefe gidip tekrar alıcıya dönmesi için geçen süre $t$ ölçüldüğünde, hedefe olan uzaklık $R$ aşağıdaki şekilde hesaplanır:
 \begin{equation}\label{TOF}
@@ -34,7 +34,7 @@ dönüşümü ile aktarılır. Burada $X$, $Y$ ve $Z$ sırasıyla ileri, sola ve
 
 LiDAR sensörleri, stereo kameraya kıyasla çok daha seyrek bir derinlik örneklemesi sunsa da, her bir ölçüm noktasının doğruluğu oldukça yüksektir. Bu özellik, LiDAR verisini stereo derinlik haritalarının iyileştirilmesinde güvenilir \emph{ankraj noktaları} olarak kullanılmaya uygun hâle getirmektedir.
 
-\subsubsection{IMU, GNSS ve RTK}
+\subsection{IMU, GNSS ve RTK}
 
 Deneysel çalışmalarda, stereo–LiDAR füzyonunun sonuçlarını değerlendirmek ve SLAM altyapısı üzerinde test etmek amacıyla IMU ve GNSS/RTK verilerinden de yararlanılmıştır.
 
@@ -44,7 +44,7 @@ Deneysel çalışmalarda, stereo–LiDAR füzyonunun sonuçlarını değerlendir
 
 Bu sensörler, doğrudan füzyon algoritmasının girdisi olmaktan ziyade, elde edilen derinlik haritalarının ve SLAM sonuçlarının doğrulanması için referans niteliğinde kullanılmıştır.
 
-\subsection{Derinlik Algısı ve Stereo–LiDAR Füzyonu}
+\section{Derinlik Algısı ve Stereo–LiDAR Füzyonu}
 
 Otonom sistemlerde derinlik algısının geliştirilmesi için sıklıkla birden fazla sensör bir arada kullanılır. Stereo kameralar sahnenin her pikseli için derinlik tahmini üretebilirken, LiDAR sensörleri sınırlı sayıda ışın doğrultusunda yüksek doğruluklu mesafe ölçümü yapar. Bu iki sensör tipinin tamamlayıcı özellikleri şu şekilde özetlenebilir:
 
@@ -57,7 +57,7 @@ Literatürde stereo–LiDAR füzyonu için önerilen yöntemlerin önemli bir k�
 
 Bu tezde ise, herhangi bir eğitim sürecine ihtiyaç duymayan, deterministik ve hesaplama açısından daha hafif bir füzyon yaklaşımı ele alınmaktadır. Önerilen yöntem, stereo derinlik haritasını \emph{yoğun arka plan}, LiDAR ölçümlerini ise \emph{yüksek güvenilirlikli ankraj noktaları} olarak kabul ederek, bu iki veri kaynağını yinelemeli bir iyileştirme süreciyle birleştirir.
 
-\subsection{Papoulis–Gerchberg Algoritması}
+\section{Papoulis–Gerchberg Algoritması}
 
 Papoulis–Gerchberg (PG) algoritması, band-sınırlı sinyallerin eksik veya bozulmuş örneklerden yeniden oluştulması için kullanılan yinelemeli bir sinyal işleme yöntemidir. Temel fikir, sinyal üzerinde iki farklı alanda (örneğin zaman/uzay ve frekans alanı) bilinen kısıtların art arda uygulanmasıdır.
 

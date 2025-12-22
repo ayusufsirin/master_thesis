@@ -1,4 +1,4 @@
-\subsection{LiDAR Nokta Yoğunluğu Arttırımı} \label{lidar_upsample}
+\section{LiDAR Nokta Yoğunluğu Arttırımı} \label{lidar_upsample}
 
 Lidar verisi doğası gereği seyrek bir yapıya sahiptir. Seyrek yapıdaki Lidar verisini işlem hattına sokarak stereo imaj yakınsatmasında kullanıldığı takdirde kılavuz görevi gören lidar noktalarının yetersizliği sebebiyle PG sonrası stereo derinlik haritasının daha da kötüleşmesi gibi bir problem görülmüştür. Bundan dolayı lidar noktalarına bir ön işleme uygulanarak odometri verisi ile fuse edilmiştir. Bu füsyon, temelde odometry verileri kullanılarak lidar noktalarının translate ve rotate ettirilmesi ve kümülatif nokta kümesi elde edilmesidir.
 
@@ -13,7 +13,7 @@ Bakıldığında LIO (lidar inertial odometry) operasyonu gibi görünse de çok
     \label{fig:lidar_upsample}
 \end{figure}
 
-\subsubsection{Point cloud and odometry notation}
+\subsection{Point cloud and odometry notation}
 
 At each time step \(t_k\), the robot publishes:
 \begin{itemize}
@@ -61,7 +61,7 @@ We denote the homogeneous coordinates by
   \in \mathbb{R}^4.
 \end{equation}
 
-\subsubsection{Rigid-body transformation of the point cloud}
+\subsection{Rigid-body transformation of the point cloud}
 
 Each point is transformed from the LiDAR frame to the odometry frame using
 the odometry-derived pose:
@@ -106,7 +106,7 @@ so that
 \(\mathbf{y}_{k,j} = \mathbf{x}_{k,j} + \mathbf{p}_k\),
 i.e.\ only a translation is applied.
 
-\subsubsection{Sliding-window cumulative point cloud}
+\subsection{Sliding-window cumulative point cloud}
 
 Let \(H \in \mathbb{N}\) denote the history size
 (\texttt{PC\_HISTORY\_SIZE} in the implementation).
@@ -152,12 +152,12 @@ and odometry poses \((\mathbf{R}_k, \mathbf{p}_k)\) on
   &&\text{published on \texttt{/cumulative\_origin\_point\_cloud}.}
 \end{align}
 
-\subsubsection{Timing and real-time metrics}
+\subsection{Timing and real-time metrics}
 
 In addition to the geometric transformations, the node monitors several
 timing-related quantities in order to assess its real-time behavior.
 
-\subsubsubsection{Timestamps and latency}
+\subsubsection{Timestamps and latency}
 
 For each synchronized pair of messages at step \(k\), we denote:
 \begin{itemize}
@@ -180,7 +180,7 @@ is then approximated as
 which in the implementation is logged as
 \(\texttt{latency\_ms} = 1000 \, L_k\).
 
-\subsubsubsection{Processing time}
+\subsubsection{Processing time}
 
 Let \(\tau^{\text{start}}_k\) and \(\tau^{\text{end}}_k\) denote the wall-clock
 times at the beginning and at the end of the processing loop for step \(k\).
@@ -227,7 +227,7 @@ Collectively,
   T^{\text{cum-origin\_create}}_k.
 \end{equation}
 
-\subsubsubsection{Input and processing rates}
+\subsubsection{Input and processing rates}
 
 To estimate the input rate of synchronized point cloud--odometry pairs,
 we use the sequence of arrival timestamps
@@ -260,7 +260,7 @@ defined as
 \end{equation}
 and is logged as \(\texttt{throughput\_ratio}\).
 
-\subsubsubsection{Queue occupancy and history size}
+\subsubsection{Queue occupancy and history size}
 
 The internal processing queue has a finite capacity \(Q_{\max}\). Let
 \(q_k \in \{0, 1, \dots, Q_{\max}\}\) denote the number of messages waiting
@@ -270,7 +270,7 @@ sliding window for the cumulative clouds is bounded by
 \(H = \texttt{PC\_HISTORY\_SIZE}\), and the current number of stored point
 clouds at time step \(k\) is logged as \(\texttt{cumulative\_points}\).
 
-\subsubsubsection{Real-time condition}
+\subsubsection{Real-time condition}
 
 A necessary condition for real-time operation over a given interval is that
 the system is able to keep up with the input rate, i.e.

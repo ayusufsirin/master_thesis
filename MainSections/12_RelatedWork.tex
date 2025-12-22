@@ -1,8 +1,8 @@
-\section{LİTERATÜR TARAMASI}  \label{sec:literature}
+\chapter{LİTERATÜR TARAMASI}  \label{sec:literature}
 
 Bu bölümde, otonom sistemlerde derinlik algısı için kullanılan temel yöntemler, stereo ve LiDAR tabanlı derinlik kestirimi, bu iki sensörün füzyonuna yönelik yaklaşımlar ve Papoulis–Gerchberg algoritmasının sinyal ve görüntü işleme literatüründeki yeri ele alınmaktadır. Böylece, tez kapsamında önerilen Papoulis–Gerchberg tabanlı stereo–LiDAR füzyon yöntemi için kavramsal ve tarihsel arka plan sunulmakta, mevcut çalışmaların sınırlılıkları üzerinden çalışmanın katkı alanı tanımlanmaktadır.
 
-\subsection{Derinlik Algısı ve Stereo Görü Yöntemleri}
+\section{Derinlik Algısı ve Stereo Görü Yöntemleri}
 
 Stereo eşleştirme ve derinlik kestirimi, otonom sürüş ve robotik navigasyon uygulamalarında uzun süredir kullanılan temel yöntemlerdendir. Scharstein ve Szeliski'nin çalışması\cite{scharstein2002taxonomy}, stereo eşleştirme problemini maliyet hesaplama, maliyet toplama, optimizasyon ve düzenleme (regularization) adımlarına ayırarak o döneme kadar önerilmiş yöntemleri sistematik bir çerçevede incelemiştir. Bu çalışma, blok eşleştirme, küresel optimizasyon ve çok ölçekli yaklaşımlar gibi klasik yöntemlerin sınıflandırılması açısından temel referans niteliğindedir.
 
@@ -12,23 +12,23 @@ Zbontar ve LeCun\cite{zbontar2016stereo} derin sinir ağlarını, stereo piksell
 
 Bu çerçevede, stereo kameralar yoğun (dense) bir derinlik haritası üretebilmekte, ancak bu harita özellikle kenar bölgeleri ve uzak mesafelerde anlamlı miktarda hata içerebilmektedir. Tez kapsamında bu zayıf yön, LiDAR'ın sağladığı seyrek fakat yüksek doğruluklu derinlik ölçümleriyle dengelenmeye çalışılmaktadır.
 
-\subsection{LiDAR Tabanlı Derinlik Ölçümü ve 3B Algı}
+\section{LiDAR Tabanlı Derinlik Ölçümü ve 3B Algı}
 
 LiDAR sensörleri, zaman–uçuş (Time-of-Flight) prensibi ile yüksek hassasiyette mesafe ölçümü sağlayan aktif sensörlerdir. İlk lazer mesafe ölçer cihazların 1960’lı yıllarda geliştirilmesinden sonra, LiDAR teknolojisi hem hava araçlarında hem de kara araçlarında geniş alan haritalama, otonom sürüş ve robotik algı görevlerinde yaygınlaşmıştır\cite{nasa_lidar}. Mekanik taramalı 3B LiDAR sistemleri, döner bir şaft üzerinde yer alan birden çok lazer–alıcı çifti ile 360° azimut ve belirli bir dikey görüş açısı içerisinde nokta bulutu üretir; bu nokta bulutu, LiDAR merkezli küresel koordinat sisteminden Kartezyen sisteme Denklem~(\ref{Sph2Car_x})–(\ref{Sph2Car_z}) ile dönüştürülerek işlenir.
 
 LiDAR verisi, stereo kameraya göre çok daha seyrek bir örnekleme sunsa da, her bir noktanın mesafe doğruluğu genellikle daha yüksektir. Bu nedenle, LiDAR tabanlı odometri ve haritalama yöntemleri (NDT, ICP ve varyantları gibi) robotik algoritmalar için önemli bir çalışma alanı hâline gelmiştir. Ancak LiDAR noktalarının seyrek oluşu, özellikle ince detayların ve nesne sınırlarının temsilinde sınırlılıklara yol açar; ayrıca LiDAR sensörlerinin maliyeti çoğu zaman stereo kameralardan yüksektir. Bu sebeple, LiDAR’ın doğruluğunu stereo kameranın yoğun örnekleme yeteneği ile birleştiren füzyon yöntemleri literatürde giderek daha fazla önem kazanmıştır.
 
-\subsection{Stereo–LiDAR Füzyon Yöntemleri}
+\section{Stereo–LiDAR Füzyon Yöntemleri}
 
 Stereo–LiDAR füzyonu, stereo kameradan elde edilen yoğun fakat gürültülü derinlik haritası ile LiDAR’dan gelen seyrek fakat güvenilir derinlik ölçümlerini birleştirerek hem doğruluk hem de çözünürlük açısından üstün bir derinlik temsili elde etmeyi amaçlar. Literatürde bu amaçla önerilmiş yöntemler genel olarak üç grupta incelenebilir: (1) Geometrik/klasik (öğrenme tabanlı olmayan) yöntemler, (2) derin sinir ağlarına dayalı yöntemler ve (3) hibrit yaklaşımlar.
 
-\subsubsection{Öğrenme Tabanlı Olmayan Stereo–LiDAR Füzyonu}
+\subsection{Öğrenme Tabanlı Olmayan Stereo–LiDAR Füzyonu}
 
 Erken dönem çalışmalarda, stereo disparite haritalarını LiDAR derinlik ölçümleri yardımıyla iyileştiren geometrik yöntemler ön plana çıkmıştır. Parks ve ark.\cite{parks2018fusion} ve Park ve ark.\cite{park2019stereolidar}, LiDAR verisini stereo disparite hesabına ek bir ipucu olarak dahil eden, çoğunlukla maliyet hacmini yeniden ağırlıklandırma veya yerel düzeltme mekanizmalarına dayalı yöntemler önermişlerdir. Bu çalışmalar, stereo eşleştirme aşamasına LiDAR verisini gömerek, özellikle düşük tekstürlü bölgelerde disparite hatalarını azaltmayı hedefler. Ancak LiDAR’ın yüksek doğruluğu tam anlamıyla “ankraj noktası” olarak kullanılmamakta, daha çok lokal düzeltme sinyali rolü üstlenmektedir.
 
 Diğer bir grup yöntem, stereo ve LiDAR verilerini derinlik alanında birleştiren, çoğunlukla filtrasyon ve interpolasyon tabanlı yaklaşımlardır. Bu yöntemlerde, LiDAR noktaları derinlik düzlemine projekte edilerek, stereo haritasındaki hatalı veya boş bölgeler filtreler ve interpolasyon şemaları ile düzeltilir. Bu tür teknikler görece düşük hesaplama maliyetine sahip olsalar da, çoğunlukla sabit kernel yapıları veya basit ağırlıklandırma kuralları kullandıkları için, özellikle nesne sınırlarında ayrık sensör karakteristiklerini yeterince iyi yansıtamayabilirler.
 
-\subsubsection{Derin Sinir Ağlarına Dayalı Stereo–LiDAR Füzyonu}
+\subsection{Derin Sinir Ağlarına Dayalı Stereo–LiDAR Füzyonu}
 
 Son yıllarda, stereo–LiDAR füzyonu için derin sinir ağlarına dayalı yöntemler literatürde baskın hâle gelmiştir. Choe ve ark.\cite{choe2021fusion} ve Yang ve ark.\cite{yang2019fusion}, LiDAR verisini stereo ağlarının erken katmanlarına entegre eden mimariler önermiş, böylece derinlik tahmin sürecini tek bir uçtan uca öğrenilebilir çerçeve içinde modellemişlerdir. Bu çalışmalarda LiDAR girdisi, ya ek bir kanal olarak görüntüyle birlikte ağa verilir ya da ara özellik haritaları üzerine projekte edilerek ağın daha iyi derinlik temsilleri öğrenmesine yardımcı olur.
 
@@ -36,13 +36,13 @@ Mai ve ark.\cite{mai2021fusion} ile Li ve Cao\cite{li2020fusion} gibi çalışma
 
 Buna ek olarak, FastFusion gibi yöntemler (örneğin \cite{fastfusion}) yüksek doğruluklu, uçtan uca derinlik füzyon mimarileri sunarak stereo–LiDAR birleşimiyle yüksek performans sergilemekte, ancak bu başarı çoğu zaman hesaplama maliyeti ve mimari karmaşıklık pahasına elde edilmektedir. Bu durum, gömülü sistemler veya düşük güçlü mobil platformlarda gerçek zamanlı uygulamalar için önemli bir kısıt teşkil etmektedir.
 
-\subsubsection{Hibrit ve Bağlantılı Yaklaşımlar}
+\subsection{Hibrit ve Bağlantılı Yaklaşımlar}
 
 Bazı çalışmalar, stereo–LiDAR füzyonunu doğrudan derinlik tahmini yerine hareket kestirimi (odometri) ve haritalama bağlamında ele almaktadır. Örneğin LiDAR–kamera odometrisi veya LiDAR–görsel–inertiyal odometri sistemlerinde, LiDAR ve görüntü verisi birlikte kullanılarak hareket kestirimi yapılmakta, dolaylı olarak stereo–LiDAR ilişkisi de modellendirilmektedir. Ancak bu tür çalışmaların önemli bir kısmında, stereo–LiDAR füzyonu doğrudan tek bir derinlik haritası üretmekten ziyade, optimizasyon probleminin hata fonksiyonunda dolaylı bir bağlayıcı rol üstlenmektedir.
 
 Bu tezde ise, doğrudan \emph{derinlik haritası füzyonu} ele alınmakta, stereo ve LiDAR verisi tek bir 2B derinlik düzleminde, Papoulis–Gerchberg algoritmasının sunduğu yinelemeli çerçeve içinde birleştirilmektedir. Böylece, derin öğrenme tabanlı yaklaşımların yüksek hesaplama maliyeti olmaksızın, LiDAR doğruluğu stereo derinlik haritasına aktarılmaktadır.
 
-\subsection{Papoulis–Gerchberg Algoritması ve İlgili Çalışmalar}
+\section{Papoulis–Gerchberg Algoritması ve İlgili Çalışmalar}
 
 Papoulis–Gerchberg (PG) algoritması, band-sınırlı sinyallerin eksik veya bozulmuş örneklerden yeniden oluşturulması amacıyla geliştirilmiş, yinelemeli bir sinyal işleme yöntemidir. Orijinal formülasyonunda, bir sinyalin zaman (veya uzay) alanında bilinen örnekleri ile frekans alanında bilinen spektral kısıtları art arda uygulanarak, eksik bölümler doldurulur ve sinyal band-sınırlılık varsayımı altında yeniden inşa edilir.
 
@@ -66,7 +66,7 @@ Bu tez, PG algoritmasını:
 \end{itemize}
 olarak kabul eden yeni bir formda ele alarak, algoritmanın sinyal tamamlama bağlamından sensör füzyonu bağlamına taşınmasını önermektedir. Böylece PG algoritması, ilk kez stereo kamera ve LiDAR verilerini aynı yinelemeli çerçevede birleştiren deterministik bir füzyon aracı olarak kullanılmaktadır.
 
-\subsection{Derinlik Füzyonu, SLAM ve Gerçek Zamanlı Uygulamalar}
+\section{Derinlik Füzyonu, SLAM ve Gerçek Zamanlı Uygulamalar}
 
 Stereo–LiDAR füzyonu yalnızca tek karelik derinlik iyileştirmesi için değil, aynı zamanda odometri ve SLAM sistemlerinin doğruluğunun artırılması için de önemlidir. Görsel odometri, LiDAR odometrisi ve LiDAR–görsel–inertiyal odometri yöntemleri, derinlik haritalarını ve nokta bulutlarını kullanarak hareket kestirimi yapar; bu süreçte derinlik kalitesinin artması, odometri hatalarının ve harita gürültüsünün azalmasına doğrudan katkı sağlar.
 
