@@ -38,13 +38,13 @@ patterns=(
   "pg_rpe_1m"
   "pg_rpe_1s"
   "pg_rpe_50m"
-  "pg_rpe_100m"
+#  "pg_rpe_100m"
   "pg_rpe_200m"
-  "pg_rpe_300m"
-  "pg_rpe_400m"
+#  "pg_rpe_300m"
+#  "pg_rpe_400m"
   "pg_rpe_500m"
-  "pg_rpe_600m"
-  "pg_rpe_700m"
+#  "pg_rpe_600m"
+#  "pg_rpe_700m"
   "pg_yaw_50m"
 )
 
