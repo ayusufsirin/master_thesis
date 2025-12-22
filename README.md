@@ -15,5 +15,9 @@ latexmk -pdf -interaction=nonstopmode -pvc
 ```
 
 ```bash
+latexmk -pdf -interaction=nonstopmode -f -pvc main.tex
+```
+
+```bash
 mmdc -s 5 -i mermaid/pg.mmd -o pg.png
 ```
