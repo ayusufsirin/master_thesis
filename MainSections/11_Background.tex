@@ -76,6 +76,17 @@ Bu iki adım, $k$ indeksli yinelemeler boyunca yinelenir ve sinyal $\mathbf{x}^{
 burada $\mathcal{P}_{\text{uzay}}$ uzay alanındaki bilinen örnekleri zorlayan işlemciyi, $\mathcal{P}_{\text{frekans}}$ ise frekans bandı kısıtını temsil eden operatörü, $\mathcal{F}$ ve $\mathcal{F}^{-1}$ ise ileri ve ters Fourier dönüşümlerini göstermektedir. 
 % TODO: Bu denklemi kendi notasyonuna göre yeniden yazıp gerekirse alt bileşenlerini aç.
 
+PG algoritmasının iteratif yakınsama davranışı, sezgisel olarak, yalnızca belirli ankraj örnekleri bilinen bir sinyalin bu örneklere ve spektral kısıtlara giderek daha iyi uyum sağlayacak şekilde yeniden şekillenmesi olarak yorumlanabilir. Bu davranış, algoritmanın her iterasyonda bilinen örneklere geri dönmesi ve aynı zamanda global bir bant-sınırlılık varsayımını koruması sayesinde ortaya çıkar. Şekil~\ref{fig:standard_pg_convergence}, bu süreci basitleştirilmiş bir sinyal örneği üzerinden göstermekte; başlangıçta kaba olan tahminin, iterasyonlar ilerledikçe ankraj noktalarla tutarlı ve daha düzgün bir yapıya yakınsadığını ortaya koymaktadır.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 9 / 12}
+        \includegraphics{./Figures/standard_pg_convergence.png}
+    \end{adjustbox}
+    \caption{Standart Papoulis--Gerchberg (PG) algoritmasında iteratif yakınsama davranışı. Turuncu işaretleyiciler ankraj (bilinen) örnekleri göstermektedir. Başlangıç tahmini (iterasyon 0) ankrajlar arasındaki boşluklarda zayıf bir temsil üretirken, her iterasyonda (ör. 1, 2, 5, 12) ankraj tutarlılığı ve bant-sınırlılık kısıtları ardışık olarak uygulanarak sinyal boş bölgelerde giderek daha tutarlı biçimde yeniden inşa edilir ve hedef sinyale yaklaşır.}
+    \label{fig:standard_pg_convergence}
+\end{figure}
+
 Görüntü tamamlama (image inpainting), süper çözünürlük ve kayıp veri doldurma gibi uygulamalarda PG algoritmasının farklı varyantları kullanılmaktadır.
 
 Bu tezde, algoritma ilk kez \emph{stereo–LiDAR derinlik füzyonu} problemi için uyarlanarak, stereo derinlik haritasının LiDAR ankraj noktaları yardımıyla yinelemeli olarak iyileştirilmesinde kullanılmaktadır.
