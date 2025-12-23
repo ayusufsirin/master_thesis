@@ -3,6 +3,29 @@
 Bu bölümde, DMF adımı ile aynı piksel uzayında hizalanmış hâle getirilen ZED ve LiDAR derinlik bilgilerinden hareketle, yayınlanan nihai derinlik haritasının $D_{\text{PG}}(v,u)$ nasıl oluşturulduğu tanımlanmaktadır.
 Bu alt bölüm, PG'nin iteratif çekirdek güncelleme denklemlerinden ziyade, çalışma kapsamında \textit{PG çıktısı olarak yayınlanan derinlik alanının} birleştirme ve maskeleme kuralını sunmaktadır.
 
+Matematiksel formulasyona geçmeden önce algoritmanın geliştirilmesi ile varılmak istenen noktayı analojik olarak balsa uçak kanadı modeli üzerinden anlatımı
+
+\subsection{Sezgisel Analoji: Balsa Kanat Üzerine Gerilen Film}
+
+Bu çalışmada önerilen Dinamik Papoulis--Gerchberg yaklaşımı, sezgisel olarak, model uçak yapımında balsa ağacından oluşturulan kanat iskeleti üzerine gerilen ince kaplama filmi analojisi ile açıklanabilir (bkz. Şekil~\ref{fig:film_analogy}). Balsa iskelet, kanadın temel geometrisini ve taşıyıcı hatlarını belirlerken; üzerine gerilen film, bu iskelet boyunca gerdirilerek sürekli ve aerodinamik bir yüzey oluşturur. Film gerdirildiğinde, iskeletin belirlediği ana hatları takip ederken yerel ölçekte küçük gerilmeler, hafif deformasyonlar veya yüzey düzgünsüzlükleri oluşabilir. Ancak bu mikroskobik bozulmalar, yüzeyin genel formunu bozmaz; aksine, film sayesinde kanat, çıplak iskelete kıyasla çok daha keskin, sürekli ve tanımlı bir profile kavuşur.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth * 9 / 12}
+        \includegraphics{./Figures/analogy.png}
+    \end{adjustbox}
+    \caption{Balsa kanat üzerine gerilen kaplama filmi analojisi. Rijit balsa iskelet, kanadın ana geometrik hatlarını belirlerken; üzerine gerilen film, bu kılavuz yapı boyunca sürekli bir yüzey oluşturmaktadır. Film gerilme sürecinde lokal deformasyonlar gösterebilse de, bu durum yüzeyin genel formunu bozmaz ve aksine daha keskin, tanımlı bir yapı elde edilmesini sağlar. Bu davranış, Dinamik Papoulis--Gerchberg yaklaşımında ZED derinlik haritasının LiDAR kılavuz noktalarına oturtulmasına sezgisel bir karşılık sunmaktadır.}
+    \label{fig:film_analogy}
+\end{figure}
+
+Bu analojide, LiDAR ölçümleri kanat iskeletini oluşturan rijit kılavuz noktalar olarak düşünülebilirken, stereo (ZED) derinlik haritası ise bu iskelet üzerine gerilen sürekli film yüzeyine karşılık gelmektedir. LiDAR noktaları, sahnenin geometrik doğruluğunu ve ana yapısal sınırlarını belirlerken; ZED derinliği bu noktalar arasında sürekli bir yüzey oluşturarak yoğun ve pürüzsüz bir derinlik alanı sağlar.
+
+\subsection{Dinamik PG ile Analoji Arasındaki İlişki}
+
+Dinamik Papoulis--Gerchberg tabanlı derinlik füzyonu da benzer şekilde, ZED derinlik haritasını LiDAR tarafından sağlanan güvenilir kılavuz noktalar üzerine ``gererek'' oturtmaktadır. Bu süreçte, ZED derinliğinin bazı bölgelerde LiDAR ölçümlerine uyum sağlamak adına lokal olarak deforme olması kaçınılmazdır. Ancak bu deformasyonlar, tıpkı kanat üzerindeki filmde olduğu gibi, global geometrik bütünlüğü bozacak nitelikte değildir. Aksine, LiDAR kılavuz noktalarının zorlayıcı etkisi sayesinde, yüzeyin keskin kenarları, yapı sınırları ve derinlik süreksizlikleri daha net hâle gelmektedir.
+
+Bu bağlamda, elde edilen derinlik haritasının pürüzsüzlüğünden ziyade, geometrik tutarlılığı ve yapısal doğruluğu ön plana çıkmaktadır. SLAM ve odometri performansı açısından kritik olan unsur, yüzeyin lokal olarak ne kadar ideal olduğu değil; sahnedeki nesnelerin göreli konumlarının, kenarlarının ve süreksizliklerinin ne kadar doğru temsil edildiğidir. Tıpkı gerçek bir uçakta olduğu gibi, kanat yüzeyindeki mikroskobik gerilme izleri uçuş performansını olumsuz etkilemez; önemli olan, kanadın genel formunun ve taşıyıcı geometrisinin doğru olmasıdır. Benzer şekilde, Dinamik PG yaklaşımında da küçük lokal bozulmalar tolere edilebilir olup, asıl kazanım SLAM algoritmalarının daha kararlı, tutarlı ve tekrar edilebilir sonuçlar üretmesidir.
+
 \subsection{Derinlik Füzyon Hattının Matematiksel Formülasyonu}
 
 Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yatan matematiksel model formel olarak sunulmaktadır. Uygulama, stereo kameradan (ZED) elde edilen senkronize derinlik görüntüleri ile LiDAR sensöründen alınan nokta bulutlarını DMF[~\ref{sec:depth_map_fitting}] önişlemesinden sonra girdi olarak almakta ve gerçek zamanlı olarak füzyonlanmış bir derinlik görüntüsü ile buna karşılık gelen bir nokta bulutu üretmektedir.
