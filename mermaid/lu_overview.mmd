@@ -1,17 +1,17 @@
 flowchart LR
 
-lidar_pc_in[("/velodyne_points <br/> $$ \mathcal{X}_k \space \textbf{@} \space t_k $$")]:::topic
+lidar_pc_in[("/lidar/point_cloud <br/> $$ \mathcal{X}_k \space \textbf{@} \space t_k $$")]:::topic
 odom_in["/odom <br/> $$ (\mathbf{p}_k,\mathbf{q}_k) \space \textbf{@} \space t_k $$"]:::topic
 stamps_node["Generate<br/>$$\tau_k^{pc}, \tau_k^{in}, \tau_k^{out}$$"]:::stage
 
 subgraph lu_node["LU Node (LiDAR Upsample via Odometry Fusion)"]
   direction TB
 
-  sync_block["Time Synchronization"]:::stage
-  transform_block["Rigid-Body Transform <br/> (LiDAR → Odom)"]:::stage
-  cum_block["Sliding-Window Cumulative Cloud <br/> (Odom Frame)"]:::stage
-  origin_block["Origin-Aligned Cumulative Cloud"]:::stage
-  metrics_block["Timing + Real-time Metrics"]:::stage
+  sync_block["Time <br/> Synchronization"]:::stage
+  transform_block["Rigid-Body <br/> Transform <br/> (LiDAR → Odom)"]:::stage
+  cum_block["Sliding-Window <br/> Cumulative Cloud <br/> (Odom Frame)"]:::stage
+  origin_block["Origin-Aligned <br/> Cumulative Cloud"]:::stage
+  metrics_block["Timing + Real-time <br/> Metrics"]:::stage
 end
 
 lidar_pc_in --> sync_block

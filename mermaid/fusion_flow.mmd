@@ -6,8 +6,10 @@ flowchart TD
 %% ---------------- SUBSYSTEMS ----------------
 subgraph SENSORS["Sensors"]
 direction TB
-camera_node["Stereo Camera Driver"]:::sensor_node
+camera_node["Stereo Camera <br/> Driver"]:::sensor_node
 lidar_node["LiDAR Driver"]:::sensor_node
+wheel_encoder["Wheel Encoder <br/> Driver"]:::sensor_node
+imu_node["IMU Driver"]:::sensor_node
 end
 style SENSORS fill:#1e293b,stroke:#38bdf8,stroke-width:3px,color:#e5f3ff
 
@@ -29,7 +31,7 @@ subgraph CameraTopics["Camera Topics"]
 direction LR
 cam_rgb_left["/camera/rgb/left/image"]:::topic_camera
 cam_rgb_right["/camera/rgb/right/image"]:::topic_camera
-cam_info["/camera/rgb/info"]:::topic_camera
+cam_info["/camera/rgb/info <br> $$f_x,f_y,c_x,c_y$$"]:::topic_camera
 end
 
 %% ---------------- TOPICS ----------------
@@ -38,14 +40,17 @@ end
 cam_rgb_left["/camera/rgb/left/image"]:::topic_camera
 cam_rgb_right["/camera/rgb/right/image"]:::topic_camera
 cam_info["/camera/rgb/info"]:::topic_camera
-cam_depth["/camera/depth/image"]:::topic_depth
-cam_depth_info["/camera/depth/info"]:::topic_depth
+cam_depth["/camera/depth/image <br> $$D_{\mathrm{ZED}}^{\mathrm{orig}}(v,u)$$"]:::topic_depth
+cam_depth_info["/camera/depth/info <br> $$f_x,f_y,c_x,c_y$$"]:::topic_depth
 
-lidar_pc["/lidar/point_cloud"]:::topic_lidar
-lidar_pc_cum["/lidar/point_cloud/cumulative"]:::topic_lidar
+lidar_pc["/lidar/point_cloud <br/> $$\mathcal{X}_k$$"]:::topic_lidar
+lidar_pc_cum["/cumulative_origin_point_cloud <br/> $$\mathcal{Z}_k^{\text{cum}}$$"]:::topic_lidar
 
-odom["/odom"]:::topic_odom
-pg_depth["/pg/depth"]:::topic_fused
+imu_data["/imu/data"]:::topic_odom
+wheel_odom["/wheel/odom"]:::topic_odom
+odom["/odom <br/> $$ (\mathbf{p}_k,\mathbf{q}_k) $$"]:::topic_odom
+
+pg_depth["/pg/depth <br> $$\mathcal{P}_{\text{PG}}, D_{\text{PG}}(v,u)$$"]:::topic_fused
 %%end
 %%style TOPICS fill:#334155,stroke:#64748b,stroke-width:2px,color:#f8fafc
 
@@ -62,14 +67,20 @@ camera_node --> CameraTopics --> image_proc
 %%camera_node --> cam_rgb_right --> image_proc
 %%camera_node --> cam_info --> image_proc
 
+lidar_pc --> lidar_upsample
+
 image_proc --> cam_depth --> pg
 image_proc --> cam_depth_info --> pg
 
+imu_node --> imu_data --> localization
+wheel_odom --> localization
 lidar_node --> lidar_pc --> localization
 localization --> odom --> lidar_upsample
 lidar_upsample --> lidar_pc_cum --> pg
 
 pg --> pg_depth
+
+wheel_encoder --> wheel_odom
 
 localization -.-> tf_map_odom
 localization -.-> tf_odom_base

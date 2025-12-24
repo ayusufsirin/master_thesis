@@ -1,22 +1,22 @@
 flowchart LR
 
-subgraph inputs["DMF Girdileri"]
-  direction LR
-  lidar[("/lidar/point_cloud/cumulative <br/> PointCloud2")]:::topic
+%%subgraph inputs["DMF Girdileri"]
+%%  direction LR
+  lidar[("/cumulative_origin_point_cloud <br/> $$\mathcal{Z}_k^{\text{cum}}$$")]:::topic
   info[("/camera/depth/info <br/> $$f_x,f_y,c_x,c_y$$")]:::topic
-end
+  dl["$$D_{\mathrm{L}}(v,u)$$"]:::data
+%%end
 
 subgraph dmf_proj["DMF-1: LiDAR → Derinlik Görüntüsü"]
   direction TB
   msg2pts["PointCloud2 → XYZ"]:::stage
   pinhole["Pinhole projeksiyon <br/> $$(X,Y,Z) \mapsto (u,v)$$"]:::stage
   zbuf["Z-buffer <br/> $$\min Z \space \text{per pixel}$$"]:::stage
-  dl["$$D_{\mathrm{L}}(v,u)$$"]:::data
-  msg2pts --> pinhole --> zbuf --> dl
 end
 
 lidar --> msg2pts
 info --> pinhole
+msg2pts --> pinhole --> zbuf --> dl
 
 %% ====== COLOR PALETTE (ACADEMIC) ======
 classDef stage fill:#4e79a7, stroke:#2f4b7c, color:#ffffff, rx:6, ry:6;
