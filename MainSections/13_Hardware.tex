@@ -203,9 +203,9 @@ SSv2'de bulunan INS sensörleri ve özellikleri Tablo (\ref{tab:ins_comparison})
 
 \subsection{Açık Alan Veri Seti}
 
-Açık alan veri seti; RTK tabanlı ArNav INS, ZED2i stereo kamera, VLP16 LiDAR ve XSens INS sistemlerinin ROS2 ortamında eşzamanlı kaydedilmesi ile elde edilmiştir. Bu kurulumda RTK santimetre hassasiyetinde mutlak doğru güzergah bilgisini kaydetmeyi sağlarken diğer sensörler tezin test edilmesi için gerekli görüntü ve odometri verilerini kaydetmeyi sağlamıştır. Toplanan bu veri seti CitrusFarm Veriseti \cite{cıtrus_farm_dataset}'ndekiyle benzer formatta veriler içermektedir.
+Açık alan veri seti; RTK tabanlı ArNav INS, ZED2i stereo kamera, VLP16 LiDAR ve XSens INS sistemlerinin ROS2 ortamında eşzamanlı kaydedilmesi ile elde edilmiştir. Bu kurulumda RTK santimetre hassasiyetinde mutlak doğru güzergah bilgisini kaydetmeyi sağlarken diğer sensörler tezin test edilmesi için gerekli görüntü ve odometri verilerini kaydetmeyi sağlamıştır. Toplanan bu veri seti CitrusFarm Veriseti \cite{citrus_farm_dataset}'ndekiyle benzer formatta veriler içermektedir.
 
-Veri toplama işlemi, Çankaya ilçesinin Yaşamkent Mahallesinde serpme evlerin bulunduğu bir muhitte Honda marka CRV model bir SUV araç üzerine Sensor Suit V2'nin monte edilmesiyle icra edilmiştir. Deney kurulumunun iki adet görüntüsü Şekil (\ref{honda_crv_0}) ve Şekil (\ref{honda_crv_1})'de verilmiştir.
+Veri toplama işlemi, Çankaya ilçesinin Yaşamkent Mahallesinde serpme evlerin bulunduğu bir muhitte Honda marka CRV model bir SUV araç üzerine Sensor Suit V2'nin monte edilmesiyle icra edilmiştir. Deney kurulumunun iki adet görüntüsü Şekil (\ref{fig:honda_crv_0}) ve Şekil (\ref{fig:honda_crv_1})'de verilmiştir.
 
 \begin{figure}[H]
     \centering
@@ -213,7 +213,7 @@ Veri toplama işlemi, Çankaya ilçesinin Yaşamkent Mahallesinde serpme evlerin
         \includegraphics{Figures/honda_crv_0.jpg}
     \end{adjustbox}
     \caption{Honda CRV ve Sensor Suite V2 üstten görünümü}
-    \label{honda_crv_0}
+    \label{fig:honda_crv_0}
 \end{figure}
 
 \begin{figure}[H]
@@ -222,10 +222,10 @@ Veri toplama işlemi, Çankaya ilçesinin Yaşamkent Mahallesinde serpme evlerin
         \includegraphics{Figures/honda_crv_1.jpg}
     \end{adjustbox}
     \caption{Honda CRV ve Sensor Suite V2 önden görünümü}
-    \label{honda_crv_1}
+    \label{fig:honda_crv_1}
 \end{figure}
 
-Toplanan veriler haritalarda çizdürüldüğünde RTK destekli küresel konumlar Şekil (\ref{yasamkent_veri})'de verildiği gibidir.
+Toplanan veriler haritalarda çizdürüldüğünde RTK destekli küresel konumlar Şekil (\ref{fig:yasamkent_veri})'de verildiği gibidir.
 
 \begin{figure}[H]
     \centering
@@ -233,7 +233,7 @@ Toplanan veriler haritalarda çizdürüldüğünde RTK destekli küresel konumla
         \includegraphics{Figures/yasamkent_veri.png}
     \end{adjustbox}
     \caption{Açık Alan Veri Seti Harita}
-    \label{yasamkent_veri}
+    \label{fig:yasamkent_veri}
 \end{figure}
 
 Veri toplama işlemi, gün batımından önce yaklaşık bir saat süreyle yapılmıştır. Güneşin yüksek lümende ışık üretmediği bu saaterde toplanan kamera görüntülerinde saturasyon belirli bir seviyede engellenmiştir. Veri toplanırken çevrede hareketli nesnelerin olmamasına da özen gösterilmiştir. Veri kayıtları olabildiğince ham veriler ile yapılmıştır. Bunun sepepleri şu şekildedir:
