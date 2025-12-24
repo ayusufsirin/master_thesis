@@ -90,23 +90,22 @@
 \renewcommand{\subsubsectionmark}[1]{}
 \renewcommand{\paragraphmark}[1]{}
 \usepackage{chngcntr}
-%\renewcommand{\thechapter}{\arabic{chapter}.}
-\renewcommand{\thesection}{\arabic{section}}
-\counterwithin{figure}{section}
-\counterwithin{table}{section}
+
+\renewcommand{\thechapter}{\arabic{chapter}}
+\renewcommand{\thesection}{\thechapter.\arabic{section}.}
 \renewcommand{\thesubsection}{\thesection\arabic{subsection}.}
 \renewcommand{\thesubsubsection}{\thesubsection\arabic{subsubsection}.}
-
 \renewcommand{\theparagraph}{\thesubsubsection\arabic{paragraph}.}
 
-%\renewcommand{\thefigure}{\arabic{chapter}.}
-\renewcommand{\thefigure}{\thesection\arabic{figure}}
-%\renewcommand{\thechapter}{\arabic{chapter}.}
-\renewcommand{\thetable}{\thesection\arabic{table}}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+
 %\usepackage{secdot}
 %\renewcommand{\theequation}{\arabic{equation}.}
 \renewcommand{\theequation}{\arabic{equation}}
-\renewcommand{\thesection}{\arabic{section}.}
 %\renewcommand{\theappendix}{\theappendix\arabic{appendix}.}
 %\renewcommand{\thechapter}{\arabic{appendix}.}
 %\usepackage{chngcntr}
@@ -221,10 +220,10 @@
 %\renewcommand\cftchapafterpnum{\vskip1.5pt}
 %\renewcommand\cftsecafterpnum{\vskip1.5pt}
 %\renewcommand\cftsecindent{\setlength{}{1pt}}
-\renewcommand*{\l@section}{\@dottedtocline{1}{0em}{1.2em}}
-\renewcommand*{\l@subsection}{\@dottedtocline{1}{1.2em}{2em}}
-\renewcommand*{\l@subsubsection}{\@dottedtocline{1}{2.2em}{3em}}
-\renewcommand*{\l@paragraph}{\@dottedtocline{1}{3.7em}{3.5em}}
+%\renewcommand*{\l@section}{\@dottedtocline{1}{0em}{1.2em}}
+%\renewcommand*{\l@subsection}{\@dottedtocline{1}{1.2em}{2em}}
+%\renewcommand*{\l@subsubsection}{\@dottedtocline{1}{2.2em}{3em}}
+%\renewcommand*{\l@paragraph}{\@dottedtocline{1}{3.7em}{3.5em}}
 %\renewcommand{\cftchapdotsep}{1}
 \renewcommand{\cftsecdotsep}{1}
 %\renewcommand{\@pnumwidth}{1em} \renewcommand{\@tocrmarg}{4em}
@@ -286,41 +285,41 @@
 \settowidth{\mylen}{\cfttabpresnum\cfttabaftersnum}
 \addtolength{\cfttabnumwidth}{\mylen}
 
-\renewcommand\listoffigures{%
-  \btypeout{List of Figures}%
-  \begin{spacing}{1}{%
-    \setlength{\parskip}{1pt}%
-    \if@twocolumn
-      \@restonecoltrue\onecolumn
-    \else
-      \@restonecolfalse
-    \fi
-    \section*{\large\listfigurename
-      \@mkboth{\MakeUppercase\listfigurename}
-              {\MakeUppercase\listfigurename}}%
-    \@starttoc{lof}%
-    \if@restonecol\twocolumn\fi
-    \cleardoublepage
-  }\end{spacing}%
-}
-
-\renewcommand\listoftables{%
-  \btypeout{List of Tables}%
-  \begin{spacing}{1}{%
-    \setlength{\parskip}{1pt}%
-    \if@twocolumn
-      \@restonecoltrue\onecolumn
-    \else
-      \@restonecolfalse
-    \fi
-    \section*{\large\listtablename
-      \@mkboth{\MakeUppercase\listtablename}
-              {\MakeUppercase\listtablename}}%
-    \@starttoc{lot}%
-    \if@restonecol\twocolumn\fi
-    \cleardoublepage
-  }\end{spacing}%
-}
+%\renewcommand\listoffigures{%
+%  \btypeout{List of Figures}%
+%  \begin{spacing}{1}{%
+%    \setlength{\parskip}{1pt}%
+%    \if@twocolumn
+%      \@restonecoltrue\onecolumn
+%    \else
+%      \@restonecolfalse
+%    \fi
+%    \section*{\large\listfigurename
+%      \@mkboth{\MakeUppercase\listfigurename}
+%              {\MakeUppercase\listfigurename}}%
+%    \@starttoc{lof}%
+%    \if@restonecol\twocolumn\fi
+%    \cleardoublepage
+%  }\end{spacing}%
+%}
+%
+%\renewcommand\listoftables{%
+%  \btypeout{List of Tables}%
+%  \begin{spacing}{1}{%
+%    \setlength{\parskip}{1pt}%
+%    \if@twocolumn
+%      \@restonecoltrue\onecolumn
+%    \else
+%      \@restonecolfalse
+%    \fi
+%    \section*{\large\listtablename
+%      \@mkboth{\MakeUppercase\listtablename}
+%              {\MakeUppercase\listtablename}}%
+%    \@starttoc{lot}%
+%    \if@restonecol\twocolumn\fi
+%    \cleardoublepage
+%  }\end{spacing}%
+%}
 
 \newcommand\listsymbolname{\large{\centerline{KISALTMALAR}}}
 \usepackage{longtable}
