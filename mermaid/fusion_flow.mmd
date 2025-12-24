@@ -1,49 +1,94 @@
-flowchart LR
+flowchart TD
+%% =========================================================
+%%  High-contrast ROS architecture (bright panels)
+%% =========================================================
 
-%% ============ NODES ===============
-camera_node(["Stereo Camera Driver"]):::node
-lidar_upsample(["Lidar Upsample Node"]):::node
-lidar_node(["Lidar Driver"]):::node
-localization(["Localization Node"]):::node
-pg(["Fusion Node"]):::node
-image_proc(["Image Processing Node"]):::node
+%% ---------------- SUBSYSTEMS ----------------
+subgraph SENSORS["Sensors"]
+direction TB
+camera_node["Stereo Camera Driver"]:::sensor_node
+lidar_node["LiDAR Driver"]:::sensor_node
+end
+style SENSORS fill:#1e293b,stroke:#38bdf8,stroke-width:3px,color:#e5f3ff
 
-%% ============ TOPICS ===============
-cam_rgb_left[("/camera/rgb/left/image")]:::topic
-cam_rgb_right[("/camera/rgb/right/image")]:::topic
-cam_depth[("/camera/depth/image")]:::topic
-cam_info[("/camera/rgb/info")]:::topic
-cam_depth_info[("/camera/depth/info")]:::topic
-lidar_pc[("/lidar/point_cloud")]:::topic
-lidar_pc_cum[("/lidar/point_cloud/cumulative")]:::topic
-odom[("/odom")]:::topic
-pg_depth[("/pg/depth")]:::topic
+subgraph PERCEPTION["Perception"]
+direction TB
+image_proc["Image Processing<br/>(stereo → depth)"]:::perception_node
+lidar_upsample["LiDAR Upsample<br/>(odom-aided)"]:::perception_node
+pg["PG Fusion Node"]:::perception_node
+end
+style PERCEPTION fill:#064e3b,stroke:#22c55e,stroke-width:3px,color:#ecfdf5
 
-tf_map_odom[("/tf: map → odom")]:::tf
-tf_odom_base[("/tf: odom → base_link")]:::tf
+subgraph LOCALIZATION_G["Localization"]
+direction TB
+localization["Localization Node"]:::localization_node
+end
+style LOCALIZATION_G fill:#7c2d12,stroke:#f97316,stroke-width:3px,color:#fff7ed
 
-%% ============ FLOWS ================
-camera_node --> cam_rgb_left --> image_proc
-camera_node --> cam_rgb_right --> image_proc
-camera_node --> cam_info --> image_proc
-image_proc --> cam_depth
-image_proc --> cam_depth_info
+subgraph CameraTopics["Camera Topics"]
+direction LR
+cam_rgb_left["/camera/rgb/left/image"]:::topic_camera
+cam_rgb_right["/camera/rgb/right/image"]:::topic_camera
+cam_info["/camera/rgb/info"]:::topic_camera
+end
+
+%% ---------------- TOPICS ----------------
+%%subgraph TOPICS["ROS Topics"]
+%%direction TB
+cam_rgb_left["/camera/rgb/left/image"]:::topic_camera
+cam_rgb_right["/camera/rgb/right/image"]:::topic_camera
+cam_info["/camera/rgb/info"]:::topic_camera
+cam_depth["/camera/depth/image"]:::topic_depth
+cam_depth_info["/camera/depth/info"]:::topic_depth
+
+lidar_pc["/lidar/point_cloud"]:::topic_lidar
+lidar_pc_cum["/lidar/point_cloud/cumulative"]:::topic_lidar
+
+odom["/odom"]:::topic_odom
+pg_depth["/pg/depth"]:::topic_fused
+%%end
+%%style TOPICS fill:#334155,stroke:#64748b,stroke-width:2px,color:#f8fafc
+
+%% ---------------- TF ----------------
+subgraph TF["TF Frames"]
+direction TB
+tf_map_odom["map → odom"]:::tf_frame
+tf_odom_base["odom → base_link"]:::tf_frame
+end
+style TF fill:#4338ca,stroke:#a78bfa,stroke-width:3px,color:#f5f3ff
+
+%% ---------------- FLOWS ----------------
+camera_node --> CameraTopics --> image_proc
+%%camera_node --> cam_rgb_right --> image_proc
+%%camera_node --> cam_info --> image_proc
+
+image_proc --> cam_depth --> pg
+image_proc --> cam_depth_info --> pg
 
 lidar_node --> lidar_pc --> localization
+localization --> odom --> lidar_upsample
+lidar_upsample --> lidar_pc_cum --> pg
 
-localization --> odom
+pg --> pg_depth
 
-lidar_pc_cum --> pg
-cam_depth_info --> pg
-cam_depth --> pg --> pg_depth
+localization -.-> tf_map_odom
+localization -.-> tf_odom_base
 
-lidar_pc --> lidar_upsample --> lidar_pc_cum
-odom --> lidar_upsample
+%% ---------------- STYLES ----------------
+%% Nodes
+classDef sensor_node fill:#020617,stroke:#38bdf8,stroke-width:2px,color:#e0f2fe,rx:10,ry:10;
+classDef perception_node fill:#022c22,stroke:#22c55e,stroke-width:2px,color:#dcfce7,rx:10,ry:10;
+classDef localization_node fill:#3b1d0f,stroke:#f97316,stroke-width:2px,color:#ffedd5,rx:10,ry:10;
 
-localization --> tf_map_odom
-localization --> tf_odom_base
+%% Topics
+classDef topic_camera fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e,rx:8,ry:8;
+classDef topic_depth fill:#dcfce7,stroke:#16a34a,color:#052e16,rx:8,ry:8;
+classDef topic_lidar fill:#fef3c7,stroke:#f59e0b,color:#78350f,rx:8,ry:8;
+classDef topic_odom fill:#ffe4e6,stroke:#e11d48,color:#881337,rx:8,ry:8;
+classDef topic_fused fill:#ede9fe,stroke:#7c3aed,color:#2e1065,rx:8,ry:8;
 
-%% ============ STYLING ===============
-classDef node fill:#3d85c6,stroke:#1c4587,color:#fff,rx:6,ry:6;
-classDef topic fill:#f6b26b,stroke:#b45f06,color:#000,rx:4,ry:4;
-classDef tf fill:#93c47d,stroke:#38761d,color:#000,rx:4,ry:4;
+%% TF
+classDef tf_frame fill:#ddd6fe,stroke:#7c3aed,stroke-width:2px,color:#2e1065,rx:12,ry:12,stroke-dasharray:6 4;
+
+%% Links
+linkStyle default stroke:#9ca3af,stroke-width:2px

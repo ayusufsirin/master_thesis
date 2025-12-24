@@ -3,7 +3,7 @@
 Bu bölümde, DMF adımı ile aynı piksel uzayında hizalanmış hâle getirilen ZED ve LiDAR derinlik bilgilerinden hareketle, yayınlanan nihai derinlik haritasının $D_{\text{PG}}(v,u)$ nasıl oluşturulduğu tanımlanmaktadır.
 Bu alt bölüm, PG'nin iteratif çekirdek güncelleme denklemlerinden ziyade, çalışma kapsamında \textit{PG çıktısı olarak yayınlanan derinlik alanının} birleştirme ve maskeleme kuralını sunmaktadır.
 
-Matematiksel formulasyona geçmeden önce algoritmanın geliştirilmesi ile varılmak istenen noktayı analojik olarak balsa uçak kanadı modeli üzerinden anlatımı
+Matematiksel formulasyona geçmeden önce algoritmanın geliştirilmesi ile varılmak istenen noktayı analojik olarak balsa uçak kanadı modeli üzerinden anlatımı devam eden bölümlerde verilmiştir.
 
 \subsection{Sezgisel Analoji: Balsa Kanat Üzerine Gerilen Film}
 
@@ -30,14 +30,25 @@ Bu bağlamda, elde edilen derinlik haritasının pürüzsüzlüğünden ziyade, 
 
 Bu bölümde, ROS--CuPy tabanlı ZED--LiDAR füzyon düğümünün altında yatan matematiksel model formel olarak sunulmaktadır. Uygulama, stereo kameradan (ZED) elde edilen senkronize derinlik görüntüleri ile LiDAR sensöründen alınan nokta bulutlarını DMF[~\ref{sec:depth_map_fitting}] önişlemesinden sonra girdi olarak almakta ve gerçek zamanlı olarak füzyonlanmış bir derinlik görüntüsü ile buna karşılık gelen bir nokta bulutu üretmektedir.
 
+DMF çıktısından nihai yayınlanan derinlik haritasının elde edilmesine ilişkin kural, Dinamik Papoulis--Gerchberg (DPG) bağlamında Şekil~\ref{fig:dpg_publish_rule}'de gösterilmektedir. Bu adımda, özgün ZED geçersizlik maskesi yeniden uygulanarak, yalnızca güvenilir derinlik ölçümleri içeren $D_{\mathrm{PG}}(v,u)$ haritası üretilmektedir.
+
 \begin{figure}[H]
     \centering
-    \begin{adjustbox}{width=\textwidth}
-        \includegraphics[width=\textwidth]{mermaid/pg.png}
+    \begin{adjustbox}{width=\textwidth * 9 / 12}
+        \includegraphics{mermaid/dpg_publish_rule.png}
     \end{adjustbox}
-    \caption{Füzyon algoritması akış diyagramı}
-    \label{methodology_2}
+    \caption{Dinamik Papoulis--Gerchberg (DPG) bağlamında DMF çıktısından nihai yayınlanan derinlik haritasının elde edilmesi. Bu aşamada özgün ZED geçersizlik maskesi yeniden uygulanarak yalnızca güvenilir derinlik ölçümlerini içeren $D_{\mathrm{PG}}(v,u)$ haritası üretilmektedir.}
+    \label{fig:dpg_publish_rule}
 \end{figure}
+
+%\begin{figure}[H]
+%    \centering
+%    \begin{adjustbox}{width=\textwidth}
+%        \includegraphics[width=\textwidth]{mermaid/pg.png}
+%    \end{adjustbox}
+%    \caption{Füzyon algoritması akış diyagramı}
+%    \label{methodology_2}
+%\end{figure}
 
 Bu bölümde kullanılan kırpma bölgesi $\Omega_c$,
 ZED geçersizlik maskesi $M(v,u)$,

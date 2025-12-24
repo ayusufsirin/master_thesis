@@ -1,0 +1,31 @@
+flowchart LR
+
+%%subgraph inputs["Girdiler"]
+%%  direction LR
+  zed[("/camera/depth/image <br/> $$D_{\mathrm{ZED}}^{\mathrm{orig}}(v,u)$$")]:::topic
+  dl_in["$$D_{\mathrm{L}}(v,u)$$"]:::data
+  dzc["$$D_{\mathrm{ZED}}^{c}$$"]:::data
+  dlc["$$D_{\mathrm{L}}^{c}$$"]:::data
+%%end
+
+subgraph dmf2["LiDAR ve Stereo Derinlik Haritası Kırpma/Uyumlama"]
+  direction TB
+
+  mask["Geçersizlik maskesi <br/> $$M(v,u)=\mathbb{I}(\neg\mathrm{finite})$$"]:::stage
+  inpaint["NaN-aware inpainting <br/> $$D_{\mathrm{ZED}}^{\mathrm{orig}} \to D_{\mathrm{ZED}}$$"]:::stage
+  dz["$$D_{\mathrm{ZED}}(v,u)$$"]:::data
+
+  crop["ROI kırpma <br/> $$\Omega_c$$"]:::stage
+
+end
+
+dz --> crop --> dzc
+zed --> mask --> inpaint --> dz
+dl_in --> crop --> dlc
+
+%% ====== COLOR PALETTE (ACADEMIC) ======
+classDef stage fill:#4e79a7, stroke:#2f4b7c, color:#ffffff, rx:6, ry:6;
+classDef data fill:#e0e0e0, stroke:#7f7f7f, color:#000000, rx:4, ry:4;
+classDef topic fill:#f3e6c9, stroke:#bfa980, color:#000000, rx:4, ry:4;
+classDef decision fill:#cfe8d5, stroke:#6b8f71, color:#000000, rx:6, ry:6;
+

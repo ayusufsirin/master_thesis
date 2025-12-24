@@ -4,7 +4,18 @@ Bu adımın amacı, odometri ile yoğunlaştırılmış LiDAR nokta bulutunu kam
 
 Bu bölümde tanımlanan tüm işlemler deterministik olup, PG tabanlı iteratif iyileştirme yöntemleri için bir başlangıç derinlik alanı üretmektedir.
 
-\subsubsection{Gösterim ve Girdiler}
+Derinlik Haritası Uyumlama (DMF) sürecinin üst seviye akışı Şekil~\ref{fig:dmf_overview}'de sunulmaktadır. Bu aşamada LiDAR nokta bulutu ve ZED derinlik haritası, ortak bir kamera geometrisi altında hizalanarak, PG tabanlı yöntemlere başlangıç teşkil eden tutarlı bir derinlik alanı üretilmektedir.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+        \includegraphics{mermaid/dmf_overview.png}
+    \end{adjustbox}
+    \caption{DMF (Derinlik Haritası Uyumlama) sürecinin üst seviye akışı: LiDAR nokta bulutundan derinlik izdüşümü, ZED derinliğinin ön-işlenmesi, örtüşme bölgesinde ($\Omega_c$) kırpma ve tutarlılık eşiği ($\tau$) ile filtreleme sonrası $D_{\mathrm{fit}}(v,u)$ çıktısının üretilmesi.}
+    \label{fig:dmf_overview}
+\end{figure}
+
+\subsection{Gösterim ve Girdiler}
 
 ZED stereo kameradan elde edilen derinlik görüntüsü aşağıdaki gibi tanımlanmaktadır:
 \begin{equation}
@@ -71,7 +82,7 @@ ZED ve LiDAR derinlikleri arasındaki tutarlılık eşiği ise
 \end{equation}
 olarak tanımlanmaktadır.
 
-\subsubsection{LiDAR Kartezyen Gösteriminden Küresel Gösterime Dönüşüm}
+\subsection{LiDAR Kartezyen Gösteriminden Küresel Gösterime Dönüşüm}
 
 Her bir LiDAR noktası $\mathbf{p}_k = (x_k, y_k, z_k)^\top$ için küresel koordinatlar aşağıdaki şekilde tanımlanmaktadır:
 \begin{align}
@@ -91,9 +102,21 @@ ve bu gösterim
 
 Bu küresel gösterim, uygulama kapsamında açısal filtreleme ve tanılama (diagnostics) amaçlı olarak kullanılmaktadır.
 
-\subsubsection{LiDAR Noktalarının Kamera Düzlemine Yansıtılması}
+\subsection{LiDAR Noktalarının Kamera Düzlemine Yansıtılması}
 
-\paragraph{Eksen Yeniden Eşlemesi.}
+LiDAR nokta bulutundan derinlik görüntüsünün elde edilme süreci Şekil~\ref{fig:dmf_projection}'de özetlenmektedir. Bu adımda üç boyutlu LiDAR noktaları, pinhole kamera modeli kullanılarak görüntü düzlemine projekte edilmekte ve z-buffer yaklaşımı ile her piksel için en yakın derinlik değeri seçilmektedir.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+        \includegraphics{mermaid/dmf_projection.png}
+    \end{adjustbox}
+    \caption{LiDAR nokta bulutundan derinlik görüntüsünün elde edilmesi. Üç boyutlu LiDAR noktaları, pinhole kamera modeli kullanılarak görüntü düzlemine projekte edilmekte ve z-buffer yaklaşımı ile her piksel için en yakın derinlik değeri seçilmektedir.}
+    \label{fig:dmf_projection}
+\end{figure}
+
+
+\paragraph*{Eksen Yeniden Eşlemesi.}
 LiDAR noktaları öncelikle kamera benzeri bir koordinat sistemine dönüştürülmektedir:
 \begin{equation}
     \begin{bmatrix}
@@ -115,7 +138,7 @@ LiDAR noktaları öncelikle kamera benzeri bir koordinat sistemine dönüştür�
 \end{equation}
 Bu dönüşüm sonucunda $Z_k$ ekseni kameraya doğru olan ileri yönü, $X_k$ yatay ekseni ve $Y_k$ ise dikey ekseni temsil etmektedir.
 
-\paragraph{İğne Deliği (Pinhole) Kamera Modeli.}
+\paragraph*{İğne Deliği (Pinhole) Kamera Modeli.}
 Kamera izdüşümü aşağıdaki denklemlerle elde edilmektedir:
 \begin{align}
     \tilde{u}_k &= \frac{X_k f_x}{Z_k} + c_x, \\
@@ -141,7 +164,7 @@ Yalnızca kamera görüş alanında kalan ve kameranın önünde bulunan noktala
     \label{eq:dmf_valid_proj}
 \end{equation}
 
-\paragraph{LiDAR Derinlik Görüntüsünün Oluşturulması.}
+\paragraph*{LiDAR Derinlik Görüntüsünün Oluşturulması.}
 LiDAR derinlik görüntüsü, aynı piksele düşen noktalar arasından en yakın yüzeyin seçilmesiyle elde edilir:
 \begin{equation}
     D_{\text{L}}(v,u) =
@@ -156,7 +179,7 @@ LiDAR derinlik görüntüsü, aynı piksele düşen noktalar arasından en yakı
 
 Bu işlem, LiDAR nokta bulutundan elde edilen en yakın yüzeye karşılık gelen bir derinlik görüntüsü üretmektedir.
 
-\subsubsection{ZED Derinlik Haritasının Doldurulması (Inpainting)}
+\subsection{ZED Derinlik Haritasının Doldurulması (Inpainting)}
 
 Ham ZED derinlik haritası $D_{\text{ZED}}^{\text{orig}}(v,u)$ geçersiz değerler (NaN veya $\pm\infty$) içerebilmektedir. Bu nedenle bir geçersizlik maskesi şu şekilde tanımlanır:
 \begin{equation}
@@ -194,7 +217,27 @@ $T$ iterasyon sonunda doldurulmuş ZED derinlik haritası
 \end{equation}
 olarak elde edilir.
 
-\subsubsection{Kırpma ve ZED--LiDAR Tutarlılık Filtresi}
+\subsection{Kırpma ve ZED--LiDAR Tutarlılık Filtresi}
+
+ZED ve LiDAR derinlik haritalarının örtüşen görüş hacmi içerisinde birleştirilmesi ve tutarsız ölçümlerin elenmesi süreci Şekil~\ref{fig:dmf_crop} ve Şekil~\ref{fig:dmf_fit_merge}'de gösterilmektedir. Bu aşamada kırpma bölgesi $\Omega_c$ tanımlanmakta, sensörler arası farkı belirli bir eşik $\tau$ değerini aşan LiDAR ölçümleri elenmekte ve DMF çıktısı oluşturulmaktadır.
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+        \includegraphics{mermaid/dmf_crop.png}
+    \end{adjustbox}
+    \caption{DMF kapsamında ZED ve LiDAR derinlik haritalarının örtüşen görüş hacmi içerisinde birleştirilmesi. Kırpma bölgesi $\Omega_c$ tanımlanmakta, sensörler arası farkı eşik değer $\tau$’yı aşan LiDAR ölçümleri elenmekte ve uyumlanmış derinlik haritası oluşturulmaktadır.}
+    \label{fig:dmf_crop}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+        \includegraphics{mermaid/dmf_fit_merge.png}
+    \end{adjustbox}
+    \caption{DMF kapsamında ZED ve LiDAR derinlik haritalarının örtüşen görüş hacmi içerisinde birleştirilmesi. Kırpma bölgesi $\Omega_c$ tanımlanmakta, sensörler arası farkı eşik değer $\tau$’yı aşan LiDAR ölçümleri elenmekte ve uyumlanmış derinlik haritası oluşturulmaktadır.}
+    \label{fig:dmf_fit_merge}
+\end{figure}
 
 Derinlik haritaları kırpma bölgesi ile sınırlandırılır:
 \begin{align}
@@ -222,12 +265,3 @@ Kırpma bölgesindeki DMF çıktısı:
 \end{equation}
 
 Bu çıktı, Bölüm~\ref{sec:dynamic_pg} altında tanımlanan yayınlama ve/veya iteratif iyileştirme adımlarına doğrudan girdi olarak kullanılmaktadır.
-
-\begin{figure}[H]
-    \centering
-    \begin{adjustbox}{width=\textwidth * 10 /12}
-        \includegraphics{mermaid/depth_map_fitting.png}
-    \end{adjustbox}
-    \caption{Derinlik Haritası Uyumlama (DMF) akış şeması}
-    \label{fig:depth_map_fitting_flow}
-\end{figure}

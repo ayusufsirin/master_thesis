@@ -1,10 +1,14 @@
 \chapter{METODOLOJİ}  \label{chap:metodology}
 
+
 \section{PG Tabanlı Stereo–LiDAR Füzyonu İçin İşlem Hattı}
 
 Bu çalışmada önerilen yöntem, PG algoritmasının klasik formundan yola çıkılarak aşağıdaki temel aşamalar etrafında kurgulanmıştır:
 
 \begin{enumerate}
+    \item \textbf{LiDAR Nokta Bulutu Yoğunluk Arttırımı:}
+    LiDAR'dan gelen nokta bulutu, odometri verisi kullanılarak kayan pencere tabanlı bir kümülasyon işlemine tabi tutulur. Bu sayede sonraki adımlarda kullanılmak üzere tek LiDAR verisine göre daha yüksek çözünürlüklü bir nokta bulutu elde edilir.
+
     \item \textbf{Ön İşleme:}
     Stereo kameradan elde edilen disparite haritası derinlik haritasına dönüştürülür ve uygunsa filtrelenir. LiDAR nokta bulutu, kamera koordinat sistemine taşınır ve pinhole kamera modeli ile derinlik çerçevesine projeksiyon yapılarak tek kanallı bir LiDAR derinlik imgesi elde edilir.
     % TODO: Burada kullandığın kalibrasyon ve projeksiyon denklemlerini (iç/dış parametre matrisleri) ekleyebilirsin.
@@ -30,20 +34,11 @@ Uyanık ve Ozbayın calismalarindan esinlenilerek lidar noktalarinin coznurlugu 
 
 \begin{figure}[H]
     \centering
-    \begin{adjustbox}{width=\textwidth * 10 /12}
+    \begin{adjustbox}{width=\textwidth}
         \includegraphics{mermaid/fusion_flow.png}
     \end{adjustbox}
-    \caption{Füzyon algoritması akış diyagramı 0}
+    \caption{Füzyon algoritması akış diyagramı}
     \label{methodology_0}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{adjustbox}{width=\textwidth * 10 /12}
-        \includegraphics{mermaid/methodology.png}
-    \end{adjustbox}
-    \caption{Füzyon algoritması akış diyagramı 1}
-    \label{methodology_1}
 \end{figure}
 
 \input{./MainSections/14.1_LidarUpsample}

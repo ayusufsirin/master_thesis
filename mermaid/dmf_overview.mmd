@@ -1,0 +1,38 @@
+flowchart LR
+
+%% ================== INPUTS ====================
+%%subgraph inputs["DMF Girdileri"]
+%%  direction TB
+  lidar[("/lidar/point_cloud/cumulative <br/> PointCloud2")]:::topic
+  zed[("/camera/depth/image <br/> $$D_{\mathrm{ZED}}^{\mathrm{orig}}(v,u)$$")]:::topic
+  info[("/camera/depth/info <br/> $$f_x,f_y,c_x,c_y$$")]:::topic
+%%end
+
+%% ================== DMF ====================
+subgraph dmf["Derinlik Haritası Uyumlama (DMF)"]
+  direction TB
+
+  proj["LiDAR projeksiyonu + z-buffer <br/> $$\mathcal{P}_{\mathrm{L}} \to D_{\mathrm{L}}(v,u)$$"]:::stage
+  inpaint["ZED ön-işleme (NaN-aware inpainting) <br/> $$D_{\mathrm{ZED}}^{\mathrm{orig}} \to D_{\mathrm{ZED}}$$"]:::stage
+  crop["ROI kırpma <br/> $$\Omega_c$$"]:::stage
+  gate["Tutarlılık filtresi <br/> $$|D_{\mathrm{ZED}}^{c}-D_{\mathrm{L}}^{c}|\le\tau$$"]:::decision
+  out["DMF çıktısı <br/> $$D_{\mathrm{fit}}(v,u)$$"]:::data
+
+  proj --> crop --> gate --> out
+  inpaint --> crop
+end
+
+%% ================== WIRING ====================
+lidar --> proj
+zed --> inpaint
+info --> proj
+
+%% ================== OUTPUT ====================
+out_topic[("/dmf/depth <br/> $$D_{\mathrm{fit}}(v,u)$$")]:::topic
+out --> out_topic
+
+%% ================== STYLE ====================
+classDef stage fill:#4e79a7, stroke:#2f4b7c, color:#ffffff, rx:6, ry:6;
+classDef data fill:#e0e0e0, stroke:#7f7f7f, color:#000000, rx:4, ry:4;
+classDef topic fill:#f3e6c9, stroke:#bfa980, color:#000000, rx:4, ry:4;
+classDef decision fill:#cfe8d5, stroke:#6b8f71, color:#000000, rx:6, ry:6;

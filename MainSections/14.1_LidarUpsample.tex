@@ -5,13 +5,15 @@ LiDAR verisi doğası gereği seyrek bir yapıya sahiptir. Seyrek yapıdaki LiDA
 
 Yapı ilk bakışta bir LiDAR--Ataletsel Odometri (LIO) işlemini andırsa da, burada çok daha basit bir yaklaşım önerilmektedir. Düşük boyutlu zaman pencereleri (window) içerisinde gerçekleştirilen bu işlem, temel bir harita üretmekte ve algoritmayı bu aşamada tam kapsamlı bir SLAM çözümü gereksiniminden kurtarmaktadır.
 
+Aşağıdaki Şekil~\ref{fig:lu_overview}, LU düğümünün stereo yakınsama hattına girişten çıkışa kadar olan tüm işlem bloklarını üst düzeyde haritalayarak, dönüşüm ve birikim adımlarının mantıksal sıralamasını özetlemektedir.
+
 \begin{figure}[H]
     \centering
-    \begin{adjustbox}{width=\textwidth * 10 /12}
-        \includegraphics{mermaid/lidar_upsample.png}
+    \begin{adjustbox}{width=\textwidth}
+        \includegraphics{mermaid/lu_overview.png}
     \end{adjustbox}
     \caption{LiDAR nokta yoğunluğu artırımı (LU) akış şeması}
-    \label{fig:lidar_upsample}
+    \label{fig:lu_overview}
 \end{figure}
 
 \subsection{Nokta bulutu ve odometri gösterimi}

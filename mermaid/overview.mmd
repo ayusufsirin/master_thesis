@@ -1,0 +1,36 @@
+flowchart LR
+
+%% ============ INPUTS ============
+subgraph inputs["Girdiler"]
+  direction TB
+  lidar[("/lidar/point_cloud/cumulative <br> PointCloud2")]:::topic
+  zed[("/camera/depth/image <br> $$D_{\mathrm{ZED}}^{\mathrm{orig}}(v,u)$$")]:::topic
+  info[("/camera/depth/info <br> $$f_x,f_y,c_x,c_y$$")]:::topic
+  odom[("/odom <br> Odometry")]:::topic
+end
+
+%% ============ CORE ============
+subgraph pipeline["Stereo--LiDAR Derinlik Füzyon Hattı"]
+  direction TB
+  dmf["DMF <br> Depth Map Fitting <br> $$D_{\mathrm{fit}}(v,u)$$"]:::stage
+  dpg["Dinamik PG / Yayınlama Kuralı <br> $$D_{\mathrm{PG}}(v,u)$$"]:::stage
+end
+
+%% ============ OUTPUTS ============
+subgraph outputs["Çıktılar"]
+  direction TB
+  out_depth[("/pg/depth <br> $$D_{\mathrm{PG}}(v,u)$$")]:::topic
+end
+
+lidar --> dmf
+zed --> dmf
+info --> dmf
+dmf --> dpg
+odom --> dpg
+dpg --> out_depth
+
+%% ====== COLOR PALETTE (ACADEMIC) ======
+classDef stage fill:#4e79a7, stroke:#2f4b7c, color:#ffffff, rx:6, ry:6;
+classDef data fill:#e0e0e0, stroke:#7f7f7f, color:#000000, rx:4, ry:4;
+classDef topic fill:#f3e6c9, stroke:#bfa980, color:#000000, rx:4, ry:4;
+classDef decision fill:#cfe8d5, stroke:#6b8f71, color:#000000, rx:6, ry:6;

@@ -1,0 +1,30 @@
+flowchart LR
+
+lidar_pc_in[("/velodyne_points <br/> $$ \mathcal{X}_k \space \textbf{@} \space t_k $$")]:::topic
+odom_in["/odom <br/> $$ (\mathbf{p}_k,\mathbf{q}_k) \space \textbf{@} \space t_k $$"]:::topic
+stamps_node["Generate<br/>$$\tau_k^{pc}, \tau_k^{in}, \tau_k^{out}$$"]:::stage
+
+subgraph lu_node["LU Node (LiDAR Upsample via Odometry Fusion)"]
+  direction TB
+
+  sync_block["Time Synchronization"]:::stage
+  transform_block["Rigid-Body Transform <br/> (LiDAR → Odom)"]:::stage
+  cum_block["Sliding-Window Cumulative Cloud <br/> (Odom Frame)"]:::stage
+  origin_block["Origin-Aligned Cumulative Cloud"]:::stage
+  metrics_block["Timing + Real-time Metrics"]:::stage
+end
+
+lidar_pc_in --> sync_block
+odom_in --> sync_block
+
+sync_block --> transform_block --> cum_block --> origin_block
+sync_block --> metrics_block
+sync_block --> stamps_node
+
+%% outputs (high level)
+transform_block --> pub_Yk[("/transformed_point_cloud <br/> $$\mathcal{Y}_k$$")]:::topic
+cum_block --> pub_Ycum[("/cumulative_point_cloud <br/> $$\mathcal{Y}^{cum}_k$$")]:::topic
+origin_block --> pub_Zcum[("/cumulative_origin_point_cloud <br/> $$\mathcal{Z}^{cum}_k$$")]:::topic
+
+classDef stage fill:#3d85c6,stroke:#1c4587,color:#fff,rx:6,ry:6;
+classDef topic fill:#ffe599,stroke:#b7b7b7,color:#000,rx:4,ry:4;
