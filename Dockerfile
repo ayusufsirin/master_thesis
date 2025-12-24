@@ -87,10 +87,11 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 USER ${USER}
 WORKDIR /work
 
-RUN npm install -g @mermaid-js/mermaid-cli
+# Version fixed because of open issue: https://github.com/mermaid-js/mermaid/issues/5941
+RUN npm install -g @mermaid-js/mermaid-cli@10.9.1
 
 # Tell mermaid-cli which browser to use
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
-CMD ["latexmk", "-pdf", "-interaction=nonstopmode", "-pvc"]
+CMD ["latexmk", "-pdf", "-interaction=nonstopmode", "-f", "-pvc", "main.tex"]
