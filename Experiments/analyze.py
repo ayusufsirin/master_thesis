@@ -1,278 +1,232 @@
 #!/usr/bin/env python3
-"""
-PG vs LU-history evo-results analyzer
-
-Usage examples:
-  python pg_evo_analyze.py \
-      --files results_10_10.csv results_33_10.csv results_0_10.csv results_33_1.csv \
-      --metric rmse \
-      --pattern "pg_ape_se3" \
-      --outdir out
-
-  # Analyze RPE 100m mean
-  python pg_evo_analyze.py --files *.csv --metric mean --pattern "pg_rpe_100m" --outdir out
-"""
-
-from __future__ import annotations
-
 import argparse
-import os
 import re
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple, List
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (needed for 3D projection)
-
-import matplotlib as mpl
 from matplotlib import cm
 import matplotlib.tri as mtri
 
-# ----------------------------
-# Config / parsing
-# ----------------------------
 
-LABEL_RE = re.compile(r"^(?P<I>\d+)[_-](?P<H>\d+)$")
+METRICS = ("rmse", "mean", "median", "std", "min", "max", "sse")
 
 
-@dataclass(frozen=True)
-class ExpKey:
-    iters: int
-    history: int
-
-    @property
-    def name(self) -> str:
-        return f"{self.iters}_{self.history}"
-
-
-def parse_label_from_path(path: str) -> ExpKey:
+def infer_IH_from_path(p: Path) -> Tuple[int, int]:
     """
-    Extract experiment label from directory name, e.g.
-      10_1/outputs/metrics_aligned_se3.csv -> ExpKey(10,1)
+    Infer (I,H) from any parent folder named like '0_1', '10_2', '33_10', etc.
+    Searches upward in the path. Raises if not found.
     """
-    p = Path(path).resolve()
-
-    # Walk upwards until we find a directory matching "<iters>_<history>"
-    for parent in p.parents:
-        m = LABEL_RE.match(parent.name)
+    for parent in [p.parent] + list(p.parents):
+        m = re.match(r"^(\d+)[_-](\d+)$", parent.name)
         if m:
-            return ExpKey(
-                iters=int(m.group("I")),
-                history=int(m.group("H")),
-            )
+            return int(m.group(1)), int(m.group(2))
+    raise ValueError(f"Cannot infer (I,H) from path: {p}")
 
-    raise ValueError(
-        f"Could not find experiment label like '33_10' in path parents: {path}"
-    )
 
-def load_one_csv(path: str) -> pd.DataFrame:
+def _find_pattern_column(df: pd.DataFrame) -> str:
     """
-    Loads evo CSV into dataframe with first column as 'name' (e.g., pg_ape_se3.zip).
+    Try to find the column that stores 'pattern' strings (pg_ape_se3, zed_ape_se3, etc.).
+    Falls back to the first object/string-like column.
     """
-    df = pd.read_csv(path)
-    # If the first column is unnamed due to leading comma in your pasted format
-    if df.columns[0].startswith("Unnamed"):
-        df = df.rename(columns={df.columns[0]: "name"})
-    elif df.columns[0] != "name":
-        df = df.rename(columns={df.columns[0]: "name"})
-    return df
+    preferred = ["pattern", "name", "key", "label", "metric", "id"]
+    for c in preferred:
+        if c in df.columns:
+            return c
+
+    # fallback: first object column
+    obj_cols = [c for c in df.columns if df[c].dtype == object]
+    if obj_cols:
+        return obj_cols[0]
+
+    # last resort: first column
+    return df.columns[0]
 
 
-def aggregate_experiments(
-    files: List[str],
-    *,
-    include_regex: Optional[str] = None,
-) -> pd.DataFrame:
-    """
-    Returns a long-form table:
-      exp_label, iters, history, name, rmse, mean, median, std, min, max, sse
-    """
-    rows = []
-    cre = re.compile(include_regex) if include_regex else None
-
-    for f in files:
-        key = parse_label_from_path(f)
-        df = load_one_csv(f)
-
-        if cre is not None:
-            df = df[df["name"].astype(str).str.contains(cre)]
-
-        df = df.copy()
-        df["exp_label"] = key.name
-        df["iters"] = key.iters
-        df["history"] = key.history
-        rows.append(df)
-
-    if not rows:
-        raise ValueError("No rows loaded (check --files and --pattern).")
-
-    out = pd.concat(rows, ignore_index=True)
-    return out
-
-
-# ----------------------------
-# Helpers for selection
-# ----------------------------
-
-def select_rows(
-    data: pd.DataFrame,
+def extract_value_from_csv(
+    csv_path: Path,
     *,
     pattern: str,
-) -> pd.DataFrame:
-    """
-    Filter by a specific evo row key (substring match), e.g. "pg_ape_se3" or "zed_rpe_100m".
-    """
-    mask = data["name"].astype(str).str.contains(pattern)
-    sel = data.loc[mask].copy()
-    if sel.empty:
-        raise ValueError(
-            f"No rows matched pattern='{pattern}'. "
-            f"Available examples: {sorted(data['name'].astype(str).unique())[:10]} ..."
-        )
-    return sel
-
-
-def pivot_metric(
-    sel: pd.DataFrame,
     metric: str,
+    allow_contains: bool = False,
+) -> Optional[float]:
+    """
+    Load a metrics CSV and extract scalar 'metric' value for the given 'pattern'.
+    Returns None if not found / not parsable.
+    """
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception:
+        return None
+
+    if metric not in df.columns:
+        return None
+
+    col = _find_pattern_column(df)
+
+    s = df[col].astype(str)
+    mask = (s == pattern)
+    if not mask.any() and allow_contains:
+        mask = s.str.contains(re.escape(pattern), regex=True)
+
+    if not mask.any():
+        return None
+
+    # take the first match (your CSV typically has unique rows per pattern)
+    val = df.loc[mask, metric].iloc[0]
+    try:
+        return float(val)
+    except Exception:
+        return None
+
+
+def build_matrix(
+    files: Iterable[Path],
+    *,
+    pattern: str,
+    metric: str,
+    allow_contains: bool = False,
 ) -> pd.DataFrame:
     """
-    Build a matrix (iters x history) for one metric.
+    Build M(I,H) matrix as DataFrame indexed by I and columns by H.
     """
-    if metric not in sel.columns:
-        raise ValueError(f"Metric '{metric}' not in columns: {list(sel.columns)}")
-    mat = sel.pivot_table(index="iters", columns="history", values=metric, aggfunc="mean")
-    mat = mat.sort_index().sort_index(axis=1)
-    return mat
+    values: Dict[Tuple[int, int], float] = {}
 
-
-# ----------------------------
-# Plots
-# ----------------------------
-
-def plot_heatmap(mat: pd.DataFrame, title: str, outpath: Optional[str] = None) -> None:
-    plt.figure()
-    arr = mat.values
-    plt.imshow(arr, aspect="auto", origin="lower")
-    plt.title(title)
-    plt.xlabel("LU history")
-    plt.ylabel("PG iterations")
-    plt.xticks(ticks=np.arange(mat.shape[1]), labels=mat.columns.astype(int))
-    plt.yticks(ticks=np.arange(mat.shape[0]), labels=mat.index.astype(int))
-    plt.colorbar(label="metric value")
-    plt.tight_layout()
-    if outpath:
-        plt.savefig(outpath, dpi=200)
-    plt.close()
-
-
-def plot_slices(mat: pd.DataFrame, title: str, outpath: Optional[str] = None) -> None:
-    """
-    Two slice views in one figure:
-      - metric vs iterations (one curve per history)
-      - metric vs history (one curve per iterations)
-
-    Fixes:
-      - enforce integer axis labels (prevents 1 vs "1" duplicates)
-      - drop NaNs per-curve so points stay connected
-      - use stable color assignment so same H/I always keeps same color
-    """
-    # ---- normalize axes (prevents duplicate-looking labels) ----
-    mat = mat.copy()
-    mat.index = mat.index.astype(int)
-    mat.columns = mat.columns.astype(int)
-    mat = mat.sort_index().sort_index(axis=1)
-
-    # If duplicates somehow exist (e.g., 1 and "1" became both 1), merge them safely
-    mat = mat.groupby(level=0).mean()
-    mat = mat.groupby(axis=1, level=0).mean()
-
-    fig = plt.figure(figsize=(10, 4))
-
-    # Stable color cycles (one per unique key)
-    hist_keys = list(mat.columns)
-    iter_keys = list(mat.index)
-
-    cmap_h = plt.get_cmap("tab10")
-    cmap_i = plt.get_cmap("tab10")
-    color_h = {h: cmap_h(k % 10) for k, h in enumerate(hist_keys)}
-    color_i = {i: cmap_i(k % 10) for k, i in enumerate(iter_keys)}
-
-    # ---- Left: sweep iterations (fixed history) ----
-    ax1 = fig.add_subplot(1, 2, 1)
-    for h in mat.columns:
-        s = mat[h].dropna()                 # << keeps points connected
-        if s.empty:
+    for f in files:
+        try:
+            I, H = infer_IH_from_path(f)
+        except Exception:
             continue
-        ax1.plot(
-            s.index.values, s.values,
-            marker="o",
-            label=f"H={h}",
-            color=color_h[h],
-        )
-    ax1.set_title("Sweep iterations (fixed history)")
-    ax1.set_xlabel("PG iterations")
-    ax1.set_ylabel("metric")
-    ax1.grid(True)
-    ax1.legend()
 
-    # ---- Right: sweep history (fixed iterations) ----
-    ax2 = fig.add_subplot(1, 2, 2)
-    for i in mat.index:
-        s = mat.loc[i].dropna()             # << keeps points connected
-        if s.empty:
+        v = extract_value_from_csv(f, pattern=pattern, metric=metric, allow_contains=allow_contains)
+        if v is None:
             continue
-        ax2.plot(
-            s.index.values, s.values,
-            marker="o",
-            label=f"I={i}",
-            color=color_i[i],
-        )
-    ax2.set_title("Sweep history (fixed iterations)")
-    ax2.set_xlabel("LU history")
-    ax2.set_ylabel("metric")
-    ax2.grid(True)
-    ax2.legend()
+        values[(I, H)] = v
 
-    fig.suptitle(title)
+    if not values:
+        raise RuntimeError(f"No values found for pattern='{pattern}', metric='{metric}'")
+
+    I_vals = sorted({k[0] for k in values.keys()})
+    H_vals = sorted({k[1] for k in values.keys()})
+
+    mat = pd.DataFrame(index=I_vals, columns=H_vals, dtype=float)
+    for (I, H), v in values.items():
+        mat.loc[I, H] = v
+
+    return mat.sort_index().sort_index(axis=1)
+
+
+def plot_heatmap(
+    mat: pd.DataFrame,
+    *,
+    title: str,
+    outpath: Path,
+    cmap_name: str = "viridis",
+    annotate: bool = True,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+) -> None:
+    fig, ax = plt.subplots(figsize=(7.8, 5.4))
+
+    data = mat.to_numpy(dtype=float)
+    im = ax.imshow(
+        data,
+        origin="lower",
+        aspect="auto",
+        cmap=getattr(cm, cmap_name, cm.viridis),
+        vmin=vmin,
+        vmax=vmax,
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("H (history)")
+    ax.set_ylabel("I (iterations)")
+
+    ax.set_xticks(np.arange(mat.shape[1]))
+    ax.set_xticklabels([str(h) for h in mat.columns.tolist()])
+    ax.set_yticks(np.arange(mat.shape[0]))
+    ax.set_yticklabels([str(i) for i in mat.index.tolist()])
+
+    cbar = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.02)
+    cbar.set_label("metric")
+
+    if annotate:
+        for yi in range(mat.shape[0]):
+            for xi in range(mat.shape[1]):
+                v = data[yi, xi]
+                if np.isfinite(v):
+                    ax.text(xi, yi, f"{v:.3f}", ha="center", va="center", fontsize=8)
+
     fig.tight_layout()
-    if outpath:
-        fig.savefig(outpath, dpi=200)
+    fig.savefig(outpath, dpi=200)
     plt.close(fig)
 
-def plot_surface_3d(
+
+def plot_slices(
     mat: pd.DataFrame,
-    title: str,
-    outpath: Optional[str] = None,
     *,
-    elev: float = 30.0,
-    azim: float = -60.0,
+    title: str,
+    outpath: Path,
+    baseline: Optional[float] = None,
+    baseline_label: str = "ZED baseline",
 ) -> None:
     """
-    3D surface of M(I,H).
-      X: history (H)
-      Y: iterations (I)
-      Z: metric value
-
-    Handles NaNs by masking them so the surface doesn't break.
+    One figure with two panels:
+      left: M vs I for each H
+      right: M vs H for each I
+    (This supports your marginal analysis in the thesis.)
     """
-    # ---- normalize axes ----
-    mat = mat.copy()
-    mat.index = mat.index.astype(int)
-    mat.columns = mat.columns.astype(int)
-    mat = mat.sort_index().sort_index(axis=1)
-    mat = mat.groupby(level=0).mean()
-    mat = mat.groupby(axis=1, level=0).mean()
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.8))
 
-    fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection="3d")
+    # left: for each H line over I
+    I_vals = mat.index.to_numpy(dtype=float)
+    for H in mat.columns:
+        y = mat[H].to_numpy(dtype=float)
+        ax1.plot(I_vals, y, marker="o", label=f"H={H}")
+    ax1.set_title("Slices over I (fixed H)")
+    ax1.set_xlabel("I (iterations)")
+    ax1.set_ylabel("metric")
+    ax1.grid(True, alpha=0.25)
+    if baseline is not None and np.isfinite(baseline):
+        ax1.axhline(baseline, linestyle="--", linewidth=1.5, label=baseline_label)
 
-    # Surface
-    # ---- build scattered points ----
+    # right: for each I line over H
+    H_vals = mat.columns.to_numpy(dtype=float)
+    for I in mat.index:
+        y = mat.loc[I].to_numpy(dtype=float)
+        ax2.plot(H_vals, y, marker="o", label=f"I={I}")
+    ax2.set_title("Slices over H (fixed I)")
+    ax2.set_xlabel("H (history)")
+    ax2.set_ylabel("metric")
+    ax2.grid(True, alpha=0.25)
+    if baseline is not None and np.isfinite(baseline):
+        ax2.axhline(baseline, linestyle="--", linewidth=1.5, label=baseline_label)
+
+    fig.suptitle(title, y=1.02)
+    ax1.legend(fontsize=8)
+    ax2.legend(fontsize=8)
+
+    fig.tight_layout()
+    fig.savefig(outpath, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_surface_3d_smooth(
+    mat: pd.DataFrame,
+    *,
+    title: str,
+    outpath: Path,
+    cmap_name: str = "viridis",
+    elev: float = 28.0,
+    azim: float = -55.0,
+) -> None:
+    """
+    Smoothed 3D surface via triangular interpolation (continuous-looking even for 4x4 grid).
+    Colored with heatmap-like colormap.
+    """
+    # Prepare scattered points
     mat = mat.sort_index().sort_index(axis=1)
     H_vals = mat.columns.to_numpy(dtype=float)
     I_vals = mat.index.to_numpy(dtype=float)
@@ -283,255 +237,224 @@ def plot_surface_3d(
     yc = Yc.ravel()
     zc = Z.ravel()
 
-    # drop NaNs (important)
     ok = np.isfinite(zc)
     xc, yc, zc = xc[ok], yc[ok], zc[ok]
 
-    # ---- triangulation + interpolation on a fine grid ----
     tri = mtri.Triangulation(xc, yc)
     interp = mtri.LinearTriInterpolator(tri, zc)
 
-    H_fine = np.linspace(H_vals.min(), H_vals.max(), 120)
-    I_fine = np.linspace(I_vals.min(), I_vals.max(), 120)
+    H_fine = np.linspace(H_vals.min(), H_vals.max(), 140)
+    I_fine = np.linspace(I_vals.min(), I_vals.max(), 140)
     Xf, Yf = np.meshgrid(H_fine, I_fine)
     Zf = interp(Xf, Yf)  # masked array
 
-    # ---- plot ----
-    cmap = cm.viridis
-    surf = ax.plot_surface(
+    cmap = getattr(cm, cmap_name, cm.viridis)
+
+    fig = plt.figure(figsize=(8.6, 6.4))
+    ax = fig.add_subplot(111, projection="3d")
+
+    ax.plot_surface(
         Xf, Yf, Zf,
         cmap=cmap,
         linewidth=0,
         antialiased=True,
-        shade=False,  # keeps colors "heatmap-like"
+        shade=False,   # keep colors consistent (heatmap-like)
     )
 
-    # colorbar (matches the heatmap meaning)
-    m = cm.ScalarMappable(cmap=cmap)
-    m.set_array(zc)
-    m.set_clim(np.nanmin(zc), np.nanmax(zc))
-    fig.colorbar(m, ax=ax, shrink=0.65, pad=0.08, label="metric")
-
     ax.set_title(title)
-    ax.set_xlabel("LU history (H)")
-    ax.set_ylabel("PG iterations (I)")
+    ax.set_xlabel("H (history)")
+    ax.set_ylabel("I (iterations)")
     ax.set_zlabel("metric")
-
     ax.view_init(elev=elev, azim=azim)
 
+    # colorbar
+    sm = cm.ScalarMappable(cmap=cmap)
+    sm.set_array(zc)
+    sm.set_clim(np.nanmin(zc), np.nanmax(zc))
+    fig.colorbar(sm, ax=ax, shrink=0.65, pad=0.08, label="metric")
+
     fig.tight_layout()
-    if outpath:
-        fig.savefig(outpath, dpi=200)
+    fig.savefig(outpath, dpi=200)
     plt.close(fig)
 
 
-# ----------------------------
-# Tables / effect decomposition
-# ----------------------------
-
-def effect_summary_table(mat: pd.DataFrame) -> pd.DataFrame:
-    """
-    Produces a compact table:
-      - global best, worst
-      - average over histories for each iters
-      - average over iters for each history
-    """
-    best = mat.stack().idxmin()
-    worst = mat.stack().idxmax()
-
-    summary = {
-        "best_iters": best[0],
-        "best_history": best[1],
-        "best_value": float(mat.loc[best[0], best[1]]),
-        "worst_iters": worst[0],
-        "worst_history": worst[1],
-        "worst_value": float(mat.loc[worst[0], worst[1]]),
-    }
-
-    iters_means = mat.mean(axis=1).rename("mean_over_histories")
-    hist_means = mat.mean(axis=0).rename("mean_over_iters")
-
-    out = pd.DataFrame([summary])
-    out = pd.concat([out, iters_means.reset_index().rename(columns={"iters": "iters"}),], axis=1)
-    # the concat above may be messy in one row; instead return multi-part frames separately
-    # We'll return a dict-like frame: three blocks
-    block_a = pd.DataFrame([summary])
-    block_b = iters_means.reset_index().rename(columns={"index": "iters"})
-    block_c = hist_means.reset_index().rename(columns={"index": "history"})
-    block_b.columns = ["iters", "mean_over_histories"]
-    block_c.columns = ["history", "mean_over_iters"]
-
-    # Pack into one dataframe with a hierarchical index (nice for saving as CSV)
-    block_a.index = pd.Index(["global"], name="block")
-    block_b.index = pd.Index(["iters_mean"] * len(block_b), name="block")
-    block_c.index = pd.Index(["history_mean"] * len(block_c), name="block")
-    return pd.concat([block_a, block_b, block_c], axis=0)
-
-
-def superposition_check(
-    mat: pd.DataFrame,
+def baseline_scalar_from_files(
+    files: Iterable[Path],
     *,
-    baseline: Tuple[int, int],   # e.g. (0,1)
-    a: Tuple[int, int],          # e.g. (33,1)
-    b: Tuple[int, int],          # e.g. (0,10)
-    ab: Tuple[int, int],         # e.g. (33,10)
-) -> pd.DataFrame:
+    baseline_pattern: str,
+    metric: str,
+    baseline_ref: str = "mean",   # "mean" or "I0H1"
+    allow_contains: bool = False,
+) -> float:
     """
-    Tests additivity:
-      expected(ab) = baseline + (a-baseline) + (b-baseline)
-    Interaction = observed(ab) - expected(ab)
-
-    Negative interaction => better than additive (synergy) if metric is "lower is better".
+    Compute scalar baseline M_baseline for ZED (or any baseline pattern).
+    baseline_ref:
+      - "mean": average of all found baseline values across files (robust)
+      - "I0H1": take only the baseline value from the (0,1) config if present
     """
-    def v(p: Tuple[int, int]) -> float:
-        i, h = p
-        return float(mat.loc[i, h])
+    vals: List[Tuple[Tuple[int, int], float]] = []
+    for f in files:
+        try:
+            I, H = infer_IH_from_path(f)
+        except Exception:
+            continue
+        v = extract_value_from_csv(f, pattern=baseline_pattern, metric=metric, allow_contains=allow_contains)
+        if v is None:
+            continue
+        vals.append(((I, H), v))
 
-    m0 = v(baseline)
-    ma = v(a)
-    mb = v(b)
-    mab = v(ab)
+    if not vals:
+        raise RuntimeError(f"No baseline values found for '{baseline_pattern}' metric='{metric}'")
 
-    expected = m0 + (ma - m0) + (mb - m0)
-    interaction = mab - expected
+    if baseline_ref == "I0H1":
+        for (I, H), v in vals:
+            if I == 0 and H == 1:
+                return float(v)
+        # fallback: if (0,1) missing, just mean
+        baseline_ref = "mean"
 
-    return pd.DataFrame([{
-        "baseline": f"{baseline[0]}_{baseline[1]}",
-        "a": f"{a[0]}_{a[1]}",
-        "b": f"{b[0]}_{b[1]}",
-        "ab": f"{ab[0]}_{ab[1]}",
-        "m_baseline": m0,
-        "m_a": ma,
-        "m_b": mb,
-        "m_ab_observed": mab,
-        "m_ab_expected_additive": expected,
-        "interaction_observed_minus_expected": interaction,
-        "note": "If lower-is-better: negative interaction => synergy, positive => diminishing returns",
-    }])
+    # mean over all (should be constant anyway)
+    return float(np.mean([v for _, v in vals]))
 
-
-def two_way_decomposition(mat: pd.DataFrame) -> pd.DataFrame:
+def compute_superposition_gamma(mat: pd.DataFrame) -> pd.DataFrame:
     """
-    Simple two-way additive decomposition (no statsmodels needed):
-      M(i,h) ≈ mu + alpha_i + beta_h + gamma_(i,h)
-
-    Returns:
-      - main effect of iters (alpha)
-      - main effect of history (beta)
-      - interaction residuals (gamma matrix flattened)
+    Gamma(I,H) = M(I,H) - M(I,1) - M(0,H) + M(0,1)
+    Requires that I=0 exists in index and H=1 exists in columns.
     """
-    mu = mat.stack().mean()
-    alpha = mat.mean(axis=1) - mu
-    beta = mat.mean(axis=0) - mu
+    if 0 not in mat.index:
+        raise RuntimeError("Superposition needs I=0 row in the matrix.")
+    if 1 not in mat.columns:
+        raise RuntimeError("Superposition needs H=1 column in the matrix.")
 
-    # interaction residuals
-    gamma = mat.copy()
-    for i in mat.index:
-        for h in mat.columns:
-            gamma.loc[i, h] = mat.loc[i, h] - (mu + alpha.loc[i] + beta.loc[h])
+    M01 = float(mat.loc[0, 1])
+    MI1 = mat[1]          # column at H=1, indexed by I
+    M0H = mat.loc[0]      # row at I=0, indexed by H
 
-    # return a tidy table
-    alpha_df = alpha.reset_index()
-    alpha_df.columns = ["iters", "alpha_iters_main_effect"]
-    beta_df = beta.reset_index()
-    beta_df.columns = ["history", "beta_history_main_effect"]
-
-    gamma_long = gamma.stack().reset_index()
-    gamma_long.columns = ["iters", "history", "gamma_interaction_residual"]
-
-    # add mu as a one-row header block
-    mu_df = pd.DataFrame([{"mu_global_mean": float(mu)}])
-
-    out = pd.concat(
-        [
-            mu_df.assign(block="mu"),
-            alpha_df.assign(block="alpha"),
-            beta_df.assign(block="beta"),
-            gamma_long.assign(block="gamma"),
-        ],
-        ignore_index=True
-    )
-    return out
-
-
-# ----------------------------
-# Main
-# ----------------------------
+    gamma = mat.subtract(MI1, axis=0).subtract(M0H, axis=1).add(M01)
+    return gamma
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--files", nargs="+", required=True, help="CSV files, each named with label like 33_10.csv")
-    ap.add_argument("--pattern", required=True, help="Row selector substring, e.g. 'pg_ape_se3' or 'zed_rpe_100m'")
-    ap.add_argument("--metric", default="rmse", help="One of: rmse, mean, median, std, min, max, sse")
-    ap.add_argument("--outdir", default="out", help="Output directory for plots/tables")
-    ap.add_argument("--include", default=None, help="Optional regex filter applied before pattern (e.g., 'pg_' to ignore zed)")
-    ap.add_argument("--baseline", default=None, help="Baseline label like '0_1' for superposition checks")
-    ap.add_argument("--super_a", default=None, help="Point A label like '33_1'")
-    ap.add_argument("--super_b", default=None, help="Point B label like '0_10'")
-    ap.add_argument("--super_ab", default=None, help="Point AB label like '33_10'")
-    ap.add_argument("--surface", action="store_true", help="Also write a 3D surface plot PNG")
-    ap.add_argument("--elev", type=float, default=30.0, help="3D view elevation angle")
-    ap.add_argument("--azim", type=float, default=-60.0, help="3D view azimuth angle")
+    ap.add_argument("--files", nargs="+", required=True, help="One or more metrics CSV paths (glob expanded by shell).")
+    ap.add_argument("--pattern", required=True, help="PG pattern name, e.g. pg_ape_se3")
+    ap.add_argument("--metric", required=True, choices=METRICS, help="Which scalar column to plot, e.g. rmse")
+    ap.add_argument("--outdir", required=True, help="Output directory")
+    ap.add_argument("--allow-contains", action="store_true", help="Pattern match using contains if exact match fails")
+
+    # outputs
+    ap.add_argument("--surface", action="store_true", help="Also write 3D surface plot")
+    ap.add_argument("--elev", type=float, default=28.0, help="3D view elevation")
+    ap.add_argument("--azim", type=float, default=-55.0, help="3D view azimuth")
+    ap.add_argument("--cmap", default="viridis", help="Colormap name (matplotlib), default: viridis")
+
+    # baseline comparison
+    ap.add_argument("--baseline-pattern", default=None, help="Baseline pattern, e.g. zed_ape_se3 (single scalar baseline)")
+    ap.add_argument("--baseline-ref", default="mean", choices=["mean", "I0H1"],
+                    help="How to compute scalar baseline from files (mean over all, or use (0,1))")
+    ap.add_argument("--delta-cmap", default="coolwarm", help="Colormap for improvement heatmap (delta), default: coolwarm")
+    ap.add_argument("--ratio-cmap", default="viridis", help="Colormap for ratio heatmap, default: viridis")
+
+    ap.add_argument("--gamma", action="store_true",
+                    help="Write superposition deviation Gamma(I,H) as CSV (and optionally heatmap).")
+    ap.add_argument("--gamma-heatmap", action="store_true",
+                    help="Also write a heatmap for Gamma(I,H).")
+
     args = ap.parse_args()
 
+    files = [Path(x) for x in args.files]
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    data = aggregate_experiments(args.files, include_regex=args.include)
-    sel = select_rows(data, pattern=args.pattern)
-    mat = pivot_metric(sel, metric=args.metric)
+    # PG matrix
+    mat_pg = build_matrix(files, pattern=args.pattern, metric=args.metric, allow_contains=args.allow_contains)
 
-    # Save the raw pivot table
-    mat.to_csv(outdir / f"matrix_{args.pattern}_{args.metric}.csv")
+    # Optional baseline scalar
+    baseline_val: Optional[float] = None
+    if args.baseline_pattern:
+        baseline_val = baseline_scalar_from_files(
+            files,
+            baseline_pattern=args.baseline_pattern,
+            metric=args.metric,
+            baseline_ref=args.baseline_ref,
+            allow_contains=args.allow_contains,
+        )
 
-    # Plots
+    # ---- core outputs: heatmap + slices + (optional) surface ----
     plot_heatmap(
-        mat,
-        title=f"{args.pattern} :: {args.metric} (lower is better)",
-        outpath=str(outdir / f"heatmap_{args.pattern}_{args.metric}.png"),
+        mat_pg,
+        title=f"{args.pattern} :: {args.metric}",
+        outpath=outdir / f"heatmap_{args.pattern}_{args.metric}.png",
+        cmap_name=args.cmap,
+        annotate=True,
     )
 
     plot_slices(
-        mat,
+        mat_pg,
         title=f"{args.pattern} :: {args.metric}",
-        outpath=str(outdir / f"slices_{args.pattern}_{args.metric}.png"),
+        outpath=outdir / f"slices_{args.pattern}_{args.metric}.png",
+        baseline=baseline_val,
+        baseline_label=f"{args.baseline_pattern} baseline" if args.baseline_pattern else "baseline",
     )
 
-    # Tables
-    summ = effect_summary_table(mat)
-    summ.to_csv(outdir / f"summary_{args.pattern}_{args.metric}.csv", index=True)
-
-    decomp = two_way_decomposition(mat)
-    decomp.to_csv(outdir / f"decomp_{args.pattern}_{args.metric}.csv", index=False)
-
-    # Optional superposition / interaction check
-    if args.baseline and args.super_a and args.super_b and args.super_ab:
-        def to_key(s: str) -> Tuple[int, int]:
-            i, h = s.split("_")
-            return (int(i), int(h))
-        sp = superposition_check(
-            mat,
-            baseline=to_key(args.baseline),
-            a=to_key(args.super_a),
-            b=to_key(args.super_b),
-            ab=to_key(args.super_ab),
-        )
-        sp.to_csv(outdir / f"superposition_{args.pattern}_{args.metric}.csv", index=False)
-
     if args.surface:
-        plot_surface_3d(
-            mat,
+        plot_surface_3d_smooth(
+            mat_pg,
             title=f"{args.pattern} :: {args.metric} (3D surface)",
-            outpath=str(outdir / f"surface_{args.pattern}_{args.metric}.png"),
+            outpath=outdir / f"surface_{args.pattern}_{args.metric}.png",
+            cmap_name=args.cmap,
             elev=args.elev,
             azim=args.azim,
         )
 
-    print(f"[OK] Wrote outputs to: {outdir.resolve()}")
-    print(f"     Matrix shape: {mat.shape} (iters x history)")
-    print(f"     Available iters: {list(mat.index)}")
-    print(f"     Available history: {list(mat.columns)}")
+    # ---- baseline-vs-PG comparison outputs (meaningful) ----
+    if baseline_val is not None:
+        delta = baseline_val - mat_pg
+        ratio = delta / baseline_val
 
+        plot_heatmap(
+            delta,
+            title=f"Δ vs baseline: {args.baseline_pattern} - {args.pattern} :: {args.metric}",
+            outpath=outdir / f"heatmap_delta_vs_{args.baseline_pattern}_{args.pattern}_{args.metric}.png",
+            cmap_name=args.delta_cmap,
+            annotate=True,
+        )
+
+        plot_heatmap(
+            ratio * 100.0,
+            title=f"Relative gain (%) vs baseline: {args.baseline_pattern} vs {args.pattern} :: {args.metric}",
+            outpath=outdir / f"heatmap_ratio_vs_{args.baseline_pattern}_{args.pattern}_{args.metric}.png",
+            cmap_name=args.ratio_cmap,
+            annotate=True,
+        )
+
+        if args.surface:
+            plot_surface_3d_smooth(
+                delta,
+                title=f"Δ surface vs baseline: {args.baseline_pattern} - {args.pattern} :: {args.metric}",
+                outpath=outdir / f"surface_delta_vs_{args.baseline_pattern}_{args.pattern}_{args.metric}.png",
+                cmap_name=args.delta_cmap,
+                elev=args.elev,
+                azim=args.azim,
+            )
+
+    if args.gamma:
+        gamma = compute_superposition_gamma(mat_pg)
+        gamma_csv = outdir / f"gamma_{args.pattern}_{args.metric}.csv"
+        gamma.to_csv(gamma_csv, float_format="%.6f")
+
+        if args.gamma_heatmap:
+            # symmetric color limits around 0 look best for +/- deviations
+            g = gamma.to_numpy(dtype=float)
+            gabs = np.nanmax(np.abs(g[np.isfinite(g)])) if np.isfinite(g).any() else None
+            plot_heatmap(
+                gamma,
+                title=f"Gamma (superposition deviation): {args.pattern} :: {args.metric}",
+                outpath=outdir / f"heatmap_gamma_{args.pattern}_{args.metric}.png",
+                cmap_name="coolwarm",
+                annotate=True,
+                vmin=(-gabs if gabs is not None else None),
+                vmax=(gabs if gabs is not None else None),
+            )
 
 if __name__ == "__main__":
     main()
