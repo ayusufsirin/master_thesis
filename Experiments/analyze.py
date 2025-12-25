@@ -28,6 +28,8 @@ import matplotlib.pyplot as plt
 
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (needed for 3D projection)
 
+import matplotlib as mpl
+from matplotlib import cm
 
 # ----------------------------
 # Config / parsing
@@ -276,7 +278,20 @@ def plot_surface_3d(
     ax = fig.add_subplot(111, projection="3d")
 
     # Surface
-    ax.plot_surface(X, Y, Zm, rstride=1, cstride=1, linewidth=0, antialiased=True)
+    surf = ax.plot_surface(
+        X, Y, Zm,
+        rstride=1, cstride=1,
+        linewidth=0,
+        antialiased=True,
+        cmap=cm.viridis,  # heatmap-like coloring
+        shade=False,  # avoids weird lighting colors
+    )
+
+    # Optional but recommended: colorbar = same meaning as heatmap
+    m = cm.ScalarMappable(cmap=cm.viridis)
+    m.set_array(Zm.compressed() if np.ma.isMaskedArray(Zm) else Z.ravel())
+    m.set_clim(np.nanmin(Z), np.nanmax(Z))
+    fig.colorbar(m, ax=ax, shrink=0.65, pad=0.08, label="metric")
 
     ax.set_title(title)
     ax.set_xlabel("LU history (H)")
