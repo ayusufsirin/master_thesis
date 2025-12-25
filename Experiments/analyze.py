@@ -30,6 +30,7 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (needed for 3D projection
 
 import matplotlib as mpl
 from matplotlib import cm
+import matplotlib.tri as mtri
 
 # ----------------------------
 # Config / parsing
@@ -267,30 +268,48 @@ def plot_surface_3d(
     mat = mat.groupby(level=0).mean()
     mat = mat.groupby(axis=1, level=0).mean()
 
-    H = mat.columns.to_numpy(dtype=float)  # X axis
-    I = mat.index.to_numpy(dtype=float)    # Y axis
-
-    X, Y = np.meshgrid(H, I)
-    Z = mat.to_numpy(dtype=float)
-    Zm = np.ma.masked_invalid(Z)
-
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection="3d")
 
     # Surface
+    # ---- build scattered points ----
+    mat = mat.sort_index().sort_index(axis=1)
+    H_vals = mat.columns.to_numpy(dtype=float)
+    I_vals = mat.index.to_numpy(dtype=float)
+    Z = mat.to_numpy(dtype=float)
+
+    Xc, Yc = np.meshgrid(H_vals, I_vals)
+    xc = Xc.ravel()
+    yc = Yc.ravel()
+    zc = Z.ravel()
+
+    # drop NaNs (important)
+    ok = np.isfinite(zc)
+    xc, yc, zc = xc[ok], yc[ok], zc[ok]
+
+    # ---- triangulation + interpolation on a fine grid ----
+    tri = mtri.Triangulation(xc, yc)
+    interp = mtri.LinearTriInterpolator(tri, zc)
+
+    H_fine = np.linspace(H_vals.min(), H_vals.max(), 120)
+    I_fine = np.linspace(I_vals.min(), I_vals.max(), 120)
+    Xf, Yf = np.meshgrid(H_fine, I_fine)
+    Zf = interp(Xf, Yf)  # masked array
+
+    # ---- plot ----
+    cmap = cm.viridis
     surf = ax.plot_surface(
-        X, Y, Zm,
-        rstride=1, cstride=1,
+        Xf, Yf, Zf,
+        cmap=cmap,
         linewidth=0,
         antialiased=True,
-        cmap=cm.viridis,  # heatmap-like coloring
-        shade=False,  # avoids weird lighting colors
+        shade=False,  # keeps colors "heatmap-like"
     )
 
-    # Optional but recommended: colorbar = same meaning as heatmap
-    m = cm.ScalarMappable(cmap=cm.viridis)
-    m.set_array(Zm.compressed() if np.ma.isMaskedArray(Zm) else Z.ravel())
-    m.set_clim(np.nanmin(Z), np.nanmax(Z))
+    # colorbar (matches the heatmap meaning)
+    m = cm.ScalarMappable(cmap=cmap)
+    m.set_array(zc)
+    m.set_clim(np.nanmin(zc), np.nanmax(zc))
     fig.colorbar(m, ax=ax, shrink=0.65, pad=0.08, label="metric")
 
     ax.set_title(title)
