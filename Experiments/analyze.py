@@ -26,6 +26,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (needed for 3D projection)
+
 
 # ----------------------------
 # Config / parsing
@@ -239,6 +241,55 @@ def plot_slices(mat: pd.DataFrame, title: str, outpath: Optional[str] = None) ->
         fig.savefig(outpath, dpi=200)
     plt.close(fig)
 
+def plot_surface_3d(
+    mat: pd.DataFrame,
+    title: str,
+    outpath: Optional[str] = None,
+    *,
+    elev: float = 30.0,
+    azim: float = -60.0,
+) -> None:
+    """
+    3D surface of M(I,H).
+      X: history (H)
+      Y: iterations (I)
+      Z: metric value
+
+    Handles NaNs by masking them so the surface doesn't break.
+    """
+    # ---- normalize axes ----
+    mat = mat.copy()
+    mat.index = mat.index.astype(int)
+    mat.columns = mat.columns.astype(int)
+    mat = mat.sort_index().sort_index(axis=1)
+    mat = mat.groupby(level=0).mean()
+    mat = mat.groupby(axis=1, level=0).mean()
+
+    H = mat.columns.to_numpy(dtype=float)  # X axis
+    I = mat.index.to_numpy(dtype=float)    # Y axis
+
+    X, Y = np.meshgrid(H, I)
+    Z = mat.to_numpy(dtype=float)
+    Zm = np.ma.masked_invalid(Z)
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    # Surface
+    ax.plot_surface(X, Y, Zm, rstride=1, cstride=1, linewidth=0, antialiased=True)
+
+    ax.set_title(title)
+    ax.set_xlabel("LU history (H)")
+    ax.set_ylabel("PG iterations (I)")
+    ax.set_zlabel("metric")
+
+    ax.view_init(elev=elev, azim=azim)
+
+    fig.tight_layout()
+    if outpath:
+        fig.savefig(outpath, dpi=200)
+    plt.close(fig)
+
 
 # ----------------------------
 # Tables / effect decomposition
@@ -384,6 +435,9 @@ def main() -> None:
     ap.add_argument("--super_a", default=None, help="Point A label like '33_1'")
     ap.add_argument("--super_b", default=None, help="Point B label like '0_10'")
     ap.add_argument("--super_ab", default=None, help="Point AB label like '33_10'")
+    ap.add_argument("--surface", action="store_true", help="Also write a 3D surface plot PNG")
+    ap.add_argument("--elev", type=float, default=30.0, help="3D view elevation angle")
+    ap.add_argument("--azim", type=float, default=-60.0, help="3D view azimuth angle")
     args = ap.parse_args()
 
     outdir = Path(args.outdir)
@@ -429,6 +483,15 @@ def main() -> None:
             ab=to_key(args.super_ab),
         )
         sp.to_csv(outdir / f"superposition_{args.pattern}_{args.metric}.csv", index=False)
+
+    if args.surface:
+        plot_surface_3d(
+            mat,
+            title=f"{args.pattern} :: {args.metric} (3D surface)",
+            outpath=str(outdir / f"surface_{args.pattern}_{args.metric}.png"),
+            elev=args.elev,
+            azim=args.azim,
+        )
 
     print(f"[OK] Wrote outputs to: {outdir.resolve()}")
     print(f"     Matrix shape: {mat.shape} (iters x history)")
