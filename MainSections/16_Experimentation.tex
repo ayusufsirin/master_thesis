@@ -44,51 +44,7 @@ XYZ güzergah karşılaştırmaları eklenmelidir.
 \input{./MainSections/16.1_MathematicalExperimentationMethodology}
 %\input{./MainSections/16.1_MathematicalExperimentationMethodology_EN}
 
-\subsection{Trajektori Hizalama ve Kabsch Algoritması}
-\label{sec:kabsch_alignment}
-
-Bu çalışmada, farklı sensör kaynaklarından elde edilen trajektori tahminlerinin karşılaştırılabilmesi amacıyla, ölçüm sonuçları öncelikle ortak bir referans çerçevesine hizalanmıştır. Bu hizalama işlemi, \textit{evo}\cite{grupp2017evo} değerlendirme aracı tarafından kullanılan ve literatürde yaygın olarak kabul gören \textbf{Kabsch algoritması}\cite{Kabsch:a12999} temel alınarak gerçekleştirilmiştir.
-
-Kabsch algoritması, iki eşleşmiş nokta kümesi arasındaki \textit{ortalama kare hatayı} (Root Mean Squared Deviation -- RMSD) minimize eden en uygun rijit dönüşümü (rotasyon ve öteleme) hesaplamayı amaçlar. Bu bağlamda, referans trajektori
-$P = \{\mathbf{p}_i\}_{i=1}^N$
-ve tahmin edilen trajektori
-$Q = \{\mathbf{q}_i\}_{i=1}^N$
-olmak üzere, her iki kümede yer alan noktaların zamansal olarak eşleştiği varsayılır.
-
-Algoritmanın ilk adımında, her iki nokta kümesinin ağırlık merkezleri hesaplanarak merkezlenmiş noktalar elde edilir:
-\[
-\mathbf{p}'_i = \mathbf{p}_i - \bar{\mathbf{p}}, \quad
-\mathbf{q}'_i = \mathbf{q}_i - \bar{\mathbf{q}}.
-\]
-
-Ardından, merkezlenmiş noktalar kullanılarak kovaryans matrisi tanımlanır:
-\[
-\mathbf{H} = \sum_{i=1}^{N} \mathbf{p}'_i \mathbf{q}'_i{}^{\top}.
-\]
-
-Bu matrisin tekil değer ayrışımı (Singular Value Decomposition -- SVD) şu şekilde ifade edilir:
-\[
-\mathbf{H} = \mathbf{U}\,\boldsymbol{\Sigma}\,\mathbf{V}^{\top}.
-\]
-
-Optimal rotasyon matrisi, yansıma durumlarını önleyecek biçimde
-\[
-\mathbf{R} =
-\mathbf{V}
-\begin{pmatrix}
-1 & 0 & 0 \\
-0 & 1 & 0 \\
-0 & 0 & \det(\mathbf{V}\mathbf{U}^{\top})
-\end{pmatrix}
-\mathbf{U}^{\top}
-\]
-olarak hesaplanır. Öteleme vektörü ise
-\[
-\mathbf{t} = \bar{\mathbf{p}} - \mathbf{R}\,\bar{\mathbf{q}}
-\]
-şeklinde elde edilir.
-
-Bu dönüşüm sayesinde, tahmin edilen trajektori referans trajektoriye en iyi şekilde hizalanır ve iki yol arasındaki farklar, global konum ve yönelim farklarından arındırılmış olarak değerlendirilir. Bu çalışmada sunulan hizalanmış trajektori hata metrikleri (örneğin Absolute Pose Error -- APE ve Relative Pose Error -- RPE), hizalanmış trajektoriler üzerinden \textit{evo} aracı kullanılarak hesaplanmıştır. Böylece elde edilen sonuçlar, sistemin gerçek izleme doğruluğunu yansıtan anlamlı karşılaştırmalar sunmaktadır.
+\input{./Experiments/EvoMethodology}
 
 \section{CitrusFarm Veriseti}
 
