@@ -123,7 +123,7 @@ def make_by_iter_group_block(
             f"(mode: {mode}, alignment: {align}{view_str})."
         )
 
-        label = f"fig:pg_iter_{iter_val}_{mode}_{align}"
+        label = f"fig:appendix-pg_iter_{iter_val}_{mode}_{align}"
         if view_name:
             label += f"_{view_name}"
 
@@ -178,7 +178,7 @@ def make_by_hist_group_block(
             f"(mode: {mode}, alignment: {align}{view_str})."
         )
 
-        label = f"fig:pg_hist_{hist_val}_{mode}_{align}"
+        label = f"fig:appendix-pg_hist_{hist_val}_{mode}_{align}"
         if view_name:
             label += f"_{view_name}"
 
@@ -362,7 +362,7 @@ def main():
                     f"{exp_name} (mode: {mode}, alignment: {align})."
                 )
                 safe_exp = re.sub(r"[^a-zA-Z0-9]+", "_", exp_name)
-                label = f"fig:traj_{safe_exp}_{mode}_{align}"
+                label = f"fig:appendix-traj_{safe_exp}_{mode}_{align}"
                 img_rel = rel_to_tex(img)
                 lines.append(make_figure_block(graphics_prefix, img_rel, caption, label))
 
