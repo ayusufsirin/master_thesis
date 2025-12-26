@@ -1,0 +1,432 @@
+\section{Deneysel Sonuçlar | CitrusFarm Veri Seti}
+\label{sec:results-citrusfarm}
+
+Bu bölümde, önerilen Papoulis--Gerchberg (PG) tabanlı LiDAR--stereo füzyon hattının CitrusFarm Veriseti verileri ile deneysel değerlendirmesi iki parametreli bir tarama (sweep) altında sunulmaktadır: PG iterasyon sayısı \(I\) ve zamansal geçmiş (history) boyutu \(H\).
+Tüm yörüngeler, hizalama sonrasında EVO kullanılarak RTK-GNSS odometrisi (yer gerçeği) ile karşılaştırılmıştır.
+Stereo-only RTAB-Map çıktısı (ZED) taban çizgisi (baseline) olarak alınmış; PG hattı ise \((I,H)\) ile indekslenen
+bir çıktı ailesi üretmiştir.
+
+ZED hattında \((I,H)\) parametreleri bulunmadığından, karşılaştırma tarama uzayı üzerinde taban-çizgisine göre
+tanımlanmış bir iyileşme alanı olarak formüle edilmiştir:
+\[
+    \Delta(I,H)=M_{\text{ZED}}-M_{\text{PG}}(I,H),
+    \qquad
+    R(I,H)=\frac{M_{\text{PG}}(I,H)}{M_{\text{ZED}}}.
+\]
+Bu formülasyonda \(\Delta>0\) PG’nin ZED taban çizgisine göre iyileşme sağladığını, \(R<1\) ise hatada göreli bir
+azalma olduğunu gösterir.
+\(I\) ve \(H\) arasındaki toplamsal olmayan (non-additive) davranış ise
+Bölüm~\ref{sec:math_analysis_framework}’te tanımlandığı şekilde süperpozisyon sapması \(\Gamma(I,H)\) ile
+nicemlenmiştir.
+
+\paragraph*{Taban-çizgisine göre haritalar (\(\Delta\) ve göreli kazanç) nasıl okunmalı?}
+ZED (stereo-only) hattında tarama parametreleri olmadığından tüm karşılaştırmalar sabit bir taban metrik değeri
+\(M_{\mathrm{ZED}}\) referans alınarak ifade edilir.
+Her bir \((I,H)\) konfigürasyonu için PG metriği \(M_{\mathrm{PG}}(I,H)\) hesaplanır ve iyileşme iki tamamlayıcı
+biçimde görselleştirilir:
+
+\begin{align}
+\Delta(I,H) &= M_{\mathrm{ZED}} - M_{\mathrm{PG}}(I,H), \\
+G(I,H) &= 100 \cdot \frac{M_{\mathrm{ZED}} - M_{\mathrm{PG}}(I,H)}{M_{\mathrm{ZED}}}
+      = 100 \cdot \frac{\Delta(I,H)}{M_{\mathrm{ZED}}}.
+\end{align}
+
+\noindent Burada \(\Delta(I,H)\), metriğin \emph{doğal birimlerinde} (örn. APE/RPE için metre, yaw için derece)
+raporlanırken; \(G(I,H)\) farklı metrikler ve ölçekler arasında doğrudan karşılaştırmaya olanak veren \emph{birimsiz
+normalize yüzde} ölçüsüdür.
+
+\begin{itemize}
+    \item \textbf{\(\Delta>0\)}: PG’nin taban çizgisine göre iyileştirdiğini (hata azalması) gösterir; çünkü
+    \(M_{\mathrm{PG}}(I,H) < M_{\mathrm{ZED}}\).
+    \item \textbf{\(\Delta=0\)}: taban çizgisine göre değişim olmadığını gösterir.
+    \item \textbf{\(\Delta<0\)}: taban çizgisine göre bozulmayı (hata artışı) gösterir; çünkü
+    \(M_{\mathrm{PG}}(I,H) > M_{\mathrm{ZED}}\).
+\end{itemize}
+
+\noindent \textbf{Göreli kazanç (\%)} haritası \(G(I,H)\), farklı metriklerin büyüklük aralıkları farklı olduğunda
+özellikle faydalıdır.
+Örneğin 1\,m’lik mutlak iyileşme, kısa ölçekli bir RPE için çok anlamlıyken büyük ölçekli bir RPE için daha mütevazı
+kalabilir.
+\(M_{\mathrm{ZED}}\) ile normalizasyon yaparak kazanç haritası, iyileşmenin \emph{oransal} olarak en anlamlı olduğu
+bölgeleri vurgular.
+
+\paragraph*{Pratik yorum.}
+Isı haritalarında her bir hücre bir \((I,H)\) konfigürasyonuna karşılık gelir.
+\(\Delta>0\) (veya \(G>0\)) koşulunu sağlayan geniş ve bitişik bölgeler, iyileşmenin tek bir ince ayarlı parametre
+seçimine bağlı kalmayıp \emph{sistematik ve sağlam} olduğunu gösterir.
+Buna karşılık, etrafı negatif bölgelerle çevrili izole pozitif hücreler kırılgan (fragile) bir ayar/tuning
+davranışına işaret eder.
+
+\paragraph*{Ölçek ve kararlılığa ilişkin notlar.}
+\(G(I,H)\) pratik bir normalizasyon sağlasa da belirli bir metrik için \(M_{\mathrm{ZED}}\) çok küçük olduğunda
+küçük değişimleri görsel olarak büyütebilir.
+Bu nedenle kazanç haritalarının yorumu, metriğin birimlerini koruyan \(\Delta(I,H)\) ile birlikte yapılmalıdır.
+Bu çalışmada, yalnızca normalizasyondan kaynaklı yanıltıcı çıkarımları önlemek için her iki harita birlikte
+raporlanmıştır.
+
+\subsection{Küresel Yörünge Doğruluğu (APE): Güçlü ve Tutarlı İyileşme}
+\label{subsec:results_ape}
+
+Mutlak Poz Hatası (APE), RTK-GNSS’e göre küresel yörünge tutarlılığını yansıtır ve bu nedenle uzun ufuk (long-horizon)
+sürüklenmenin (drift) temel göstergesidir.
+Şekiller~\ref{fig:results-ape-rmse-1}, ~\ref{fig:results-ape-rmse-2}, ~\ref{fig:results-ape-mean-1} ve
+~\ref{fig:results-ape-mean-2}, tüm parametre taraması boyunca APE iyileşme alanını göstermektedir.
+Buna ilişkin iki tamamlayıcı gözlem elde edilmiştir.
+
+İlk olarak, iyileşme tek bir izole konfigürasyonla sınırlı değildir: \(\Delta\) ve oran haritaları, PG’nin ZED taban
+çizgisini geçtiği geniş bölgeler ortaya koyar; bu da önerilen ön-işleme/iyileştirme yaklaşımının kırılgan bir ayara
+dayanmak yerine sistematik biçimde faydalı olduğunu gösterir.
+İkinci olarak, iyileşme yapısı zamansal geçmiş ekseni \(H\) boyunca belirgin biçimde organize olmaktadır; bu durum,
+zamansal biriktirmenin LiDAR kılavuz sinyalini kararlı hâle getirdiği yorumunu destekler.
+
+% ----------------- FIGURE: APE RMSE -----------------
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/slices_pg_ape_se3_rmse.png}
+        \caption{Dilimler}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=0.50\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/surface_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{3B yüzey}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde APE RMSE iyileşme alanı (SE(3) hizalı)
+    (Dilimler ve Yüzey).}
+    \label{fig:results-ape-rmse-1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{\(\Delta\) (taban çizgisine göre)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{Göreli kazanç (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_gamma_pg_ape_se3_rmse.png}
+        \caption{Etkileşim ısı haritası (\(\Gamma\))}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 8.663 & 16.041 & 6.786 \\
+            33                 & 0.000 & 9.286 & 15.424 & 7.796 \\
+            100                & 0.000 & 9.001 & 15.780 & 7.600 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Etkileşim matrisi (\(\Gamma\))}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde APE RMSE iyileşme alanı (SE(3) hizalı)
+    (Metrik karşılaştırmaları).}
+    \emph{Pozitif \(\Delta\) ve pozitif kazanç (\%) ZED taban çizgisine göre daha iyi performansı (daha düşük hata)
+    ifade eder.}
+    \label{fig:results-ape-rmse-2}
+\end{figure}
+
+% ----------------- FIGURE: APE MEAN -----------------
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/slices_pg_ape_se3_mean.png}
+        \caption{Dilimler}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=0.50\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/surface_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{3B yüzey}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde APE ortalama (Mean) iyileşme alanı (SE(3) hizalı)
+    (Dilimler ve Yüzey).}
+    \label{fig:results-ape-mean-1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{\(\Delta\) (taban çizgisine göre)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{Göreli kazanç (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_gamma_pg_ape_se3_mean.png}
+        \caption{Etkileşim ısı haritası (\(\Gamma\))}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 7.300 & 13.171 & 6.054 \\
+            33                 & 0.000 & 7.800 & 12.598 & 6.885 \\
+            100                & 0.000 & 7.503 & 12.870 & 6.702 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Etkileşim matrisi (\(\Gamma\))}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde APE ortalama (Mean) iyileşme alanı (SE(3) hizalı)
+    (Metrik karşılaştırmaları).}
+    \emph{Pozitif \(\Delta\) ve pozitif kazanç (\%) ZED taban çizgisine göre daha iyi performansı (daha düşük hata)
+    ifade eder.}
+    \label{fig:results-ape-mean-2}
+\end{figure}
+
+\subsection{Kısa Ölçekli Tutarlılık (RPE 1m): Özellikle \(H\)’ye Duyarlı}
+\label{subsec:results_rpe_1m}
+
+RPE 1\,m, yerel (local) tutarlılığı ölçer ve özellikle kısa zaman/mesafe aralıklarında gürültü ve izleme (tracking)
+kalitesine duyarlıdır.
+Şekiller~\ref{fig:results-rpe-1m-rmse-1} ve ~\ref{fig:results-rpe-1m-rmse-2}, kısa ölçekli RPE’de iyileşmenin
+büyük ölçüde \(H\) tarafından sürüklendiğini göstermektedir:
+daha büyük tarihçe değerleri daha yoğun kümülatif LiDAR desteği sağlayarak PG’nin stereo eşleştirmeye uyguladığı
+geometrik kılavuzu güçlendirir.
+
+% ----------------- FIGURE: RPE 1m RMSE -----------------
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/slices_pg_rpe_1m_se3_rmse.png}
+        \caption{Dilimler}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/surface_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{3B yüzey}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde RPE 1m RMSE iyileşme alanı (SE(3) hizalı)
+    (Dilimler ve Yüzeyler).}
+    \label{fig:results-rpe-1m-rmse-1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{\(\Delta\) (taban çizgisine göre)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_ratio_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{Göreli kazanç (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_gamma_pg_rpe_1m_se3_rmse.png}
+        \caption{Etkileşim ısı haritası (\(\Gamma\))}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 0.004 & 0.014 & 0.008 \\
+            33                 & 0.000 & 0.007 & 0.013 & 0.010 \\
+            100                & 0.000 & 0.004 & 0.009 & 0.008 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Etkileşim matrisi (\(\Gamma\))}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde RPE 1m RMSE iyileşme alanı (SE(3) hizalı)
+    (Metrik karşılaştırmaları) (Metrik karşılaştırmaları).}
+    \emph{Pozitif \(\Delta\) ve pozitif kazanç (\%) ZED taban çizgisine göre daha iyi performansı (daha düşük hata)
+    ifade eder.}
+    \label{fig:results-rpe-1m-rmse-2}
+\end{figure}
+
+\subsection{Orta Ölçekli Tutarlılık (RPE 100m): SLAM Grafik Kısıtları Altında İyileşme}
+\label{subsec:results_rpe_100m}
+
+100\,m’de RPE, orta ölçekli sürüklenme davranışını yakalar ve kısa ölçekli RPE’ye kıyasla birikimli (accumulated)
+backend kısıtlarını daha fazla yansıtır.
+Şekiller~\ref{fig:results-rpe-100m-rmse-1} ve ~\ref{fig:results-rpe-100m-rmse-2}, bu ölçekte de iyileşmenin mümkün
+olduğunu göstermektedir; bu da PG’nin yalnızca yerel izleme kalitesine değil, aynı zamanda orta ufukta daha kararlı bir
+yörünge tutarlılığına katkı verdiğini düşündürür.
+
+% ----------------- FIGURE: RPE 100m RMSE -----------------
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/slices_pg_rpe_100m_se3_rmse.png}
+        \caption{Dilimler}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+\includegraphics[width=0.60\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/surface_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{3B yüzey}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde RPE 100m RMSE iyileşme alanı (SE(3) hizalı)
+    (Dilimler ve Yüzeyler).}
+    \label{fig:results-rpe-100m-rmse-1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{\(\Delta\) (taban çizgisine göre)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_ratio_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{Göreli kazanç (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_gamma_pg_rpe_100m_se3_rmse.png}
+        \caption{Etkileşim ısı haritası (\(\Gamma\))}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 0.358 & 0.611 & 0.134 \\
+            33                 & 0.000 & 0.073 & 0.011 & 0.024 \\
+            100                & 0.000 & 0.458 & 0.612 & 0.311 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Etkileşim matrisi (\(\Gamma\))}
+    \end{subfigure}
+    \caption{ZED taban çizgisine göre PG için \((I,H)\) üzerinde RPE 100m RMSE iyileşme alanı (SE(3) hizalı)
+    (Metrik karşılaştırmaları).}
+    \emph{Pozitif \(\Delta\) ve pozitif kazanç (\%) ZED taban çizgisine göre daha iyi performansı (daha düşük hata)
+    ifade eder.}
+    \label{fig:results-rpe-100m-rmse-2}
+\end{figure}
+
+\subsection{Etkileşim Analizi: Süperpozisyon Sapması \(\Gamma(I,H)\)}
+\label{subsec:results_interaction}
+
+Şekil~\ref{fig:results-ape-rmse-2}, ~\ref{fig:results-rpe-1m-rmse-2} ve ~\ref{fig:results-rpe-100m-rmse-2} içinde
+gömülü olarak verilen \(\Gamma\) ısı haritaları ve tabloları, \(I\) ve \(H\) etkilerinin toplamsal (additive) biçimde
+birleşip birleşmediğini test etmeye imkân tanır.
+Genel olarak \(\Gamma(I,H)\) geniş bölgelerde orta düzeyde kalmaktadır; bu durum iterasyon ve geçmiş etkilerinin çoğu
+zaman toplamsala yakın davrandığını ima eder.
+Bununla birlikte \(\Gamma \approx 0\)’dan yerel sapmalar, metriğe bağlı etkileşimleri işaret eder:
+negatif \(\Gamma\), toplamsal beklentinin ötesinde sinerjik bir iyileşmeye; pozitif \(\Gamma\) ise azalan getiriye
+(diminishing returns) karşılık gelir.
+
+\subsection{Bulguların Özeti}
+\label{subsec:results_summary}
+
+Seçilen başlık metrikleri (APE ve kısa/orta ölçekli RPE), PG tabanlı füzyon hattının stereo-only taban çizgisini
+tutarlı biçimde geçebildiğini göstermektedir.
+İyileşme, tarama uzayında yapılandırılmış (structured) bir biçimde görülmekte; bu da izole ayar etkilerinden ziyade
+sistematik bir faydaya işaret etmektedir.
+Gözlenen örüntüler, zamansal geçmiş \(H\)’nin birincil bir kararlılık mekanizması olduğunu; iterasyon sayısı \(I\)’nin
+ise metriğin ölçeğine bağlı olarak etkileşim davranışı sergileyen ikincil düzeltmeler sağladığını desteklemektedir.
+
+\paragraph*{Sabit iterasyon taramasından çıkarım (\(I=100\)).}
+PG iterasyon sayısı \(I=100\) sabitlenerek, Şekil~\ref{fig:pg_iter_100_xy_raw} zamansal geçmiş boyutu \(H\)’nin
+taranmasının elde edilen yörünge kestirimi üzerindeki etkisini izole eder.
+\(H\) arttıkça füzyon aşaması daha yoğun bir kümülatif LiDAR nokta desteğinden faydalanır; bu da PG yönlendirmeli
+iyileştirme sırasında kullanılan geometrik öncülü güçlendirir.
+Bu artan geometrik koşullama (conditioning), yörünge bindirmelerinde (overlay) gözlemlenmektedir:
+daha büyük \(H\) değerlerine sahip konfigürasyonlar RTK-GNSS referansını daha tutarlı izleme eğiliminde olup,
+düşük tarihçe ayarlarına kıyasla daha az sürüklenme sergiler.
+Özellikle dikkat çekici nitel (qualitative) bir ipucu, stereo-only (ZED) SLAM yörüngesinde gözlenen belirgin ölçek
+büzülmesidir; bu yörünge, yüksek tarihçeli PG ayarına (örn. \(H=10\)) göre daha kısa görünmektedir.
+Bu durum, yeterli zamansal bağlam sağlandığında LiDAR destekli iyileştirmenin ölçek tutarsızlığını azalttığını ve
+birikimli hareket kestirimini daha kararlı hâle getirdiğini düşündürür.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+\includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_rpy.png}
+        \caption{Tüm tarihçeler için iterasyon 100’de PG yörüngeleri (mod: xy, hizalama: raw, görünüm: rpy).}
+        \label{fig:pg_iter_100_xy_raw_rpy}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+\includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_xyz.png}
+        \caption{Tüm tarihçeler için iterasyon 100’de PG yörüngeleri (mod: xy, hizalama: raw, görünüm: xyz).}
+        \label{fig:pg_iter_100_xy_raw_xyz}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+\includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_trajectories.png}
+        \caption{Tüm tarihçeler için iterasyon 100’de PG yörüngeleri (mod: xy, hizalama: raw, görünüm: trajectories).}
+        \label{fig:pg_iter_100_xy_raw_trajectories}
+    \end{subfigure}
+
+    \caption{Tüm tarihçeler için PG iterasyon 100 yörünge karşılaştırması (mod: xy, hizalama: raw).}
+    \emph{SLAM odometrisinde gözlenen tutarlı saat yönünün tersine (CCW) sapmanın, hem RTAB-Map arka ucu hem de LiDAR
+    upsampling sırasında kullanılan CCW-yanlı (CCW-biased) tekerlek odometrisi girdisinden kaynaklandığı
+    düşünülmektedir.}
+    \label{fig:pg_iter_100_xy_raw}
+\end{figure}
+
+\paragraph*{\(z\) ekseni ve yönelim görünümlerinin yorumu (neden
+alt-şekiller~\ref{fig:pg_iter_100_xy_raw_rpy} ve~\ref{fig:pg_iter_100_xy_raw_xyz} nicel değil, nitel kalır?).}
+Alt-şekiller~\ref{fig:pg_iter_100_xy_raw_rpy} ve~\ref{fig:pg_iter_100_xy_raw_xyz}, yörüngeyi ayrıca 3B ve RPY
+odaklı bir görünümde görselleştirir; ancak bu grafikler yer gerçeğine göre katı bir doğruluk karşılaştırması olarak
+değil, \emph{nitel tanılama} (qualitative diagnostics) amaçlı yorumlanmalıdır.
+RTK-GNSS referansı güvenilir küresel konum sağlar; fakat karşılaştırılabilir doğrulukta tam 6-DoF duruş (attitude)
+yer gerçeğini doğrudan sunmaz (özellikle roll ve pitch; ayrıca GNSS kurulumuna bağlı olarak yaw).
+Bu nedenle \(z\) ve roll/pitch sapmaları, düzlemsel konumla aynı biçimde ve aynı referansa karşı puanlanamaz.
+Buna rağmen bu görünümler kasten korunmuştur; çünkü konfigürasyona bağlı hata türlerini (örn. dikey salınımlar,
+yönelim kararsızlığı veya tutarsız 3B hareket) görünür kılar ve bunlar çoğu zaman öteleme (translational) sürüklenmesi
+ile ilişkili olabilir.
+Nicel değerlendirme için çalışma, RTK-GNSS referansı ile doğrudan karşılaştırılabilen öteleme bileşenlerinden türetilen
+konum tabanlı yörünge hata metriklerine (APE/RPE) dayanmaktadır.
