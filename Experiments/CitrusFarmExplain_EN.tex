@@ -1,0 +1,140 @@
+% ---------- CitrusFarm dataset description (paste into thesis) ----------
+\subsection{CitrusFarm Dataset}
+\label{sec:citrusfarm_dataset}
+
+This study uses the \textit{CitrusFarm} dataset, a multimodal field robotics dataset collected in citrus tree farms using a Clearpath Jackal wheeled robot platform. The dataset contains seven sequences recorded across three different citrus fields (varying planting patterns, growth stages, and daylight conditions), and provides synchronized navigation sensors and multiple imaging modalities suitable for localization, mapping, and crop-monitoring research. In total, the dataset spans approximately 1.7 hours of operation, covers 7.5 km of driving, and corresponds to about 1.3 TB of recorded data \cite{teng2023multimodal}.
+
+\subsubsection{Modalities and sensors}
+CitrusFarm provides nine sensing modalities, including: (i) stereo RGB images and derived depth images from a ZED2i camera, (ii) monochrome images (Blackfly), (iii) Red--Green--Near-Infrared (R--G--NIR) images (Mapir), (iv) thermal images (FLIR ADK), (v) 3D LiDAR point clouds (Velodyne VLP-16), (vi) wheel odometry from the mobile base, (vii) a dedicated IMU (MicroStrain), and (viii) GNSS with RTK as centimeter-level positioning ground truth (SwiftNav system), alongside (ix) auxiliary timing/debug topics \cite{teng2023multimodal,citrusfarm_download}.
+
+\subsubsection{Data format and organization}
+The primary storage format is ROS bag files. To simplify transfer and selective usage, recordings are split into 4\,GB blocks and grouped by modality (e.g., \texttt{zed\_*.bag}, \texttt{base\_*.bag}, \texttt{adk\_*.bag}), while ground-truth trajectories are additionally provided as \texttt{gt.bag} and CSV files \cite{citrusfarm_download}. A typical folder structure is organized per sequence, with separate bag groups for thermal, base sensors (LiDAR/IMU/GNSS), cameras, wheel odometry, and ZED2i streams \cite{citrusfarm_download}.
+
+\subsubsection{Data rates and timing}
+For the camera modalities, the dataset documentation reports operating image streams at 10\,Hz (even if higher frame rates are supported) to match the LiDAR operating frequency \cite{citrusfarm_calib}. For topics whose publication rates are not explicitly tabulated in the dataset’s topic list (e.g., GNSS/IMU/wheel odometry), the effective rate should be confirmed per bag using \texttt{rosbag info} or by replaying the bags and measuring \texttt{rostopic hz}.
+
+\subsubsection{Ground truth}
+The dataset provides multiple GNSS/RTK-related topics; in particular, a post-processed odometry form is provided as \texttt{/gps/fix/odometry} and is described by the dataset authors as suitable for ground-truth trajectories, with the RTK system operating in fixed mode during experiments \cite{citrusfarm_download}.
+
+% ---------- ROS topics table ----------
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l p{6.2cm} l l c}
+\toprule
+Bag group & ROS topic & Msg type & Modality & Nominal freq \\
+\midrule
+adk\_*.bag
+& \texttt{/flir/adk/image\_thermal}
+& \texttt{sensor\_msgs/Image}
+& Thermal image
+& 10 Hz (image stream) \\
+& \texttt{/flir/adk/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& Thermal timing
+& -- \\[2pt]
+
+base\_*.bag
+& \texttt{/velodyne\_points}
+& \texttt{sensor\_msgs/PointCloud2}
+& 3D LiDAR
+& 10 Hz (matched) \\
+& \texttt{/microstrain/imu/data}
+& \texttt{sensor\_msgs/Imu}
+& IMU (MicroStrain)
+& see bag \\
+& \texttt{/microstrain/mag}
+& \texttt{sensor\_msgs/MagneticField}
+& IMU magnetometer
+& see bag \\
+& \texttt{/piksi/navsatfix\_best\_fix}
+& \texttt{sensor\_msgs/NavSatFix}
+& GNSS/RTK (raw)
+& see bag \\
+& \texttt{/piksi/debug/receiver\_state}
+& \texttt{piksi\_rtk\_msgs/ReceiverState\_V2\_4\_1}
+& GNSS/RTK debug
+& see bag \\[2pt]
+
+blackfly\_*.bag
+& \texttt{/flir/blackfly/cam0/image\_raw}
+& \texttt{sensor\_msgs/Image}
+& Mono image
+& 10 Hz (image stream) \\
+& \texttt{/flir/blackfly/cam0/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& Mono timing
+& -- \\[2pt]
+
+mapir\_*.bag
+& \texttt{/mapir\_cam/image\_raw}
+& \texttt{sensor\_msgs/Image}
+& R--G--NIR image
+& 10 Hz (image stream) \\
+& \texttt{/mapir\_cam/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& R--G--NIR timing
+& -- \\[2pt]
+
+odom\_*.bag
+& \texttt{/jackal\_velocity\_controller/odom}
+& \texttt{nav\_msgs/Odometry}
+& Wheel odometry
+& see bag \\[2pt]
+
+zed\_*.bag
+& \texttt{/zed2i/zed\_node/left/image\_rect\_color}
+& \texttt{sensor\_msgs/Image}
+& Stereo left RGB
+& 10 Hz (image stream) \\
+& \texttt{/zed2i/zed\_node/right/image\_rect\_color}
+& \texttt{sensor\_msgs/Image}
+& Stereo right RGB
+& 10 Hz (image stream) \\
+& \texttt{/zed2i/zed\_node/left/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Left intrinsics
+& 10 Hz (paired) \\
+& \texttt{/zed2i/zed\_node/right/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Right intrinsics
+& 10 Hz (paired) \\
+& \texttt{/zed2i/zed\_node/depth/depth\_registered}
+& \texttt{sensor\_msgs/Image}
+& Depth image
+& 10 Hz (image stream) \\
+& \texttt{/zed2i/zed\_node/depth/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Depth intrinsics
+& 10 Hz (paired) \\
+& \texttt{/zed2i/zed\_node/confidence/confidence\_map}
+& \texttt{sensor\_msgs/Image}
+& Depth confidence
+& 10 Hz (paired) \\
+& \texttt{/zed2i/zed\_node/imu/data}
+& \texttt{sensor\_msgs/Imu}
+& ZED IMU
+& see bag \\
+& \texttt{/zed2i/zed\_node/imu/mag}
+& \texttt{sensor\_msgs/MagneticField}
+& ZED magnetometer
+& see bag \\
+& \texttt{/zed2i/zed\_node/pose}
+& \texttt{geometry\_msgs/PoseStamped}
+& ZED pose estimate
+& see bag \\[2pt]
+
+gt.bag
+& \texttt{/gps/fix/odometry}
+& \texttt{nav\_msgs/Odometry}
+& GPS-RTK ground truth (post-processed)
+& see bag \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{CitrusFarm dataset ROS topics (from the official dataset documentation). ``Nominal freq'' is explicitly stated for the camera streams (10\,Hz) to match LiDAR operation; other topic rates should be confirmed via per-bag metadata (e.g., \texttt{rosbag info}).}
+\label{tab:citrusfarm_topics}
+\end{table}
