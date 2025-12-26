@@ -1,0 +1,3 @@
+[submodule "Code/sfitc"]
+	path = Code/sfitc
+	url = https://github.com/ayusufsirin/sfitc.git
