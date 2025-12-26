@@ -344,161 +344,161 @@
     \vfil\vfil\null
     \clearpage
 }
-\usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
-\usepackage[T1]{fontenc}
-
-\usepackage{xcolor}
-\definecolor{maroon}{cmyk}{0, 0.87, 0.68, 0.32}
-\definecolor{halfgray}{gray}{0.55}
-\definecolor{ipython_frame}{RGB}{207, 207, 207}
-\definecolor{ipython_bg}{RGB}{247, 247, 247}
-\definecolor{ipython_red}{RGB}{186, 33, 33}
-\definecolor{ipython_green}{RGB}{0, 128, 0}
-\definecolor{ipython_cyan}{RGB}{64, 128, 128}
-\definecolor{ipython_purple}{RGB}{170, 34, 255}
-
-\lstset{
-    breaklines=true,
-    %
-    extendedchars=true,
-    literate=
-    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
-    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-    {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
-    {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
-    {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
-    {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
-    {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
-    {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
-    {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
-    {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
-    {€}{{\EUR}}1 {£}{{\pounds}}1
-}
-
-%%
-%% Python definition (c) 1998 Michael Weber
-%% Additional definitions (2013) Alexis Dimitriadis
-%% modified by me (should not have empty lines)
-%%
-\lstdefinelanguage{iPython}{
-    morekeywords={access,and,break,class,continue,def,del,elif,else,except,exec,finally,for,from,global,if,import,in,is,lambda,not,or,pass,print,raise,return,try,while},%
-    %
-    % Built-ins
-    morekeywords=[2]{abs,all,any,basestring,bin,bool,bytearray,callable,chr,classmethod,cmp,compile,complex,delattr,dict,dir,divmod,enumerate,eval,execfile,file,filter,float,format,frozenset,getattr,globals,hasattr,hash,help,hex,id,input,int,isinstance,issubclass,iter,len,list,locals,long,map,max,memoryview,min,next,object,oct,open,ord,pow,property,range,raw_input,reduce,reload,repr,reversed,round,set,setattr,slice,sorted,staticmethod,str,sum,super,tuple,type,unichr,unicode,vars,xrange,zip,apply,buffer,coerce,intern},%
-    %
-    sensitive=true,%
-    morecomment=[l]\#,%
-    morestring=[b]',%
-    morestring=[b]",%
-    %
-    morestring=[s]{'''}{'''},% used for documentation text (mulitiline strings)
-    morestring=[s]{"""}{"""},% added by Philipp Matthias Hahn
-    %
-    morestring=[s]{r'}{'},% `raw' strings
-    morestring=[s]{r"}{"},%
-    morestring=[s]{r'''}{'''},%
-    morestring=[s]{r"""}{"""},%
-    morestring=[s]{u'}{'},% unicode strings
-    morestring=[s]{u"}{"},%
-    morestring=[s]{u'''}{'''},%
-    morestring=[s]{u"""}{"""},%
-    %
-    % {replace}{replacement}{lenght of replace}
-    % *{-}{-}{1} will not replace in comments and so on
-    literate=
-    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
-    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-    {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
-    {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
-    {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
-    {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
-    {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
-    {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
-    {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
-    {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
-    {€}{{\EUR}}1 {£}{{\pounds}}1
-    %
-    {^}{{{\color{ipython_purple}\^{}}}}1
-    {=}{{{\color{ipython_purple}=}}}1
-    %
-    {+}{{{\color{ipython_purple}+}}}1
-    {*}{{{\color{ipython_purple}$^\ast$}}}1
-    {/}{{{\color{ipython_purple}/}}}1
-    %
-    {+=}{{{+=}}}1
-    {-=}{{{-=}}}1
-    {*=}{{{$^\ast$=}}}1
-    {/=}{{{/=}}}1,
-    literate=
-    *{-}{{{\color{ipython_purple}-}}}1
-     {?}{{{\color{ipython_purple}?}}}1,
-    %
-    identifierstyle=\color{black}\ttfamily,
-    commentstyle=\color{ipython_cyan}\ttfamily,
-    stringstyle=\color{ipython_red}\ttfamily,
-    keepspaces=true,
-    showspaces=false,
-    showstringspaces=false,
-    %
-    rulecolor=\color{ipython_frame},
-    frame=single,
-    frameround={t}{t}{t}{t},
-    framexleftmargin=6mm,
-    numbers=left,
-    numberstyle=\tiny\color{halfgray},
-    %
-    %
-    backgroundcolor=\color{ipython_bg},
-    %   extendedchars=true,
-    basicstyle=\scriptsize,
-    keywordstyle=\color{ipython_green}\ttfamily,
-}
-
-\usepackage{color}
-
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
-\definecolor{gray}{rgb}{0.4,0.4,0.4}
-\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
-\definecolor{lightblue}{rgb}{0.0,0.0,0.9}
-\definecolor{cyan}{rgb}{0.0,0.6,0.6}
-\definecolor{darkred}{rgb}{0.6,0.0,0.0}
-
-
-\lstset{
-  basicstyle=\ttfamily\footnotesize,
-  columns=fullflexible,
-  showstringspaces=false,
-  numbers=left,                   % where to put the line-numbers
-  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
-  stepnumber=1,
-  numbersep=5pt,                  % how far the line-numbers are from the code
-  backgroundcolor=\color{white},      % choose the background color. You must add \usepackage{color}
-  showspaces=false,               % show spaces adding particular underscores
-  showstringspaces=false,         % underline spaces within strings
-  showtabs=false,                 % show tabs within strings adding particular underscores
-  frame=none,                   % adds a frame around the code
-  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
-  tabsize=1,                      % sets default tabsize to 2 spaces
-  captionpos=b,                   % sets the caption-position to bottom
-  breaklines=true,                % sets automatic line breaking
-  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
-  title=\lstname,                   % show the filename of files included with \lstinputlisting;
-                                  % also try caption instead of title
-  commentstyle=\color{gray}\upshape
-}
-
-
-\lstdefinelanguage{XML}
-{
-  morestring=[s][\color{mauve}]{"}{"},
-  morestring=[s][\color{black}]{>}{<},
-  morecomment=[s]{<?}{?>},
-  morecomment=[s][\color{dkgreen}]{<!--}{-->},
-  stringstyle=\color{black},
-  identifierstyle=\color{lightblue},
-  keywordstyle=\color{red},
-  morekeywords={xmlns,xsi,noNamespaceSchemaLocation,type,id,x,y,source,target,version,tool,transRef,roleRef,objective,eventually}% list your attributes here
-}
+%\usepackage[utf8]{inputenc}
+%\usepackage[english]{babel}
+%\usepackage[T1]{fontenc}
+%
+%\usepackage{xcolor}
+%\definecolor{maroon}{cmyk}{0, 0.87, 0.68, 0.32}
+%\definecolor{halfgray}{gray}{0.55}
+%\definecolor{ipython_frame}{RGB}{207, 207, 207}
+%\definecolor{ipython_bg}{RGB}{247, 247, 247}
+%\definecolor{ipython_red}{RGB}{186, 33, 33}
+%\definecolor{ipython_green}{RGB}{0, 128, 0}
+%\definecolor{ipython_cyan}{RGB}{64, 128, 128}
+%\definecolor{ipython_purple}{RGB}{170, 34, 255}
+%
+%\lstset{
+%    breaklines=true,
+%    %
+%    extendedchars=true,
+%    literate=
+%    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+%    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+%    {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+%    {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+%    {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+%    {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+%    {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+%    {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+%    {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+%    {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+%    {€}{{\EUR}}1 {£}{{\pounds}}1
+%}
+%
+%%%
+%%% Python definition (c) 1998 Michael Weber
+%%% Additional definitions (2013) Alexis Dimitriadis
+%%% modified by me (should not have empty lines)
+%%%
+%\lstdefinelanguage{iPython}{
+%    morekeywords={access,and,break,class,continue,def,del,elif,else,except,exec,finally,for,from,global,if,import,in,is,lambda,not,or,pass,print,raise,return,try,while},%
+%    %
+%    % Built-ins
+%    morekeywords=[2]{abs,all,any,basestring,bin,bool,bytearray,callable,chr,classmethod,cmp,compile,complex,delattr,dict,dir,divmod,enumerate,eval,execfile,file,filter,float,format,frozenset,getattr,globals,hasattr,hash,help,hex,id,input,int,isinstance,issubclass,iter,len,list,locals,long,map,max,memoryview,min,next,object,oct,open,ord,pow,property,range,raw_input,reduce,reload,repr,reversed,round,set,setattr,slice,sorted,staticmethod,str,sum,super,tuple,type,unichr,unicode,vars,xrange,zip,apply,buffer,coerce,intern},%
+%    %
+%    sensitive=true,%
+%    morecomment=[l]\#,%
+%    morestring=[b]',%
+%    morestring=[b]",%
+%    %
+%    morestring=[s]{'''}{'''},% used for documentation text (mulitiline strings)
+%    morestring=[s]{"""}{"""},% added by Philipp Matthias Hahn
+%    %
+%    morestring=[s]{r'}{'},% `raw' strings
+%    morestring=[s]{r"}{"},%
+%    morestring=[s]{r'''}{'''},%
+%    morestring=[s]{r"""}{"""},%
+%    morestring=[s]{u'}{'},% unicode strings
+%    morestring=[s]{u"}{"},%
+%    morestring=[s]{u'''}{'''},%
+%    morestring=[s]{u"""}{"""},%
+%    %
+%    % {replace}{replacement}{lenght of replace}
+%    % *{-}{-}{1} will not replace in comments and so on
+%    literate=
+%    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+%    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+%    {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+%    {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+%    {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+%    {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+%    {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+%    {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+%    {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+%    {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+%    {€}{{\EUR}}1 {£}{{\pounds}}1
+%    %
+%    {^}{{{\color{ipython_purple}\^{}}}}1
+%    {=}{{{\color{ipython_purple}=}}}1
+%    %
+%    {+}{{{\color{ipython_purple}+}}}1
+%    {*}{{{\color{ipython_purple}$^\ast$}}}1
+%    {/}{{{\color{ipython_purple}/}}}1
+%    %
+%    {+=}{{{+=}}}1
+%    {-=}{{{-=}}}1
+%    {*=}{{{$^\ast$=}}}1
+%    {/=}{{{/=}}}1,
+%    literate=
+%    *{-}{{{\color{ipython_purple}-}}}1
+%     {?}{{{\color{ipython_purple}?}}}1,
+%    %
+%    identifierstyle=\color{black}\ttfamily,
+%    commentstyle=\color{ipython_cyan}\ttfamily,
+%    stringstyle=\color{ipython_red}\ttfamily,
+%    keepspaces=true,
+%    showspaces=false,
+%    showstringspaces=false,
+%    %
+%    rulecolor=\color{ipython_frame},
+%    frame=single,
+%    frameround={t}{t}{t}{t},
+%    framexleftmargin=6mm,
+%    numbers=left,
+%    numberstyle=\tiny\color{halfgray},
+%    %
+%    %
+%    backgroundcolor=\color{ipython_bg},
+%    %   extendedchars=true,
+%    basicstyle=\scriptsize,
+%    keywordstyle=\color{ipython_green}\ttfamily,
+%}
+%
+%\usepackage{color}
+%
+%\definecolor{dkgreen}{rgb}{0,0.6,0}
+%\definecolor{gray}{rgb}{0.5,0.5,0.5}
+%\definecolor{mauve}{rgb}{0.58,0,0.82}
+%\definecolor{gray}{rgb}{0.4,0.4,0.4}
+%\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+%\definecolor{lightblue}{rgb}{0.0,0.0,0.9}
+%\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+%\definecolor{darkred}{rgb}{0.6,0.0,0.0}
+%
+%
+%\lstset{
+%  basicstyle=\ttfamily\footnotesize,
+%  columns=fullflexible,
+%  showstringspaces=false,
+%  numbers=left,                   % where to put the line-numbers
+%  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+%  stepnumber=1,
+%  numbersep=5pt,                  % how far the line-numbers are from the code
+%  backgroundcolor=\color{white},      % choose the background color. You must add \usepackage{color}
+%  showspaces=false,               % show spaces adding particular underscores
+%  showstringspaces=false,         % underline spaces within strings
+%  showtabs=false,                 % show tabs within strings adding particular underscores
+%  frame=none,                   % adds a frame around the code
+%  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+%  tabsize=1,                      % sets default tabsize to 2 spaces
+%  captionpos=b,                   % sets the caption-position to bottom
+%  breaklines=true,                % sets automatic line breaking
+%  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+%  title=\lstname,                   % show the filename of files included with \lstinputlisting;
+%                                  % also try caption instead of title
+%  commentstyle=\color{gray}\upshape
+%}
+%
+%
+%\lstdefinelanguage{XML}
+%{
+%  morestring=[s][\color{mauve}]{"}{"},
+%  morestring=[s][\color{black}]{>}{<},
+%  morecomment=[s]{<?}{?>},
+%  morecomment=[s][\color{dkgreen}]{<!--}{-->},
+%  stringstyle=\color{black},
+%  identifierstyle=\color{lightblue},
+%  keywordstyle=\color{red},
+%  morekeywords={xmlns,xsi,noNamespaceSchemaLocation,type,id,x,y,source,target,version,tool,transRef,roleRef,objective,eventually}% list your attributes here
+%}
