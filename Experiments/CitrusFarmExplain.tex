@@ -1,0 +1,142 @@
+% ---------- CitrusFarm veri kümesi açıklaması (teze yapıştır) ----------
+\subsection{CitrusFarm Veri Kümesi}
+\label{sec:citrusfarm_dataset}
+
+Bu çalışma, Clearpath Jackal tekerlekli robot platformu kullanılarak narenciye (citrus) bahçelerinde toplanmış, çok kipli (multimodal) bir saha robotik veri kümesi olan \textit{CitrusFarm} veri kümesini kullanmaktadır. Veri kümesi, üç farklı narenciye tarlasında (dikim düzeni, büyüme evresi ve gün ışığı koşulları bakımından çeşitlilik gösteren) kaydedilmiş yedi sekans içermekte; yerelleştirme, haritalama ve ürün izleme (crop-monitoring) çalışmalarına uygun olacak şekilde senkronize seyrüsefer sensörleri ile birden fazla görüntüleme kipini birlikte sağlamaktadır. Toplamda veri kümesi yaklaşık 1.7 saatlik operasyonu kapsamakta, 7.5 km sürüş mesafesine karşılık gelmekte ve yaklaşık 1.3 TB kayıtlı veri içermektedir \cite{teng2023multimodal}.
+
+\subsubsection{Kipler ve sensörler}
+CitrusFarm dokuz algılama kipini sunmaktadır. Bunlar: (i) ZED2i kameradan elde edilen stereo RGB görüntüler ve bunlardan türetilen derinlik görüntüleri, (ii) monokrom görüntüler (Blackfly), (iii) Kırmızı--Yeşil--Yakın Kızılötesi (R--G--NIR) görüntüler (Mapir), (iv) termal görüntüler (FLIR ADK), (v) 3B LiDAR nokta bulutları (Velodyne VLP-16), (vi) mobil tabandan elde edilen tekerlek odometrisi, (vii) bağımsız bir IMU (MicroStrain), (viii) santimetre düzeyinde konum doğruluğu sağlayan RTK destekli GNSS (SwiftNav sistemi) ve (ix) ilave zamanlama/hata ayıklama (timing/debug) başlıklarıdır \cite{teng2023multimodal,citrusfarm_download}.
+
+\subsubsection{Veri formatı ve organizasyon}
+Birincil depolama formatı ROS bag dosyalarıdır. Aktarımı kolaylaştırmak ve seçici kullanımı desteklemek amacıyla kayıtlar 4\,GB bloklara bölünmüş ve kip bazında (örn. \texttt{zed\_*.bag}, \texttt{base\_*.bag}, \texttt{adk\_*.bag}) gruplanmıştır; ayrıca yer gerçeği (ground truth) yörüngeleri \texttt{gt.bag} ve CSV dosyaları olarak da sağlanmaktadır \cite{citrusfarm_download}. Tipik bir klasör yapısı sekans bazında düzenlenmiş olup, termal, taban sensörleri (LiDAR/IMU/GNSS), kameralar, tekerlek odometrisi ve ZED2i akışları için ayrı bag grupları içermektedir \cite{citrusfarm_download}.
+
+\subsubsection{Veri hızları ve zamanlama}
+Kamera kipleri için veri kümesi dokümantasyonu, LiDAR çalışma frekansı ile eşleşecek şekilde görüntü akışlarının 10\,Hz’de işletildiğini (daha yüksek kare hızları desteklense dahi) belirtmektedir \cite{citrusfarm_calib}. Yayınlama hızları veri kümesinin başlık (topic) listesinde açıkça tablolaştırılmayan konular (örn. GNSS/IMU/tekerlek odometrisi) için etkin hızın, her bir bag dosyası üzerinde \texttt{rosbag info} ile veya bag’lerin yeniden oynatımı sırasında \texttt{rostopic hz} ölçümü ile doğrulanması önerilmektedir.
+
+\subsubsection{Yer gerçeği (Ground truth)}
+Veri kümesi birden fazla GNSS/RTK ilişkili başlık sağlamaktadır; özellikle, yer gerçeği yörüngeleri için uygun olduğu veri kümesi yazarları tarafından belirtilen, sonradan işlenmiş (post-processed) bir odometri biçimi \texttt{/gps/fix/odometry} başlığı altında sunulmaktadır. Deneyler sırasında RTK sisteminin ``fixed'' modunda çalıştırıldığı ifade edilmektedir \cite{citrusfarm_download}.
+
+CitrusFarm veri kümesinde kullanılan başlıca ROS başlıkları, mesaj türleri ve nominal frekanslar Tablo~\ref{tab:citrusfarm_topics}'te özetlenmiştir.
+
+% ---------- ROS başlıkları tablosu ----------
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l p{6.2cm} l l c}
+\toprule
+Bag grubu & ROS başlığı (topic) & Mesaj türü & Kip (modality) & Nominal frekans \\
+\midrule
+adk\_*.bag
+& \texttt{/flir/adk/image\_thermal}
+& \texttt{sensor\_msgs/Image}
+& Termal görüntü
+& 10 Hz (görüntü akışı) \\
+& \texttt{/flir/adk/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& Termal zamanlama
+& -- \\[2pt]
+
+base\_*.bag
+& \texttt{/velodyne\_points}
+& \texttt{sensor\_msgs/PointCloud2}
+& 3B LiDAR
+& 10 Hz (eşleştirilmiş) \\
+& \texttt{/microstrain/imu/data}
+& \texttt{sensor\_msgs/Imu}
+& IMU (MicroStrain)
+& bag’e bakınız \\
+& \texttt{/microstrain/mag}
+& \texttt{sensor\_msgs/MagneticField}
+& IMU manyetometre
+& bag’e bakınız \\
+& \texttt{/piksi/navsatfix\_best\_fix}
+& \texttt{sensor\_msgs/NavSatFix}
+& GNSS/RTK (ham)
+& bag’e bakınız \\
+& \texttt{/piksi/debug/receiver\_state}
+& \texttt{piksi\_rtk\_msgs/ReceiverState\_V2\_4\_1}
+& GNSS/RTK hata ayıklama
+& bag’e bakınız \\[2pt]
+
+blackfly\_*.bag
+& \texttt{/flir/blackfly/cam0/image\_raw}
+& \texttt{sensor\_msgs/Image}
+& Monokrom görüntü
+& 10 Hz (görüntü akışı) \\
+& \texttt{/flir/blackfly/cam0/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& Monokrom zamanlama
+& -- \\[2pt]
+
+mapir\_*.bag
+& \texttt{/mapir\_cam/image\_raw}
+& \texttt{sensor\_msgs/Image}
+& R--G--NIR görüntü
+& 10 Hz (görüntü akışı) \\
+& \texttt{/mapir\_cam/time\_reference}
+& \texttt{sensor\_msgs/TimeReference}
+& R--G--NIR zamanlama
+& -- \\[2pt]
+
+odom\_*.bag
+& \texttt{/jackal\_velocity\_controller/odom}
+& \texttt{nav\_msgs/Odometry}
+& Tekerlek odometrisi
+& bag’e bakınız \\[2pt]
+
+zed\_*.bag
+& \texttt{/zed2i/zed\_node/left/image\_rect\_color}
+& \texttt{sensor\_msgs/Image}
+& Stereo sol RGB
+& 10 Hz (görüntü akışı) \\
+& \texttt{/zed2i/zed\_node/right/image\_rect\_color}
+& \texttt{sensor\_msgs/Image}
+& Stereo sağ RGB
+& 10 Hz (görüntü akışı) \\
+& \texttt{/zed2i/zed\_node/left/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Sol içsel parametreler
+& 10 Hz (eşlenik) \\
+& \texttt{/zed2i/zed\_node/right/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Sağ içsel parametreler
+& 10 Hz (eşlenik) \\
+& \texttt{/zed2i/zed\_node/depth/depth\_registered}
+& \texttt{sensor\_msgs/Image}
+& Derinlik görüntüsü
+& 10 Hz (görüntü akışı) \\
+& \texttt{/zed2i/zed\_node/depth/camera\_info}
+& \texttt{sensor\_msgs/CameraInfo}
+& Derinlik içsel parametreler
+& 10 Hz (eşlenik) \\
+& \texttt{/zed2i/zed\_node/confidence/confidence\_map}
+& \texttt{sensor\_msgs/Image}
+& Derinlik güven haritası
+& 10 Hz (eşlenik) \\
+& \texttt{/zed2i/zed\_node/imu/data}
+& \texttt{sensor\_msgs/Imu}
+& ZED IMU
+& bag’e bakınız \\
+& \texttt{/zed2i/zed\_node/imu/mag}
+& \texttt{sensor\_msgs/MagneticField}
+& ZED manyetometre
+& bag’e bakınız \\
+& \texttt{/zed2i/zed\_node/pose}
+& \texttt{geometry\_msgs/PoseStamped}
+& ZED poz kestirimi
+& bag’e bakınız \\[2pt]
+
+gt.bag
+& \texttt{/gps/fix/odometry}
+& \texttt{nav\_msgs/Odometry}
+& GPS-RTK yer gerçeği (sonradan işlenmiş)
+& bag’e bakınız \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{CitrusFarm veri kümesinin ROS başlıkları (resmî veri kümesi dokümantasyonuna göre). ``Nominal frekans'', LiDAR çalışma frekansı ile eşleşecek şekilde kamera akışları için 10\,Hz olarak açıkça belirtilmiştir; diğer başlıkların etkin yayın hızları, bag meta verileri üzerinden (örn. \texttt{rosbag info}) doğrulanmalıdır.}
+\label{tab:citrusfarm_topics}
+\end{table}
