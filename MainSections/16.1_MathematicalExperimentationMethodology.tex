@@ -18,7 +18,7 @@ M(I,H)
 \end{equation}
 ile gösterilsin. Değerlendirme bağlamına bağlı olarak $M$, APE (ör. RMSE), belirli bir uzamsal/zamansal ölçekte RPE, yaw ile ilişkili bir hata ölçütü veya maksimum sapma ya da varyans gibi türetilmiş bir istatistik olabilir. Tüm durumlarda \emph{$M$ değerinin daha küçük olması daha iyi performansı ifade eder}.
 
-\paragraph{Yörünge eşleştirme ve hizalama politikası.}
+\paragraph*{Yörünge eşleştirme ve hizalama politikası.}
 Gerçek dünya yörüngeleri eşzamanlı olmayan örneklemeyle elde edilebilir ve farklı koordinat çerçevelerinde ifade edilebilir. Bu nedenle her karşılaştırma; (i) kestirim ve referans yörüngeleri arasında poz eşleştirmesi (association) ve (ii) sabit bir hizalama politikası uygulandıktan sonra yapılır. Metriğin hesaplanmasından önce kestirim yörüngesine uygulanan hizalama operatörü $\mathcal{A}(\cdot)$ ile gösterilsin; burada:
 \begin{itemize}
     \item $\mathcal{A}=\mathrm{raw}$: hizalama yok,
@@ -27,7 +27,7 @@ Gerçek dünya yörüngeleri eşzamanlı olmayan örneklemeyle elde edilebilir v
 \end{itemize}
 Bu analiz boyunca $M(I,H)$, \emph{sabit} bir hizalama seçimi $\mathcal{A}$ altında hesaplanır (her metrik grubu için açıkça raporlanır); böylece tüm konfigürasyonlar doğrudan karşılaştırılabilir kalır.
 
-\paragraph{Temel (baseline) konfigürasyon.}
+\paragraph*{Temel (baseline) konfigürasyon.}
 Temel konfigürasyon
 \begin{equation}
 M(0,1),
@@ -59,30 +59,30 @@ Bu model, $I$ ve $H$'nin ortalama katkılarını ayırırken artık (residual) e
 
 $\mathcal{I}$ ve $\mathcal{H}$ sırasıyla değerlendirilen iterasyon sayıları ve geçmiş boyutlarının ayrık kümelerini göstersin.
 
-\paragraph{Küresel Ortalama}
+\paragraph*{Küresel Ortalama}
 \begin{equation}
 \mu \;=\; \frac{1}{|\mathcal{I}||\mathcal{H}|}
 \sum_{i \in \mathcal{I}} \sum_{h \in \mathcal{H}} M(i,h).
 \end{equation}
 
-\paragraph{PG İterasyonlarının Ana Etkisi}
+\paragraph*{PG İterasyonlarının Ana Etkisi}
 \begin{equation}
 \alpha(i) \;=\; \frac{1}{|\mathcal{H}|}
 \sum_{h \in \mathcal{H}} M(i,h) \;-\; \mu.
 \end{equation}
 
-\paragraph{LU Geçmişinin Ana Etkisi}
+\paragraph*{LU Geçmişinin Ana Etkisi}
 \begin{equation}
 \beta(h) \;=\; \frac{1}{|\mathcal{I}|}
 \sum_{i \in \mathcal{I}} M(i,h) \;-\; \mu.
 \end{equation}
 
-\paragraph{Etkileşim Terimi}
+\paragraph*{Etkileşim Terimi}
 \begin{equation}
 \gamma(i,h) \;=\; M(i,h) \;-\; \Big(\mu + \alpha(i) + \beta(h)\Big).
 \end{equation}
 
-\paragraph{Tanımlanabilirlik kısıtları (tanım gereği).}
+\paragraph*{Tanımlanabilirlik kısıtları (tanım gereği).}
 Yukarıdaki tanımlarla ayrıştırma tekildir ve şu koşulları sağlar:
 \begin{equation}
 \sum_{i\in\mathcal{I}}\alpha(i)=0,
@@ -100,14 +100,14 @@ $\gamma(i,h)$ teriminin büyük mutlak değerlere sahip olması, toplamsal olmay
 
 Test edilen ızgara üzerinde artımsal değişimleri incelemek amacıyla marjinal sonlu farklar analiz edilir.
 
-\paragraph{İterasyon Artışı (Sabit $H$)}
+\paragraph*{İterasyon Artışı (Sabit $H$)}
 Sabit bir geçmiş boyutu $H$ için, PG iterasyon sayısının $I_1$'den $I_2$'ye arttırılmasının artımsal etkisi
 \begin{equation}
 \Delta_I M(I_1\!\to\! I_2 \,;\, H) \;=\; M(I_2,H) \;-\; M(I_1,H)
 \end{equation}
 olarak tanımlanır. $I$ arttıkça $\Delta_I M$ büyüklüğünün azalması, iyileştirme sürecinde yakınsama doygunluğuna (saturation) işaret eder.
 
-\paragraph{Geçmiş Artışı (Sabit $I$)}
+\paragraph*{Geçmiş Artışı (Sabit $I$)}
 Benzer şekilde, sabit iterasyon sayısı $I$ için LU geçmiş boyutunun $H_1$'den $H_2$'ye arttırılmasının artımsal etkisi
 \begin{equation}
 \Delta_H M(H_1\!\to\! H_2 \,;\, I) \;=\; M(I,H_2) \;-\; M(I,H_1)
