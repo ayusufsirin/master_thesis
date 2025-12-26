@@ -8,19 +8,53 @@ The stereo-only RTAB-Map output (ZED) is used as the baseline, while the PG pipe
 
 Because ZED does not have the parameters \((I,H)\), the comparison is formulated as a baseline-referenced improvement field over the sweep:
 \[
-\Delta(I,H)=M_{\text{ZED}}-M_{\text{PG}}(I,H),
-\qquad
-R(I,H)=\frac{M_{\text{PG}}(I,H)}{M_{\text{ZED}}}.
+    \Delta(I,H)=M_{\text{ZED}}-M_{\text{PG}}(I,H),
+    \qquad
+    R(I,H)=\frac{M_{\text{PG}}(I,H)}{M_{\text{ZED}}}.
 \]
 In this formulation, \(\Delta>0\) indicates PG improvement over the ZED baseline, and \(R<1\) indicates a relative reduction in error.
 Non-additive behavior between \(I\) and \(H\) is quantified with the superposition deviation \(\Gamma(I,H)\), as defined in
 Section~\ref{sec:math_analysis_framework}.
 
+\paragraph*{How to read the baseline-referenced maps (\(\Delta\) and relative gain).}
+Because the ZED (stereo-only) pipeline has no sweep parameters, all comparisons are expressed relative to a fixed baseline metric value \(M_{\mathrm{ZED}}\).
+For each configuration \((I,H)\), we compute the PG metric \(M_{\mathrm{PG}}(I,H)\) and visualize the improvement in two complementary forms:
+
+\begin{align}
+\Delta(I,H) &= M_{\mathrm{ZED}} - M_{\mathrm{PG}}(I,H), \\
+G(I,H) &= 100 \cdot \frac{M_{\mathrm{ZED}} - M_{\mathrm{PG}}(I,H)}{M_{\mathrm{ZED}}}
+      = 100 \cdot \frac{\Delta(I,H)}{M_{\mathrm{ZED}}}.
+\end{align}
+
+\noindent Here, \(\Delta(I,H)\) is reported in the \emph{native units of the metric} (e.g., meters for APE/RPE, degrees for yaw),
+while \(G(I,H)\) is a \emph{unitless normalized percentage} that enables direct comparison across different metrics and scales.
+
+\begin{itemize}
+    \item \textbf{\(\Delta>0\)} indicates that PG improves over the baseline (error reduction), since \(M_{\mathrm{PG}}(I,H) < M_{\mathrm{ZED}}\).
+    \item \textbf{\(\Delta=0\)} indicates no change relative to baseline.
+    \item \textbf{\(\Delta<0\)} indicates degradation relative to baseline (error increase), since \(M_{\mathrm{PG}}(I,H) > M_{\mathrm{ZED}}\).
+\end{itemize}
+
+\noindent The \textbf{Relative gain (\%)} map \(G(I,H)\) is especially useful when different metrics have different magnitude ranges.
+For example, a 1\,m absolute improvement may be substantial for a short-scale RPE but modest for a large-scale RPE.
+By normalizing with \(M_{\mathrm{ZED}}\), the gain map highlights where improvement is \emph{proportionally} most significant.
+
+\paragraph*{Practical interpretation.}
+In the heatmaps, each cell corresponds to one configuration \((I,H)\).
+Broad contiguous regions of \(\Delta>0\) (or \(G>0\)) indicate that improvements are \emph{systematic and robust} across a range of settings,
+rather than being tied to a single tuned parameter choice.
+Conversely, isolated positive cells surrounded by negative regions would indicate fragile tuning.
+
+\paragraph*{Notes on scale and stability.}
+While \(G(I,H)\) provides convenient normalization, it may visually amplify changes when \(M_{\mathrm{ZED}}\) is very small for a given metric.
+Therefore, the interpretation of gain maps should be paired with \(\Delta(I,H)\), which preserves absolute magnitude in the metric’s units.
+In this study, we report both maps jointly to avoid misleading conclusions from normalization alone.
+
 \subsection{Global Trajectory Accuracy (APE): Strong and Consistent Improvement}
 \label{subsec:results_ape}
 
 Absolute Pose Error (APE) reflects global trajectory consistency with respect to RTK-GNSS and is therefore the primary indicator of long-horizon drift.
-Figures~\ref{fig:results-ape-rmse} and \ref{fig:results-ape-mean} show the APE improvement field across the full parameter sweep.
+Figures~\ref{fig:results-ape-rmse-1}, ~\ref{fig:results-ape-rmse-2}, ~\ref{fig:results-ape-mean-1}, and ~\ref{fig:results-ape-mean-2} show the APE improvement field across the full parameter sweep.
 Two complementary observations follow.
 
 First, the improvement is not confined to a single isolated configuration: the \(\Delta\) and ratio maps reveal broad regions where PG outperforms the ZED baseline,
@@ -29,246 +63,267 @@ Second, the improvement structure is strongly organized along the temporal histo
 
 % ----------------- FIGURE: APE RMSE -----------------
 \begin{figure}[H]
-\centering
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/slices_pg_ape_se3_rmse.png}
-\caption{Slices}
-\end{subfigure}
-\vspace{0.6em}
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/surface_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
-\caption{3D surface}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
-\caption{$\Delta$ vs baseline}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_rmse.png}
-\caption{Relative gain (\%)}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_gamma_pg_ape_se3_rmse.png}
-\caption{Interaction heatmap ($\Gamma$)}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{2.0em}
-\begin{tabular}{rrrrr}
-\toprule
-I \textbackslash H & 1 & 2 & 5 & 10 \\
-\midrule
-0 & 0.000 & 0.000 & 0.000 & 0.000 \\
-10 & 0.000 & 0.563 & -2.252 & 1.260 \\
-33 & 0.000 & 1.541 & -1.790 & 4.691 \\
-100 & 0.000 & -1.416 & -4.340 & -2.020 \\
-\bottomrule
-\end{tabular}
-\vspace{1.5em}
-\caption{Interaction matrix ($\Gamma$)}
-\end{subfigure}
-\caption{APE RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)).}
-\label{fig:results-ape-rmse}
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/slices_pg_ape_se3_rmse.png}
+        \caption{Slices}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=0.60\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/surface_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{3D surface}
+    \end{subfigure}
+    \caption{APE RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Slices and Surface).}
+    \label{fig:results-ape-rmse-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{$\Delta$ vs baseline}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_rmse.png}
+        \caption{Relative gain (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/rmse/heatmap_gamma_pg_ape_se3_rmse.png}
+        \caption{Interaction heatmap ($\Gamma$)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2      & 5      & 10     \\
+            \midrule
+            0                  & 0.000 & 0.000  & 0.000  & 0.000  \\
+            10                 & 0.000 & 0.563  & -2.252 & 1.260  \\
+            33                 & 0.000 & 1.541  & -1.790 & 4.691  \\
+            100                & 0.000 & -1.416 & -4.340 & -2.020 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Interaction matrix ($\Gamma$)}
+    \end{subfigure}
+    \caption{APE RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Metric comparisons).}
+    \emph{Positive \(\Delta\) and positive gain (\%) indicate improved performance over the ZED baseline (lower error).}
+    \label{fig:results-ape-rmse-2}
 \end{figure}
 
 % ----------------- FIGURE: APE MEAN -----------------
 \begin{figure}[H]
-\centering
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/slices_pg_ape_se3_mean.png}
-\caption{Slices}
-\end{subfigure}
-\vspace{0.6em}
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/surface_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
-\caption{3D surface}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
-\caption{$\Delta$ vs baseline}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_mean.png}
-\caption{Relative gain (\%)}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_gamma_pg_ape_se3_mean.png}
-\caption{Interaction heatmap ($\Gamma$)}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{2.0em}
-\begin{tabular}{rrrrr}
-\toprule
-I \textbackslash H & 1 & 2 & 5 & 10 \\
-\midrule
-0 & 0.000 & 0.000 & 0.000 & 0.000 \\
-10 & 0.000 & 0.165 & -2.443 & 0.974 \\
-33 & 0.000 & 1.177 & -1.971 & 3.958 \\
-100 & 0.000 & -1.591 & -4.340 & -1.970 \\
-\bottomrule
-\end{tabular}
-\vspace{1.5em}
-\caption{Interaction matrix ($\Gamma$)}
-\end{subfigure}
-\caption{APE Mean improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)).}
-\label{fig:results-ape-mean}
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/slices_pg_ape_se3_mean.png}
+        \caption{Slices}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=0.60\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/surface_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{3D surface}
+    \end{subfigure}
+    \caption{APE Mean improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Slices and Surface).}
+    \label{fig:results-ape-mean-1}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_delta_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{$\Delta$ vs baseline}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_ratio_vs_zed_ape_se3_pg_ape_se3_mean.png}
+        \caption{Relative gain (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_ape_se3/mean/heatmap_gamma_pg_ape_se3_mean.png}
+        \caption{Interaction heatmap ($\Gamma$)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2      & 5      & 10     \\
+            \midrule
+            0                  & 0.000 & 0.000  & 0.000  & 0.000  \\
+            10                 & 0.000 & 0.165  & -2.443 & 0.974  \\
+            33                 & 0.000 & 1.177  & -1.971 & 3.958  \\
+            100                & 0.000 & -1.591 & -4.340 & -1.970 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Interaction matrix ($\Gamma$)}
+    \end{subfigure}
+    \caption{APE Mean improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Metric comparisons).}
+    \emph{Positive \(\Delta\) and positive gain (\%) indicate improved performance over the ZED baseline (lower error).}
+    \label{fig:results-ape-mean-2}
 \end{figure}
 
 \subsection{Local Consistency (RPE 1m): Strong Improvement at Short Scale}
 \label{subsec:results_rpe_1m}
 
 Relative Pose Error (RPE) at 1\,m emphasizes short-window motion consistency.
-Figure~\ref{fig:results-rpe-1m-rmse} shows that PG yields consistent improvements across a wide region of the sweep,
+Figures~\ref{fig:results-rpe-1m-rmse-1} and ~\ref{fig:results-rpe-1m-rmse-2} shows that PG yields consistent improvements across a wide region of the sweep,
 which supports the claim that denser and more stable depth guidance improves local motion estimation robustness in the SLAM backend.
 
 % ----------------- FIGURE: RPE 1m RMSE -----------------
 \begin{figure}[H]
-\centering
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/slices_pg_rpe_1m_se3_rmse.png}
-\caption{Slices}
-\end{subfigure}
-\vspace{0.6em}
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/surface_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
-\caption{3D surface}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
-\caption{$\Delta$ vs baseline}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_ratio_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
-\caption{Relative gain (\%)}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_gamma_pg_rpe_1m_se3_rmse.png}
-\caption{Interaction heatmap ($\Gamma$)}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{2.0em}
-\begin{tabular}{rrrrr}
-\toprule
-I \textbackslash H & 1 & 2 & 5 & 10 \\
-\midrule
-0 & 0.000 & 0.000 & 0.000 & 0.000 \\
-10 & 0.000 & 0.004 & 0.014 & 0.008 \\
-33 & 0.000 & 0.007 & 0.013 & 0.010 \\
-100 & 0.000 & 0.004 & 0.009 & 0.008 \\
-\bottomrule
-\end{tabular}
-\vspace{1.5em}
-\caption{Interaction matrix ($\Gamma$)}
-\end{subfigure}
-\caption{RPE 1m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)).}
-\label{fig:results-rpe-1m-rmse}
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/slices_pg_rpe_1m_se3_rmse.png}
+        \caption{Slices}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/surface_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{3D surface}
+    \end{subfigure}
+    \caption{RPE 1m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Slices and Surfaces).}
+    \label{fig:results-rpe-1m-rmse-1}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_delta_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{$\Delta$ vs baseline}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_ratio_vs_zed_rpe_1m_se3_pg_rpe_1m_se3_rmse.png}
+        \caption{Relative gain (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_1m_se3/rmse/heatmap_gamma_pg_rpe_1m_se3_rmse.png}
+        \caption{Interaction heatmap ($\Gamma$)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 0.004 & 0.014 & 0.008 \\
+            33                 & 0.000 & 0.007 & 0.013 & 0.010 \\
+            100                & 0.000 & 0.004 & 0.009 & 0.008 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Interaction matrix ($\Gamma$)}
+    \end{subfigure}
+    \caption{RPE 1m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Metric comparisons) (Metric comparisons).}
+    \emph{Positive \(\Delta\) and positive gain (\%) indicate improved performance over the ZED baseline (lower error).}
+    \label{fig:results-rpe-1m-rmse-2}
 \end{figure}
 
 \subsection{Mid-Scale Consistency (RPE 100m): Improvement Under SLAM Graph Constraints}
 \label{subsec:results_rpe_100m}
 
 RPE at 100\,m captures mid-scale drift behavior and is more reflective of accumulated backend constraints than short-scale RPE.
-Figure~\ref{fig:results-rpe-100m-rmse} demonstrates that improvements remain achievable at this scale,
+Figures~\ref{fig:results-rpe-100m-rmse-1} and ~\ref{fig:results-rpe-100m-rmse-2} demonstrates that improvements remain achievable at this scale,
 suggesting that PG contributes not only to local tracking quality but also to more stable mid-horizon trajectory consistency.
 
 % ----------------- FIGURE: RPE 100m RMSE -----------------
 \begin{figure}[H]
-\centering
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/slices_pg_rpe_100m_se3_rmse.png}
-\caption{Slices}
-\end{subfigure}
-\vspace{0.6em}
-\begin{subfigure}[t]{\linewidth}
-\centering
-\includegraphics[width=0.80\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/surface_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
-\caption{3D surface}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
-\caption{$\Delta$ vs baseline}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_ratio_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
-\caption{Relative gain (\%)}
-\end{subfigure}
-\vspace{0.8em}
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{0pt}
-\includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_gamma_pg_rpe_100m_se3_rmse.png}
-\caption{Interaction heatmap ($\Gamma$)}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\linewidth}
-\centering
-\vspace{2.0em}
-\begin{tabular}{rrrrr}
-\toprule
-I \textbackslash H & 1 & 2 & 5 & 10 \\
-\midrule
-0 & 0.000 & 0.000 & 0.000 & 0.000 \\
-10 & 0.000 & 0.358 & 0.611 & 0.134 \\
-33 & 0.000 & 0.073 & 0.011 & 0.024 \\
-100 & 0.000 & 0.458 & 0.612 & 0.311 \\
-\bottomrule
-\end{tabular}
-\vspace{1.5em}
-\caption{Interaction matrix ($\Gamma$)}
-\end{subfigure}
-\caption{RPE 100m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)).}
-\label{fig:results-rpe-100m-rmse}
+    \centering
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/slices_pg_rpe_100m_se3_rmse.png}
+        \caption{Slices}
+    \end{subfigure}
+    \vspace{0.6em}
+    \begin{subfigure}[t]{\linewidth}
+        \centering
+        \includegraphics[width=0.60\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/surface_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{3D surface}
+    \end{subfigure}
+    \caption{RPE 100m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Slices and Surfaces).}
+    \label{fig:results-rpe-100m-rmse-1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_delta_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{$\Delta$ vs baseline}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_ratio_vs_zed_rpe_100m_se3_pg_rpe_100m_se3_rmse.png}
+        \caption{Relative gain (\%)}
+    \end{subfigure}
+    \vspace{0.8em}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{0pt}
+        \includegraphics[width=\linewidth]{./Experiments/out/metrics_aligned_se3/pg_rpe_100m_se3/rmse/heatmap_gamma_pg_rpe_100m_se3_rmse.png}
+        \caption{Interaction heatmap ($\Gamma$)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \vspace{2.0em}
+        \begin{tabular}{rrrrr}
+            \toprule
+            I \textbackslash H & 1     & 2     & 5     & 10    \\
+            \midrule
+            0                  & 0.000 & 0.000 & 0.000 & 0.000 \\
+            10                 & 0.000 & 0.358 & 0.611 & 0.134 \\
+            33                 & 0.000 & 0.073 & 0.011 & 0.024 \\
+            100                & 0.000 & 0.458 & 0.612 & 0.311 \\
+            \bottomrule
+        \end{tabular}
+        \vspace{1.5em}
+        \caption{Interaction matrix ($\Gamma$)}
+    \end{subfigure}
+    \caption{RPE 100m RMSE improvement field over \((I,H)\) for PG relative to the ZED baseline (aligned SE(3)) (Metric comparisons).}
+    \emph{Positive \(\Delta\) and positive gain (\%) indicate improved performance over the ZED baseline (lower error).}
+    \label{fig:results-rpe-100m-rmse-2}
 \end{figure}
 
 \subsection{Interaction Analysis: Superposition Deviation \(\Gamma(I,H)\)}
 \label{subsec:results_interaction}
 
-The \(\Gamma\) heatmaps and tables embedded in Figures~\ref{fig:results-ape-rmse}--\ref{fig:results-rpe-100m-rmse}
+The \(\Gamma\) heatmaps and tables embedded in Figures~\ref{fig:results-ape-rmse-2}, ~\ref{fig:results-rpe-1m-rmse-2}, and ~\ref{fig:results-rpe-100m-rmse-2}
 allow testing whether the effects of \(I\) and \(H\) combine additively.
 Overall, \(\Gamma(I,H)\) remains moderate across large regions, implying that iteration and history effects often behave near-additively.
 Nevertheless, localized departures from \(\Gamma \approx 0\) indicate metric-dependent interactions:
@@ -281,3 +336,36 @@ The selected headline metrics (APE and short/mid-scale RPE) demonstrate that the
 Improvements are structured over the sweep space, indicating systematic benefit rather than isolated tuning effects.
 The observed patterns also support the interpretation that temporal history \(H\) is a primary stabilizing mechanism,
 while iteration count \(I\) provides secondary refinements with interaction behavior that depends on the metric scale.
+
+\paragraph*{Inference from the fixed-iteration sweep (\(I=100\)).}
+With the PG iteration count fixed at \(I=100\), Fig.~\ref{fig:pg_iter_100_xy_raw} isolates the effect of sweeping the temporal history size \(H\) on the resulting trajectory estimate. As \(H\) increases, the fusion stage benefits from a denser cumulative LiDAR point support, which strengthens the geometric prior used during the PG-guided refinement. This increased geometric conditioning is reflected in the trajectory overlays: configurations with larger \(H\) tend to track the RTK-GNSS reference more consistently and exhibit reduced drift compared to lower-history settings. A particularly indicative qualitative cue is the apparent scale contraction observed in the stereo-only (ZED) SLAM trajectory, which appears shorter relative to the high-history PG setting (e.g., \(H=10\)); this suggests that the LiDAR-supported refinement mitigates scale inconsistency and stabilizes the accumulated motion estimate when sufficient temporal context is available.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_rpy.png}
+        \caption{PG trajectories for iteration 100 over all histories (mode: xy, alignment: raw, view: rpy).}
+        \label{fig:pg_iter_100_xy_raw_rpy}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_xyz.png}
+        \caption{PG trajectories for iteration 100 over all histories (mode: xy, alignment: raw, view: xyz).}
+        \label{fig:pg_iter_100_xy_raw_xyz}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{./Experiments/traj_plots/by_iter/iter_100_histories_vs_gt_xy_raw_trajectories.png}
+        \caption{PG trajectories for iteration 100 over all histories (mode: xy, alignment: raw, view: trajectories).}
+        \label{fig:pg_iter_100_xy_raw_trajectories}
+    \end{subfigure}
+
+    \caption{PG iteration 100 trajectory comparison over all histories (mode: xy, alignment: raw).}
+    \emph{A consistent counterclockwise (CCW) drift observed in the SLAM odometry is attributed to a CCW-biased wheel odometry input, which is used both by the RTAB-Map backend and during LiDAR upsampling.}
+    \label{fig:pg_iter_100_xy_raw}
+\end{figure}
+
+\paragraph*{Interpretation of \(z\)-axis and orientation views (why subfigures~\ref{fig:pg_iter_100_xy_raw_rpy} and~\ref{fig:pg_iter_100_xy_raw_xyz} remain qualitative).}
+Subfigures~\ref{fig:pg_iter_100_xy_raw_rpy} and~\ref{fig:pg_iter_100_xy_raw_xyz} additionally visualize the trajectory in 3D and in an RPY-oriented view; however, these plots should be interpreted as \emph{qualitative diagnostics} rather than strict accuracy comparisons to ground truth. The RTK-GNSS reference provides reliable global position, but does not directly provide full 6-DoF attitude ground truth at comparable fidelity (in particular roll and pitch, and often yaw depending on the GNSS setup). Consequently, deviations in \(z\) and roll/pitch cannot be scored against the same reference in the same way as planar position. Nevertheless, these views are intentionally retained because they help reveal configuration-dependent failure modes (e.g., vertical oscillations, orientation instability, or inconsistent 3D motion) that may correlate with translational drift. For quantitative evaluation, the study therefore relies on position-based trajectory error metrics (APE/RPE) computed from translational components, where the RTK-GNSS reference is directly comparable.
+
