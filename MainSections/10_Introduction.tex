@@ -8,7 +8,7 @@ Bu tez kapsamında, söz konusu gereksinimlere yönelik olarak Papoulis-Gerchber
 
 Tezde sunulan yöntem, derin öğrenme tabanlı modellere kıyasla daha düşük hesaplama maliyetine sahip olduğu için özellikle mobil robotlar, insansız kara araçları veya gömülü sistemlerde çalışan hafif mimarili otonom platformlar için uygun bir çözümdür. Ayrıca, yöntemin parametrik yapısı sayesinde gerçek zamanlı çalışmaya yönelik ayarlamalar yapılabilmekte ve hesaplama yükü–performans dengesi kullanıcı tarafından kontrol edilebilmektedir.
 
-Bu çalışma, yalnızca teorik bir sensör füzyonu tekniği sunmakla kalmamakta; aynı zamanda KITTI gibi yaygın benchmark veri setleri üzerinde test edilerek mevcut yöntemler (örneğin FastFusion) ile karşılaştırılmakta ve performans kazanımları detaylı bir şekilde ortaya konmaktadır. Buna ek olarak, saha testleri için oluşturulan ZED Stereo Kamera, Velodyne VLP16 LiDAR ve NVIDIA Jetson Nano bileşenlerinden oluşan taşınabilir bir sensör platformu ile gerçek veri toplanmış; böylece önerilen yöntemin gerçek dünyadaki çalışma koşullarındaki etkisi de analiz edilmiştir.
+Bu çalışma, yalnızca teorik bir sensör füzyonu tekniği sunmakla kalmamakta; aynı zamanda Citrus Farm gibi veri setleri üzerinde test edilerek performans kazanımları detaylı bir şekilde ortaya konmaktadır. Buna ek olarak, saha testleri için oluşturulan ZED Stereo Kamera, Velodyne VLP16 LiDAR ve NVIDIA Jetson Nano bileşenlerinden oluşan taşınabilir bir sensör platformu ile gerçek zamanlı veri toplanmış; böylece önerilen yöntemin gerçek zamanlı çalışma koşullarındaki etkisi de analiz edilmiştir.
 }
 
 \section{Tezin Kapsamı}
@@ -27,9 +27,9 @@ Algoritmanın görüntü tamamlama problemindeki geleneksel kullanımından fark
 
 LiDAR verileri ankraj noktaları olarak kullanılmış, stereo derinlik haritaları bu bilgiler ışığında tekrar tekrar güncellenmiştir. Amaç, hem çözünürlüğün hem de derinlik doğruluğunun artırılmasıdır.
 
-\subsection{Benchmark Veri Setleri ile Deneysel Analiz}
-
-Önerilen yöntem KITTI veri seti üzerinde değerlendirilmiş; özellikle kenar netliği, nesne sınırı tanımları ve derinlik doğruluğu bakımından literatürdeki yöntemlerle karşılaştırılmıştır.
+%\subsection{Benchmark Veri Setleri ile Deneysel Analiz}
+%
+%Önerilen yöntem KITTI veri seti üzerinde değerlendirilmiş; özellikle kenar netliği, nesne sınırı tanımları ve derinlik doğruluğu bakımından literatürdeki yöntemlerle karşılaştırılmıştır.
 
 \subsection{Gerçek Dünya Deneyleri için Sensör Platformu Kullanımı}
 
@@ -53,8 +53,10 @@ Bu tez, stereo kamera ve LiDAR sensörlerinin füzyonuna yönelik literatüre he
     \item \textbf{Stereo–LiDAR verilerinin uyumu için eksik veri maskeleme, upsampling ve alan eşleştirme adımlarının optimize edilmesi:} Tezde, LiDAR'ın dar dikey tarama açısı ile stereo kameranın geniş görüntü alanı arasındaki farkın giderilmesi için özgün bir ön işleme hattı oluşturulmuş; maskeleme, yeniden örnekleme ve stereo boşluk doldurma adımları sistematik bir biçimde tasarlanmıştır.
     
     \item \textbf{Derin öğrenme gerektirmeyen, düşük işlem gücüyle çalışabilen bir çözüm geliştirilmesi:} Güncel yöntemlerin çoğunda görülen yüksek hesaplama maliyetine karşın, önerilen füzyon yapısının deterministik ve hesaplama açısından hafif olması gerçek zamanlı sistemlerde uygulanabilirliği artırmış; böylece literatürdeki yoğun DNN temelli yaklaşımlara etkili bir alternatif sunulmuştur.
+
+    \item \textbf{Hazır veri seti üzerinde SLAM odometri karşılaştırmaları:} Citrus Farm Veri Seti~\cite{citrus_farm_dataset} ile yapılan çalışmalar ile kendi toplayacağımız verinin hangi formatta olması gerektiği daha iyi tespit edilmiştir. Aynı zamanda bu veri setinin de gerçek veriler içermesi sayesinde algoritmanın gerçek veri üzerinde de iyi sonuçlar verdiği matematiksel kanıtlarla sunulmuştur.
     
-    \item \textbf{Benchmark veri setleri (KITTI) üzerinde kapsamlı performans değerlendirmesi:} Geliştirilen yöntem, KITTI veri seti üzerinde kenar keskinliği, nesne sınırı doğruluğu ve genel derinlik tahmin hatası açısından mevcut yöntemlerle karşılaştırılmış ve özellikle ince detayların korunmasında üstün performans sergilediği gösterilmiştir.
+%    \item \textbf{Benchmark veri setleri (KITTI) üzerinde kapsamlı performans değerlendirmesi:} Geliştirilen yöntem, KITTI veri seti üzerinde kenar keskinliği, nesne sınırı doğruluğu ve genel derinlik tahmin hatası açısından mevcut yöntemlerle karşılaştırılmış ve özellikle ince detayların korunmasında üstün performans sergilediği gösterilmiştir.
     
     \item \textbf{Gerçek veri ile çevrim dışı değerlendirmeler sonucunda uygulama başarımının ortaya konması:} Kurulan sensör sistemiyle toplanan gerçek veriler üzerinde yapılan denemelerde, önerilen füzyon yönteminin çeşitli sensör kaynaklarından gelen ayrık derinlik bilgilerini daha stabil ve düşük hatalı bir şekilde birleştirebildiği deneysel olarak doğrulanmıştır.
 \end{itemize}
